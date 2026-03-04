@@ -1,0 +1,840 @@
+tables:
+  assets:
+    columns:
+      id:
+        type: uuid
+        primary: true
+        nullable: false
+      asset_code:
+        type: string
+        nullable: false
+      name:
+        type: string
+        nullable: false
+      category_id:
+        type: uuid
+        nullable: false
+      opd_id:
+        type: uuid
+        nullable: false
+      room_id:
+        type: uuid
+        nullable: true
+      employee_id:
+        type: uuid
+        nullable: true
+      funding_source_id:
+        type: uuid
+        nullable: true
+      condition:
+        type: enum(AssetConditionEnum)
+        nullable: false
+      purchase_date:
+        type: date
+        nullable: true
+      purchase_price:
+        type: decimal(?,2)
+        nullable: true
+      status:
+        type: enum(AssetStatusEnum)
+        default: active
+        nullable: false
+      qr_id:
+        type: string
+        nullable: false
+      notes:
+        type: text
+        nullable: true
+      created_by:
+        type: uuid
+        nullable: true
+      created_at:
+        type: datetime
+        nullable: true
+      updated_at:
+        type: datetime
+        nullable: true
+      deleted_at:
+        type: datetime
+        nullable: true
+    indexes:
+      - name: assets_asset_code_index
+        columns: [asset_code]
+      - name: assets_asset_code_unique
+        columns: [asset_code]
+        unique: true
+      - name: assets_qr_id_unique
+        columns: [qr_id]
+        unique: true
+      - name: assets_category_id_index
+        columns: [category_id]
+      - name: assets_opd_id_index
+        columns: [opd_id]
+      - name: assets_room_id_index
+        columns: [room_id]
+      - name: assets_condition_index
+        columns: [condition]
+      - name: assets_opd_id_room_id_index
+        columns: [opd_id, room_id]
+    foreign_keys:
+      - column: category_id
+        references: asset_categories.id
+        on_delete: cascade
+      - column: opd_id
+        references: opds.id
+        on_delete: cascade
+      - column: room_id
+        references: rooms.id
+        on_delete: cascade
+      - column: employee_id
+        references: employees.id
+        on_delete: set null
+      - column: funding_source_id
+        references: funding_sources.id
+        on_delete: no action
+      - column: created_by
+        references: users.id
+        on_delete: no action
+
+  asset_categories:
+    columns:
+      id:
+        type: uuid
+        primary: true
+        nullable: false
+      parent_id:
+        type: uuid
+        nullable: true
+      code:
+        type: string
+        nullable: false
+      name:
+        type: string
+        nullable: false
+      useful_life_years:
+        type: integer
+        nullable: true
+      level:
+        type: integer
+        nullable: true
+      created_at:
+        type: datetime
+        nullable: true
+      updated_at:
+        type: datetime
+        nullable: true
+      deleted_at:
+        type: datetime
+        nullable: true
+    foreign_keys:
+      - column: parent_id
+        references: asset_categories.id
+        on_delete: cascade
+
+  asset_proposals:
+    columns:
+      id:
+        type: uuid
+        primary: true
+        nullable: false
+      proposal_number:
+        type: string
+        nullable: false
+      opd_id:
+        type: uuid
+        nullable: false
+      proposed_by:
+        type: uuid
+        nullable: false
+      proposal_date:
+        type: date
+        nullable: false
+      category_id:
+        type: uuid
+        nullable: false
+      item_name:
+        type: string
+        nullable: false
+      specification:
+        type: text
+        nullable: true
+      qty:
+        type: integer
+        nullable: false
+      estimated_price:
+        type: decimal(?,2)
+        nullable: false
+      status:
+        type: enum(ProposalStatusEnum)
+        nullable: false
+      total_estimation:
+        type: decimal(?,2)
+        nullable: false
+      notes:
+        type: text
+        nullable: true
+      created_at:
+        type: datetime
+        nullable: true
+      updated_at:
+        type: datetime
+        nullable: true
+    indexes:
+      - name: asset_proposals_proposal_number_unique
+        columns: [proposal_number]
+        unique: true
+    foreign_keys:
+      - column: opd_id
+        references: opds.id
+        on_delete: cascade
+      - column: proposed_by
+        references: users.id
+        on_delete: cascade
+      - column: category_id
+        references: asset_categories.id
+        on_delete: cascade
+
+  asset_maintenances:
+    columns:
+      id:
+        type: uuid
+        primary: true
+        nullable: false
+      asset_id:
+        type: uuid
+        nullable: false
+      maintenance_type:
+        type: string
+        nullable: false
+      scheduled_date:
+        type: date
+        nullable: true
+      completed_date:
+        type: date
+        nullable: true
+      cost:
+        type: decimal(?,2)
+        nullable: true
+      vendor:
+        type: string
+        nullable: true
+      description:
+        type: text
+        nullable: true
+      status:
+        type: enum(MaintenanceStatusEnum)
+        nullable: false
+      created_by:
+        type: uuid
+        nullable: false
+      notification_sent_at:
+        type: datetime
+        nullable: true
+      condition_before:
+        type: enum(AssetConditionEnum)
+        nullable: true
+      condition_after:
+        type: enum(AssetConditionEnum)
+        nullable: true
+      created_at:
+        type: datetime
+        nullable: true
+      updated_at:
+        type: datetime
+        nullable: true
+    indexes:
+      - name: asset_maintenances_notification_sent_at_index
+        columns: [notification_sent_at]
+    foreign_keys:
+      - column: asset_id
+        references: assets.id
+        on_delete: cascade
+      - column: created_by
+        references: users.id
+        on_delete: cascade
+
+  asset_maintenance_logs:
+    columns:
+      id:
+        type: uuid
+        primary: true
+        nullable: false
+      maintenance_id:
+        type: uuid
+        nullable: false
+      notes:
+        type: text
+        nullable: false
+      performed_by:
+        type: uuid
+        nullable: true
+      created_at:
+        type: datetime
+        nullable: true
+    foreign_keys:
+      - column: maintenance_id
+        references: asset_maintenances.id
+        on_delete: cascade
+      - column: performed_by
+        references: users.id
+        on_delete: set null
+
+  asset_histories:
+    columns:
+      id:
+        type: uuid
+        primary: true
+        nullable: false
+      asset_id:
+        type: uuid
+        nullable: false
+      action:
+        type: enum(AssetHistoryActionEnum)
+        nullable: false
+      data_before:
+        type: json
+        nullable: true
+      data_after:
+        type: json
+        nullable: true
+      performed_by:
+        type: uuid
+        nullable: true
+      created_at:
+        type: datetime
+        nullable: true
+    foreign_keys:
+      - column: asset_id
+        references: assets.id
+        on_delete: cascade
+      - column: performed_by
+        references: users.id
+        on_delete: set null
+
+  asset_additional_infos:
+    columns:
+      id:
+        type: uuid
+        primary: true
+        nullable: false
+      asset_id:
+        type: uuid
+        nullable: false
+      manufacturer:
+        type: string
+        nullable: true
+      model:
+        type: string
+        nullable: true
+      serial_number:
+        type: string
+        nullable: true
+      warranty_expiry_date:
+        type: date
+        nullable: true
+      purchase_document_number:
+        type: string
+        nullable: true
+      extra_notes:
+        type: text
+        nullable: true
+      created_by:
+        type: uuid
+        nullable: true
+      created_at:
+        type: datetime
+        nullable: true
+      updated_at:
+        type: datetime
+        nullable: true
+    indexes:
+      - name: asset_additional_infos_asset_id_unique
+        columns: [asset_id]
+        unique: true
+      - name: asset_additional_infos_serial_number_index
+        columns: [serial_number]
+    foreign_keys:
+      - column: asset_id
+        references: assets.id
+        on_delete: cascade
+      - column: created_by
+        references: users.id
+        on_delete: set null
+
+  disposal_documents:
+    columns:
+      id:
+        type: uuid
+        primary: true
+        nullable: false
+      disposal_number:
+        type: string
+        nullable: false
+      opd_id:
+        type: uuid
+        nullable: false
+      disposal_type:
+        type: enum(DisposalTypeEnum)
+        nullable: false
+      disposal_date:
+        type: date
+        nullable: false
+      created_by:
+        type: uuid
+        nullable: false
+      notes:
+        type: text
+        nullable: true
+      document_path:
+        type: string
+        nullable: true
+      created_at:
+        type: datetime
+        nullable: true
+      updated_at:
+        type: datetime
+        nullable: true
+      deleted_at:
+        type: datetime
+        nullable: true
+    indexes:
+      - name: disposal_documents_disposal_number_unique
+        columns: [disposal_number]
+        unique: true
+    foreign_keys:
+      - column: opd_id
+        references: opds.id
+        on_delete: cascade
+      - column: created_by
+        references: users.id
+        on_delete: cascade
+
+  disposal_items:
+    columns:
+      id:
+        type: uuid
+        primary: true
+        nullable: false
+      disposal_document_id:
+        type: uuid
+        nullable: false
+      asset_id:
+        type: uuid
+        nullable: false
+      reason:
+        type: text
+        nullable: false
+      condition_at_disposal:
+        type: enum(AssetConditionEnum)
+        nullable: false
+      created_at:
+        type: datetime
+        nullable: true
+      updated_at:
+        type: datetime
+        nullable: true
+    foreign_keys:
+      - column: disposal_document_id
+        references: disposal_documents.id
+        on_delete: cascade
+      - column: asset_id
+        references: assets.id
+        on_delete: cascade
+
+  transfer_requests:
+    columns:
+      id:
+        type: uuid
+        primary: true
+        nullable: false
+      transfer_number:
+        type: string
+        nullable: false
+      type:
+        type: enum(TransferTypeEnum)
+        nullable: false
+      from_opd_id:
+        type: uuid
+        nullable: false
+      to_opd_id:
+        type: uuid
+        nullable: false
+      status:
+        type: enum(TransferStatusEnum)
+        default: pending
+        nullable: false
+      requested_by:
+        type: uuid
+        nullable: false
+      approved_by:
+        type: uuid
+        nullable: true
+      requested_at:
+        type: datetime
+        nullable: false
+      approved_at:
+        type: datetime
+        nullable: true
+      completed_at:
+        type: datetime
+        nullable: true
+      notes:
+        type: text
+        nullable: true
+      created_at:
+        type: datetime
+        nullable: true
+      updated_at:
+        type: datetime
+        nullable: true
+      deleted_at:
+        type: datetime
+        nullable: true
+    indexes:
+      - name: transfer_requests_status_index
+        columns: [status]
+      - name: transfer_requests_from_opd_id_index
+        columns: [from_opd_id]
+      - name: transfer_requests_to_opd_id_index
+        columns: [to_opd_id]
+      - name: transfer_requests_from_opd_id_to_opd_id_index
+        columns: [from_opd_id, to_opd_id]
+      - name: transfer_requests_transfer_number_unique
+        columns: [transfer_number]
+        unique: true
+    foreign_keys:
+      - column: from_opd_id
+        references: opds.id
+        on_delete: cascade
+      - column: to_opd_id
+        references: opds.id
+        on_delete: cascade
+      - column: requested_by
+        references: users.id
+        on_delete: cascade
+      - column: approved_by
+        references: users.id
+        on_delete: set null
+
+  transfer_items:
+    columns:
+      id:
+        type: uuid
+        primary: true
+        nullable: false
+      transfer_request_id:
+        type: uuid
+        nullable: false
+      asset_id:
+        type: uuid
+        nullable: false
+      from_room_id:
+        type: uuid
+        nullable: true
+      to_room_id:
+        type: uuid
+        nullable: true
+      created_at:
+        type: datetime
+        nullable: true
+      updated_at:
+        type: datetime
+        nullable: true
+    indexes:
+      - name: transfer_items_transfer_request_id_index
+        columns: [transfer_request_id]
+      - name: transfer_items_asset_id_index
+        columns: [asset_id]
+    foreign_keys:
+      - column: transfer_request_id
+        references: transfer_requests.id
+        on_delete: cascade
+      - column: asset_id
+        references: assets.id
+        on_delete: cascade
+      - column: from_room_id
+        references: rooms.id
+        on_delete: set null
+      - column: to_room_id
+        references: rooms.id
+        on_delete: set null
+
+  opds:
+    columns:
+      id:
+        type: uuid
+        primary: true
+        nullable: false
+      name:
+        type: string
+        nullable: false
+      code:
+        type: string
+        nullable: false
+      email:
+        type: string
+        nullable: true
+      address:
+        type: text
+        nullable: true
+      phone:
+        type: string
+        nullable: true
+      head_id:
+        type: uuid
+        nullable: true
+      status:
+        type: enum(StatusEnum)
+        nullable: false
+      created_at:
+        type: datetime
+        nullable: true
+      updated_at:
+        type: datetime
+        nullable: true
+    foreign_keys:
+      - column: head_id
+        references: employees.id
+        on_delete: set null
+
+  rooms:
+    columns:
+      id:
+        type: uuid
+        primary: true
+        nullable: false
+      opd_id:
+        type: uuid
+        nullable: false
+      code:
+        type: string
+        nullable: false
+      name:
+        type: string
+        nullable: false
+      qr_id:
+        type: string
+        nullable: false
+      created_at:
+        type: datetime
+        nullable: true
+      updated_at:
+        type: datetime
+        nullable: true
+      deleted_at:
+        type: datetime
+        nullable: true
+    indexes:
+      - name: rooms_qr_id_unique
+        columns: [qr_id]
+        unique: true
+    foreign_keys:
+      - column: opd_id
+        references: opds.id
+        on_delete: cascade
+
+  employees:
+    columns:
+      id:
+        type: uuid
+        primary: true
+        nullable: false
+      opd_id:
+        type: uuid
+        nullable: false
+      name:
+        type: string
+        nullable: false
+      email:
+        type: string
+        nullable: true
+      phone:
+        type: string
+        nullable: true
+      position:
+        type: string
+        nullable: true
+      status:
+        type: enum(StatusEnum)
+        nullable: false
+      created_at:
+        type: datetime
+        nullable: true
+      updated_at:
+        type: datetime
+        nullable: true
+    foreign_keys:
+      - column: opd_id
+        references: opds.id
+        on_delete: cascade
+
+  funding_sources:
+    columns:
+      id:
+        type: uuid
+        primary: true
+        nullable: false
+      name:
+        type: string
+        nullable: false
+      status:
+        type: enum(StatusEnum)
+        default: active
+        nullable: false
+      description:
+        type: text
+        nullable: true
+      created_at:
+        type: datetime
+        nullable: true
+      updated_at:
+        type: datetime
+        nullable: true
+      deleted_at:
+        type: datetime
+        nullable: true
+    indexes:
+      - name: funding_sources_name_unique
+        columns: [name]
+        unique: true
+
+  users:
+    columns:
+      id:
+        type: uuid
+        primary: true
+        nullable: false
+      name:
+        type: string
+        nullable: false
+      email:
+        type: string
+        nullable: false
+      password:
+        type: string
+        nullable: false
+      employee_id:
+        type: uuid
+        nullable: true
+      is_active:
+        type: boolean
+        default: true
+        nullable: false
+      has_all_opds:
+        type: boolean
+        default: false
+        nullable: false
+      email_verified_at:
+        type: datetime
+        nullable: true
+      remember_token:
+        type: string
+        nullable: true
+      created_at:
+        type: datetime
+        nullable: true
+      updated_at:
+        type: datetime
+        nullable: true
+    indexes:
+      - name: users_email_unique
+        columns: [email]
+        unique: true
+    foreign_keys:
+      - column: employee_id
+        references: employees.id
+        on_delete: set null
+
+  roles:
+    columns:
+      id:
+        type: uuid
+        primary: true
+        nullable: false
+      name:
+        type: string
+        nullable: false
+      guard_name:
+        type: string
+        nullable: false
+      created_at:
+        type: datetime
+        nullable: true
+      updated_at:
+        type: datetime
+        nullable: true
+
+  permissions:
+    columns:
+      id:
+        type: uuid
+        primary: true
+        nullable: false
+      name:
+        type: string
+        nullable: false
+      guard_name:
+        type: string
+        nullable: false
+      created_at:
+        type: datetime
+        nullable: true
+      updated_at:
+        type: datetime
+        nullable: true
+
+  role_has_permissions:
+    columns:
+      permission_id:
+        type: uuid
+        primary: true
+        nullable: false
+      role_id:
+        type: uuid
+        primary: true
+        nullable: false
+    foreign_keys:
+      - column: permission_id
+        references: permissions.id
+        on_delete: cascade
+      - column: role_id
+        references: roles.id
+        on_delete: cascade
+
+  model_has_roles:
+    columns:
+      role_id:
+        type: uuid
+        primary: true
+        nullable: false
+      model_type:
+        type: string
+        primary: true
+        nullable: false
+      model_id:
+        type: uuid
+        primary: true
+        nullable: false
+    foreign_keys:
+      - column: role_id
+        references: roles.id
+        on_delete: cascade
+
+  model_has_permissions:
+    columns:
+      permission_id:
+        type: uuid
+        primary: true
+        nullable: false
+      model_type:
+        type: string
+        primary: true
+        nullable: false
+      model_id:
+        type: uuid
+        primary: true
+        nullable: false
+    foreign_keys:
+      - column: permission_id
+        references: permissions.id
+        on_delete: cascade
