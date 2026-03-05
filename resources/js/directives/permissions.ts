@@ -92,3 +92,58 @@ export const WHATSAPP_CONFIG_PERMISSIONS = {
     VIEW: 'view_whatsapp_config',
     MANAGE: 'manage_whatsapp_config',
 } as const;
+
+// Gym Management
+export const CUSTOMER_PERMISSIONS = {
+    VIEW: 'view_customers',
+    CREATE: 'create_customers',
+    EDIT: 'edit_customers',
+    DELETE: 'delete_customers',
+} as const;
+
+export const MEMBERSHIP_PACKAGE_PERMISSIONS = {
+    VIEW: 'view_membership_packages',
+    CREATE: 'create_membership_packages',
+    EDIT: 'edit_membership_packages',
+    DELETE: 'delete_membership_packages',
+} as const;
+
+export const MEMBERSHIP_PACKAGE_ITEM_PERMISSIONS = {
+    VIEW: 'view_membership_package_items',
+    CREATE: 'create_membership_package_items',
+    EDIT: 'edit_membership_package_items',
+    DELETE: 'delete_membership_package_items',
+} as const;
+
+export const MEMBERSHIP_TRANSACTION_PERMISSIONS = {
+    VIEW: 'view_membership_transactions',
+    CREATE: 'create_membership_transactions',
+    EDIT: 'edit_membership_transactions',
+    DELETE: 'delete_membership_transactions',
+} as const;
+
+export const VISIT_PERMISSIONS = {
+    VIEW: 'view_visits',
+    CREATE: 'create_visits',
+    EDIT: 'edit_visits',
+    DELETE: 'delete_visits',
+} as const;
+
+export const PRODUCT_PERMISSIONS = {
+    VIEW: 'view_products',
+    CREATE: 'create_products',
+    EDIT: 'edit_products',
+    DELETE: 'delete_products',
+} as const;
+
+export const STOCK_MOVEMENT_PERMISSIONS = {
+    VIEW: 'view_stock_movements',
+    CREATE: 'create_stock_movements',
+    DELETE: 'delete_stock_movements',
+} as const;
+
+export const SALE_PERMISSIONS = {
+    VIEW: 'view_sales',
+    CREATE: 'create_sales',
+    DELETE: 'delete_sales',
+} as const;

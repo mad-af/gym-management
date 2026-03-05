@@ -194,6 +194,14 @@ import {
     ASSET_PROPOSAL_PERMISSIONS,
     ROOM_INVENTORY_PERMISSIONS,
     WHATSAPP_CONFIG_PERMISSIONS,
+    CUSTOMER_PERMISSIONS,
+    MEMBERSHIP_PACKAGE_PERMISSIONS,
+    MEMBERSHIP_PACKAGE_ITEM_PERMISSIONS,
+    MEMBERSHIP_TRANSACTION_PERMISSIONS,
+    VISIT_PERMISSIONS,
+    PRODUCT_PERMISSIONS,
+    STOCK_MOVEMENT_PERMISSIONS,
+    SALE_PERMISSIONS,
 } from '@/directives/permissions';
 import {
     LayoutDashboardIcon,
@@ -210,6 +218,8 @@ import {
     MoreDots,
     ChevronDownIcon,
     LayersIcon,
+    BarChartIcon,
+    GridIcon,
 } from '../../icons';
 
 const page = usePage();
@@ -344,6 +354,80 @@ const menuGroups = ref<MenuGroup[]>([
                 name: 'Pengaturan WhatsApp',
                 path: '/whatsapp-config',
                 permission: WHATSAPP_CONFIG_PERMISSIONS.VIEW,
+            },
+        ],
+    },
+    {
+        title: 'Gym',
+        items: [
+            {
+                icon: UserGroupIcon,
+                name: 'Customers',
+                path: '/gym/customers',
+                permission: CUSTOMER_PERMISSIONS.VIEW,
+            },
+            {
+                icon: PackageIcon,
+                name: 'Membership',
+                permission: [
+                    MEMBERSHIP_PACKAGE_PERMISSIONS.VIEW,
+                    MEMBERSHIP_PACKAGE_ITEM_PERMISSIONS.VIEW,
+                    MEMBERSHIP_TRANSACTION_PERMISSIONS.VIEW,
+                ],
+                subItems: [
+                    {
+                        name: 'Packages',
+                        path: '/gym/membership/packages',
+                    },
+                    {
+                        name: 'Package Items',
+                        path: '/gym/membership/items',
+                    },
+                    {
+                        name: 'Transactions',
+                        path: '/gym/membership/transactions',
+                    },
+                ],
+            },
+            {
+                icon: DoorOpenIcon,
+                name: 'Visits / Check In',
+                path: '/gym/visits',
+                permission: VISIT_PERMISSIONS.VIEW,
+            },
+            {
+                icon: GridIcon,
+                name: 'Inventory',
+                permission: [
+                    PRODUCT_PERMISSIONS.VIEW,
+                    STOCK_MOVEMENT_PERMISSIONS.VIEW,
+                ],
+                subItems: [
+                    {
+                        name: 'Products',
+                        path: '/gym/inventory/products',
+                    },
+                    {
+                        name: 'Stock Movements',
+                        path: '/gym/inventory/stock-movements',
+                    },
+                ],
+            },
+            {
+                icon: BanknoteIcon,
+                name: 'Sales',
+                path: '/gym/sales',
+                permission: SALE_PERMISSIONS.VIEW,
+            },
+            {
+                icon: BarChartIcon,
+                name: 'Reports',
+                subItems: [
+                    { name: 'Daily Revenue', path: '/gym/reports/daily-revenue' },
+                    { name: 'Visit Report', path: '/gym/reports/visits' },
+                    { name: 'Membership Report', path: '/gym/reports/memberships' },
+                    { name: 'Product Sales', path: '/gym/reports/product-sales' },
+                ],
             },
         ],
     },

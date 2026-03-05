@@ -387,7 +387,7 @@ enum Permission: string
             self::VIEW_STOCK_MOVEMENTS => 'Lihat Pergerakan Stok',
             self::CREATE_STOCK_MOVEMENTS => 'Tambah Pergerakan Stok',
             self::DELETE_STOCK_MOVEMENTS => 'Hapus Pergerakan Stok',
-            
+
             self::VIEW_SALES => 'Lihat Penjualan',
             self::CREATE_SALES => 'Tambah Penjualan',
             self::DELETE_SALES => 'Hapus Penjualan',
