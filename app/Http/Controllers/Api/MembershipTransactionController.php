@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\Permission;
 use App\Helpers\ApiResponse;
 use App\Http\Requests\StoreMembershipTransactionRequest;
 use App\Http\Requests\UpdateMembershipTransactionRequest;
@@ -15,6 +16,10 @@ class MembershipTransactionController extends Controller
     public function __construct(protected MembershipTransactionService $service)
     {
         $this->middleware(['auth:web']);
+        $this->middleware('permission:'.Permission::VIEW_MEMBERSHIP_TRANSACTIONS->value)->only(['index', 'show']);
+        $this->middleware('permission:'.Permission::CREATE_MEMBERSHIP_TRANSACTIONS->value)->only(['store']);
+        $this->middleware('permission:'.Permission::EDIT_MEMBERSHIP_TRANSACTIONS->value)->only(['update']);
+        $this->middleware('permission:'.Permission::DELETE_MEMBERSHIP_TRANSACTIONS->value)->only(['destroy']);
     }
 
     public function index(Request $request)

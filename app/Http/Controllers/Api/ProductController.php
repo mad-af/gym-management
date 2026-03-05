@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\Permission;
 use App\Helpers\ApiResponse;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
@@ -15,6 +16,10 @@ class ProductController extends Controller
     public function __construct(protected ProductService $service)
     {
         $this->middleware(['auth:web']);
+        $this->middleware('permission:'.Permission::VIEW_PRODUCTS->value)->only(['index', 'show', 'selection']);
+        $this->middleware('permission:'.Permission::CREATE_PRODUCTS->value)->only(['store']);
+        $this->middleware('permission:'.Permission::EDIT_PRODUCTS->value)->only(['update']);
+        $this->middleware('permission:'.Permission::DELETE_PRODUCTS->value)->only(['destroy']);
     }
 
     public function index(Request $request)

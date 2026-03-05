@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\Permission;
 use App\Helpers\ApiResponse;
 use App\Http\Requests\StoreMembershipPackageRequest;
 use App\Http\Requests\UpdateMembershipPackageRequest;
@@ -15,6 +16,10 @@ class MembershipPackageController extends Controller
     public function __construct(protected MembershipPackageService $service)
     {
         $this->middleware(['auth:web']);
+        $this->middleware('permission:'.Permission::VIEW_MEMBERSHIP_PACKAGES->value)->only(['index', 'show', 'selection']);
+        $this->middleware('permission:'.Permission::CREATE_MEMBERSHIP_PACKAGES->value)->only(['store']);
+        $this->middleware('permission:'.Permission::EDIT_MEMBERSHIP_PACKAGES->value)->only(['update']);
+        $this->middleware('permission:'.Permission::DELETE_MEMBERSHIP_PACKAGES->value)->only(['destroy']);
     }
 
     public function index(Request $request)

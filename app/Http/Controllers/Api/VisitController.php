@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\Permission;
 use App\Helpers\ApiResponse;
 use App\Http\Requests\StoreVisitRequest;
 use App\Http\Requests\UpdateVisitRequest;
@@ -15,6 +16,10 @@ class VisitController extends Controller
     public function __construct(protected VisitService $service)
     {
         $this->middleware(['auth:web']);
+        $this->middleware('permission:'.Permission::VIEW_VISITS->value)->only(['index', 'show']);
+        $this->middleware('permission:'.Permission::CREATE_VISITS->value)->only(['store']);
+        $this->middleware('permission:'.Permission::EDIT_VISITS->value)->only(['update']);
+        $this->middleware('permission:'.Permission::DELETE_VISITS->value)->only(['destroy']);
     }
 
     public function index(Request $request)

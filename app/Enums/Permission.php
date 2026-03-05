@@ -82,6 +82,52 @@ enum Permission: string
     case VIEW_ROOM_INVENTORY = 'view_room_inventory';
     case GENERATE_ROOM_INVENTORY_PDF = 'generate_room_inventory_pdf';
 
+    // Gym: Customers
+    case VIEW_CUSTOMERS = 'view_customers';
+    case CREATE_CUSTOMERS = 'create_customers';
+    case EDIT_CUSTOMERS = 'edit_customers';
+    case DELETE_CUSTOMERS = 'delete_customers';
+
+    // Gym: Membership Packages
+    case VIEW_MEMBERSHIP_PACKAGES = 'view_membership_packages';
+    case CREATE_MEMBERSHIP_PACKAGES = 'create_membership_packages';
+    case EDIT_MEMBERSHIP_PACKAGES = 'edit_membership_packages';
+    case DELETE_MEMBERSHIP_PACKAGES = 'delete_membership_packages';
+
+    // Gym: Membership Package Items
+    case VIEW_MEMBERSHIP_PACKAGE_ITEMS = 'view_membership_package_items';
+    case CREATE_MEMBERSHIP_PACKAGE_ITEMS = 'create_membership_package_items';
+    case EDIT_MEMBERSHIP_PACKAGE_ITEMS = 'edit_membership_package_items';
+    case DELETE_MEMBERSHIP_PACKAGE_ITEMS = 'delete_membership_package_items';
+
+    // Gym: Membership Transactions
+    case VIEW_MEMBERSHIP_TRANSACTIONS = 'view_membership_transactions';
+    case CREATE_MEMBERSHIP_TRANSACTIONS = 'create_membership_transactions';
+    case EDIT_MEMBERSHIP_TRANSACTIONS = 'edit_membership_transactions';
+    case DELETE_MEMBERSHIP_TRANSACTIONS = 'delete_membership_transactions';
+
+    // Gym: Visits
+    case VIEW_VISITS = 'view_visits';
+    case CREATE_VISITS = 'create_visits';
+    case EDIT_VISITS = 'edit_visits';
+    case DELETE_VISITS = 'delete_visits';
+
+    // Gym: Products
+    case VIEW_PRODUCTS = 'view_products';
+    case CREATE_PRODUCTS = 'create_products';
+    case EDIT_PRODUCTS = 'edit_products';
+    case DELETE_PRODUCTS = 'delete_products';
+
+    // Gym: Stock Movements
+    case VIEW_STOCK_MOVEMENTS = 'view_stock_movements';
+    case CREATE_STOCK_MOVEMENTS = 'create_stock_movements';
+    case DELETE_STOCK_MOVEMENTS = 'delete_stock_movements';
+
+    // Gym: Sales
+    case VIEW_SALES = 'view_sales';
+    case CREATE_SALES = 'create_sales';
+    case DELETE_SALES = 'delete_sales';
+
     // Whatsapp Config
     case VIEW_WHATSAPP_CONFIG = 'view_whatsapp_config';
     case MANAGE_WHATSAPP_CONFIG = 'manage_whatsapp_config';
@@ -175,6 +221,52 @@ enum Permission: string
                 self::VIEW_ROOM_INVENTORY,
                 self::GENERATE_ROOM_INVENTORY_PDF,
             ],
+            'Manajemen Pelanggan' => [
+                self::VIEW_CUSTOMERS,
+                self::CREATE_CUSTOMERS,
+                self::EDIT_CUSTOMERS,
+                self::DELETE_CUSTOMERS,
+            ],
+            'Manajemen Paket Membership' => [
+                self::VIEW_MEMBERSHIP_PACKAGES,
+                self::CREATE_MEMBERSHIP_PACKAGES,
+                self::EDIT_MEMBERSHIP_PACKAGES,
+                self::DELETE_MEMBERSHIP_PACKAGES,
+            ],
+            'Manajemen Item Paket Membership' => [
+                self::VIEW_MEMBERSHIP_PACKAGE_ITEMS,
+                self::CREATE_MEMBERSHIP_PACKAGE_ITEMS,
+                self::EDIT_MEMBERSHIP_PACKAGE_ITEMS,
+                self::DELETE_MEMBERSHIP_PACKAGE_ITEMS,
+            ],
+            'Manajemen Transaksi Membership' => [
+                self::VIEW_MEMBERSHIP_TRANSACTIONS,
+                self::CREATE_MEMBERSHIP_TRANSACTIONS,
+                self::EDIT_MEMBERSHIP_TRANSACTIONS,
+                self::DELETE_MEMBERSHIP_TRANSACTIONS,
+            ],
+            'Manajemen Kunjungan' => [
+                self::VIEW_VISITS,
+                self::CREATE_VISITS,
+                self::EDIT_VISITS,
+                self::DELETE_VISITS,
+            ],
+            'Manajemen Produk' => [
+                self::VIEW_PRODUCTS,
+                self::CREATE_PRODUCTS,
+                self::EDIT_PRODUCTS,
+                self::DELETE_PRODUCTS,
+            ],
+            'Manajemen Pergerakan Stok' => [
+                self::VIEW_STOCK_MOVEMENTS,
+                self::CREATE_STOCK_MOVEMENTS,
+                self::DELETE_STOCK_MOVEMENTS,
+            ],
+            'Manajemen Penjualan' => [
+                self::VIEW_SALES,
+                self::CREATE_SALES,
+                self::DELETE_SALES,
+            ],
         ];
 
         return collect($groups)->map(function ($permissions, $group) {
@@ -261,6 +353,44 @@ enum Permission: string
 
             self::VIEW_WHATSAPP_CONFIG => 'Lihat Konfigurasi WhatsApp',
             self::MANAGE_WHATSAPP_CONFIG => 'Kelola Konfigurasi WhatsApp',
+
+            self::VIEW_CUSTOMERS => 'Lihat Pelanggan',
+            self::CREATE_CUSTOMERS => 'Tambah Pelanggan',
+            self::EDIT_CUSTOMERS => 'Edit Pelanggan',
+            self::DELETE_CUSTOMERS => 'Hapus Pelanggan',
+
+            self::VIEW_MEMBERSHIP_PACKAGES => 'Lihat Paket Membership',
+            self::CREATE_MEMBERSHIP_PACKAGES => 'Tambah Paket Membership',
+            self::EDIT_MEMBERSHIP_PACKAGES => 'Edit Paket Membership',
+            self::DELETE_MEMBERSHIP_PACKAGES => 'Hapus Paket Membership',
+
+            self::VIEW_MEMBERSHIP_PACKAGE_ITEMS => 'Lihat Item Paket Membership',
+            self::CREATE_MEMBERSHIP_PACKAGE_ITEMS => 'Tambah Item Paket Membership',
+            self::EDIT_MEMBERSHIP_PACKAGE_ITEMS => 'Edit Item Paket Membership',
+            self::DELETE_MEMBERSHIP_PACKAGE_ITEMS => 'Hapus Item Paket Membership',
+
+            self::VIEW_MEMBERSHIP_TRANSACTIONS => 'Lihat Transaksi Membership',
+            self::CREATE_MEMBERSHIP_TRANSACTIONS => 'Tambah Transaksi Membership',
+            self::EDIT_MEMBERSHIP_TRANSACTIONS => 'Edit Transaksi Membership',
+            self::DELETE_MEMBERSHIP_TRANSACTIONS => 'Hapus Transaksi Membership',
+
+            self::VIEW_VISITS => 'Lihat Kunjungan',
+            self::CREATE_VISITS => 'Tambah Kunjungan',
+            self::EDIT_VISITS => 'Edit Kunjungan',
+            self::DELETE_VISITS => 'Hapus Kunjungan',
+
+            self::VIEW_PRODUCTS => 'Lihat Produk',
+            self::CREATE_PRODUCTS => 'Tambah Produk',
+            self::EDIT_PRODUCTS => 'Edit Produk',
+            self::DELETE_PRODUCTS => 'Hapus Produk',
+
+            self::VIEW_STOCK_MOVEMENTS => 'Lihat Pergerakan Stok',
+            self::CREATE_STOCK_MOVEMENTS => 'Tambah Pergerakan Stok',
+            self::DELETE_STOCK_MOVEMENTS => 'Hapus Pergerakan Stok',
+            
+            self::VIEW_SALES => 'Lihat Penjualan',
+            self::CREATE_SALES => 'Tambah Penjualan',
+            self::DELETE_SALES => 'Hapus Penjualan',
         };
     }
 }

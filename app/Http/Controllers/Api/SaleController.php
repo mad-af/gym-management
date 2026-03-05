@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\Permission;
 use App\Helpers\ApiResponse;
 use App\Http\Requests\StoreSaleRequest;
 use App\Models\Sale;
@@ -14,6 +15,9 @@ class SaleController extends Controller
     public function __construct(protected SaleService $service)
     {
         $this->middleware(['auth:web']);
+        $this->middleware('permission:'.Permission::VIEW_SALES->value)->only(['index', 'show']);
+        $this->middleware('permission:'.Permission::CREATE_SALES->value)->only(['store']);
+        $this->middleware('permission:'.Permission::DELETE_SALES->value)->only(['destroy']);
     }
 
     public function index(Request $request)

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\Permission;
 use App\Helpers\ApiResponse;
 use App\Http\Requests\StoreStockMovementRequest;
 use App\Models\StockMovement;
@@ -14,6 +15,9 @@ class StockMovementController extends Controller
     public function __construct(protected StockMovementService $service)
     {
         $this->middleware(['auth:web']);
+        $this->middleware('permission:'.Permission::VIEW_STOCK_MOVEMENTS->value)->only(['index', 'show']);
+        $this->middleware('permission:'.Permission::CREATE_STOCK_MOVEMENTS->value)->only(['store']);
+        $this->middleware('permission:'.Permission::DELETE_STOCK_MOVEMENTS->value)->only(['destroy']);
     }
 
     public function index(Request $request)
