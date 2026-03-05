@@ -5,10 +5,18 @@ use App\Http\Controllers\Api\AssetEmployeeController;
 use App\Http\Controllers\Api\AssetHistoryController;
 use App\Http\Controllers\Api\AssetProposalController;
 use App\Http\Controllers\Api\CurrentOpdController;
+use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\DisposalController;
 use App\Http\Controllers\Api\FundingSourceController;
+use App\Http\Controllers\Api\MembershipPackageController;
+use App\Http\Controllers\Api\MembershipPackageItemController;
+use App\Http\Controllers\Api\MembershipTransactionController;
+use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\SaleController;
+use App\Http\Controllers\Api\StockMovementController;
 use App\Http\Controllers\Api\TransferController;
+use App\Http\Controllers\Api\VisitController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\PublicAssetController;
 use App\Http\Controllers\PublicRoomInventoryController;
@@ -42,6 +50,9 @@ Route::middleware(['auth:web'])->group(function () {
     Route::get('assets/selection', [App\Http\Controllers\Api\AssetController::class, 'selection']);
     Route::get('asset-categories/selection', [App\Http\Controllers\Api\AssetCategoryController::class, 'selection']);
     Route::get('funding-sources/selection', [FundingSourceController::class, 'selection']);
+    Route::get('customers/selection', [CustomerController::class, 'selection']);
+    Route::get('membership-packages/selection', [MembershipPackageController::class, 'selection']);
+    Route::get('products/selection', [ProductController::class, 'selection']);
 
     Route::post('current-opd', [CurrentOpdController::class, 'update']);
 
@@ -116,5 +127,13 @@ Route::middleware(['auth:web'])->group(function () {
     Route::apiResource('assets', App\Http\Controllers\Api\AssetController::class);
     Route::apiResource('asset-categories', App\Http\Controllers\Api\AssetCategoryController::class);
     Route::apiResource('funding-sources', FundingSourceController::class);
+    Route::apiResource('customers', CustomerController::class);
+    Route::apiResource('membership-packages', MembershipPackageController::class);
+    Route::apiResource('membership-package-items', MembershipPackageItemController::class);
+    Route::apiResource('membership-transactions', MembershipTransactionController::class);
+    Route::apiResource('visits', VisitController::class);
+    Route::apiResource('products', ProductController::class);
+    Route::apiResource('stock-movements', StockMovementController::class)->only(['index', 'store', 'show', 'destroy']);
+    Route::apiResource('sales', SaleController::class)->only(['index', 'store', 'show', 'destroy']);
 
 });
