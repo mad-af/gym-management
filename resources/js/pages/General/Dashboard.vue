@@ -17,16 +17,13 @@
 
             <div class="col-span-12 xl:col-span-4">
                 <TopPagesCard :title="'Mutasi Aset Eksternal Pending'" :loading="transferSummaryLoading"
-                    :items="transferSummaryItems" :empty-text="'Belum ada mutasi aset eksternal pending.'"
-                    :see-all-url="'/asset-management/transfers?status=pending&type=external'"
-                    :see-all-label="'Lihat semua mutasi'" />
+                    :items="transferSummaryItems" :empty-text="'Belum ada mutasi aset eksternal pending.'" />
             </div>
 
             <div class="col-span-12 xl:col-span-8">
                 <AnalyticsTableDynamic title="Perawatan Aset Terbaru"
                     subtitle="Jadwal dan status perawatan aset terbaru di OPD ini" :columns="maintenanceColumns"
-                    :rows="maintenanceRows" :row-key="'id'" see-all-url="/maintenance"
-                    @rowClick="goToMaintenanceDetail">
+                    :rows="maintenanceRows" :row-key="'id'" @rowClick="goToMaintenanceDetail">
                     <template #cell-asset_display="{ row }">
                         <div class="flex items-center gap-3">
                             <div
@@ -62,8 +59,7 @@
 
             <div class="col-span-12 xl:col-span-8">
                 <AnalyticsTableDynamic title="Usulan Aset Terbaru" subtitle="Ringkasan usulan aset terbaru di OPD ini"
-                    :columns="proposalColumns" :rows="proposalRows" :row-key="'id'" see-all-url="/proposals"
-                    @rowClick="goToProposalDetail">
+                    :columns="proposalColumns" :rows="proposalRows" :row-key="'id'" @rowClick="goToProposalDetail">
                     <template #cell-status_label="{ row, value }">
                         <span class="inline-flex items-center rounded-full px-2.5 py-1 text-theme-xs font-medium"
                             :class="proposalStatusClassMap[row.raw.status] || ''">
@@ -397,15 +393,11 @@ export default {
                 this.transferSummaryLoading = false;
             }
         },
-        goToProposalDetail(row: any) {
-            if (!row || !row.id) return;
-
-            window.location.href = `/proposals/${row.id}`;
+        goToProposalDetail() {
+            // Navigation disabled
         },
-        goToMaintenanceDetail(row: any) {
-            if (!row || !row.id) return;
-
-            window.location.href = `/maintenance/${row.id}`;
+        goToMaintenanceDetail() {
+            // Navigation disabled
         },
     },
     mounted() {

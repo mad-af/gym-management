@@ -15,45 +15,35 @@ class DashboardController extends Controller
 
     public function stats(Request $request)
     {
-        $currentOpd = $request->session()->get('current_opd_id');
-
-        $stats = $this->service->getStats($currentOpd);
+        $stats = $this->service->getStats();
 
         return ApiResponse::success('Dashboard statistics retrieved successfully.', $stats);
     }
 
     public function categoryBudget(Request $request)
     {
-        $currentOpd = $request->session()->get('current_opd_id');
-
-        $stats = $this->service->getCategoryBudgetStats($currentOpd);
+        $stats = $this->service->getCategoryBudgetStats();
 
         return ApiResponse::success('Category budget statistics retrieved successfully.', $stats);
     }
 
     public function assetCondition(Request $request)
     {
-        $currentOpd = $request->session()->get('current_opd_id');
-
-        $stats = $this->service->getAssetConditionStats($currentOpd);
+        $stats = $this->service->getAssetConditionStats();
 
         return ApiResponse::success('Asset condition statistics retrieved successfully.', $stats);
     }
 
     public function proposals(Request $request)
     {
-        $currentOpd = $request->session()->get('current_opd_id');
-
-        $data = $this->service->getProposalSummary($currentOpd);
+        $data = $this->service->getProposalSummary();
 
         return ApiResponse::success('Dashboard proposal summary retrieved successfully.', $data);
     }
 
     public function maintenances(Request $request)
     {
-        $currentOpd = $request->session()->get('current_opd_id');
-
-        $data = $this->service->getMaintenanceSummary($currentOpd);
+        $data = $this->service->getMaintenanceSummary();
 
         return ApiResponse::success('Dashboard maintenance summary retrieved successfully.', $data);
     }

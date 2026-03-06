@@ -39,10 +39,6 @@
             <div :class="[isApplicationMenuOpen ? 'flex' : 'hidden']"
                 class="w-full items-center justify-between gap-4 px-5 py-4 shadow-theme-md lg:flex lg:justify-end lg:px-0 lg:shadow-none">
                 <div class="flex flex-1 items-center justify-start gap-3 lg:justify-end">
-                    <div class="max-w-xs w-full flex justify-end">
-                        <OpdSelectorButton v-model="selectedOpdId" :opds="opds" :current-opd="currentOpd"
-                            :has-all-opds="hasAllOpds" />
-                    </div>
                     <div class="flex items-center gap-2 2xsm:gap-3">
                         <ThemeToggler />
                         <!-- <NotificationMenu /> -->
@@ -55,12 +51,10 @@
 </template>
 
 <script setup lang="ts">
-import { usePage } from '@inertiajs/vue3';
-import { computed, ref, watch } from 'vue';
+import { ref } from 'vue';
 import { useSidebar } from '@/composables/useSidebar';
 import ThemeToggler from '../common/ThemeToggler.vue';
 import HeaderLogo from './header/HeaderLogo.vue';
-import OpdSelectorButton from './header/OpdSelectorButton.vue';
 import UserMenu from './header/UserMenu.vue';
 
 const { toggleSidebar, toggleMobileSidebar, isMobileOpen } = useSidebar();
@@ -78,38 +72,4 @@ const isApplicationMenuOpen = ref(false);
 const toggleApplicationMenu = () => {
     isApplicationMenuOpen.value = !isApplicationMenuOpen.value;
 };
-
-const page = usePage();
-
-const opds = computed<any[]>(() => {
-    const props: any = page.props;
-    return props.auth?.opds ?? [];
-});
-
-const currentOpd = computed(() => {
-    const props: any = page.props;
-    return props.auth?.current_opd ?? null;
-});
-
-const hasAllOpds = computed(() => {
-    const props: any = page.props;
-    return props.auth?.has_all_opds ?? false;
-});
-
-const selectedOpdId = ref<string | ''>('');
-
-// Sync selectedOpdId dengan currentOpd dari props
-const syncSelectedOpdFromProps = () => {
-    const props: any = page.props;
-    const current = props.auth?.current_opd ?? null;
-    selectedOpdId.value = current?.id ?? '';
-};
-
-// Sync pada awal load
-syncSelectedOpdFromProps();
-
-// Watch untuk perubahan currentOpd dari server
-watch(currentOpd, (newCurrentOpd) => {
-    selectedOpdId.value = newCurrentOpd?.id ?? '';
-});
 </script>

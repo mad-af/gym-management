@@ -2,8 +2,6 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Opd;
-use App\Services\CurrentOpdService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -39,33 +37,6 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
 
-        $availableOpds = [];
-        $currentOpd = null;
-
-        if ($user) {
-            $currentOpdService = app(CurrentOpdService::class);
-
-            // Get available OPDs based on user permissions
-            $query = $user->has_all_opds
-                ? Opd::query()
-                : $user->opds();
-
-            $availableOpds = $query
-                ->select('id', 'name', 'code')
-                ->orderBy('name')
-                ->get();
-
-            // Get current OPD from service
-            $currentOpd = $currentOpdService->getCurrentOpd($user);
-
-            // Only set default OPD if user has never made a choice (session is empty)
-            // and there are available OPDs
-            $hasMadeChoice = session()->has('current_opd_id') || session()->has('current_opd_id_cleared');
-            if (! $currentOpd && ! $hasMadeChoice && $availableOpds->count() > 0) {
-                $currentOpd = $currentOpdService->setDefaultOpd($user);
-            }
-        }
-
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -74,9 +45,6 @@ class HandleInertiaRequests extends Middleware
                 'permissions' => $user
                     ? $user->getAllPermissions()->pluck('name')->toArray()
                     : [],
-                'opds' => $availableOpds,
-                'current_opd' => $currentOpd,
-                'has_all_opds' => $user?->has_all_opds ?? false,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
