@@ -42,13 +42,18 @@
                 </div>
                 <div>
                     <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Nama Item</label>
-                    <input type="text" v-model="form.name" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200" />
-                    <p v-if="form.errors.name" class="mt-1 text-sm text-error-500">{{ form.errors.name }}</p>
+                    <input type="text" v-model="form.item_name" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200" />
+                    <p v-if="form.errors.item_name" class="mt-1 text-sm text-error-500">{{ form.errors.item_name }}</p>
                 </div>
                 <div>
                     <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Kuantitas</label>
                     <input type="number" v-model.number="form.quantity" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200" />
                     <p v-if="form.errors.quantity" class="mt-1 text-sm text-error-500">{{ form.errors.quantity }}</p>
+                </div>
+                <div>
+                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Unit</label>
+                    <input type="text" v-model="form.unit" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200" placeholder="Contoh: Day, Days, Sessions" />
+                    <p v-if="form.errors.unit" class="mt-1 text-sm text-error-500">{{ form.errors.unit }}</p>
                 </div>
             </div>
             <template #footer>
@@ -101,8 +106,9 @@ const searchFilter = ref('');
 const form = ref({
     id: null as string | null,
     package_id: '',
-    name: '',
+    item_name: '',
     quantity: 1,
+    unit: '',
     errors: {} as Record<string, string>,
     processing: false,
 });
@@ -111,15 +117,17 @@ const tableData = computed(() =>
     items.value.map((it: any) => ({
         id: it.id,
         package_name: it.package?.name || '-',
-        name: it.name,
+        item_name: it.item_name,
         quantity: it.quantity,
+        unit: it.unit || '-',
     })),
 );
 
 const columns = ref<Column[]>([
     { key: 'package_name', label: 'Paket', class: 'min-w-[200px]' },
-    { key: 'name', label: 'Nama Item', class: 'min-w-[180px]' },
+    { key: 'item_name', label: 'Nama Item', class: 'min-w-[180px]' },
     { key: 'quantity', label: 'Qty', class: 'min-w-[100px]' },
+    { key: 'unit', label: 'Unit', class: 'min-w-[120px]' },
     { key: 'actions', label: 'Aksi', type: 'action', class: 'w-[120px]' },
 ]);
 
@@ -152,12 +160,12 @@ const handlePerPageChange = (n: number) => {
 };
 
 const openDrawer = () => {
-    form.value = { id: null, package_id: '', name: '', quantity: 1, errors: {}, processing: false };
+    form.value = { id: null, package_id: '', item_name: '', quantity: 1, unit: '', errors: {}, processing: false };
     isDrawerOpen.value = true;
 };
 const closeDrawer = () => (isDrawerOpen.value = false);
 const editItem = (row: any) => {
-    form.value = { id: row.id, package_id: '', name: row.name, quantity: row.quantity, errors: {}, processing: false };
+    form.value = { id: row.id, package_id: '', item_name: row.item_name, quantity: row.quantity, unit: row.unit, errors: {}, processing: false };
     isDrawerOpen.value = true;
 };
 const deleteItem = async (row: any) => {
@@ -171,7 +179,7 @@ const saveItem = async () => {
     form.value.processing = true;
     form.value.errors = {};
     try {
-        const payload = { package_id: form.value.package_id, name: form.value.name, quantity: form.value.quantity };
+        const payload = { package_id: form.value.package_id, item_name: form.value.item_name, quantity: form.value.quantity, unit: form.value.unit || undefined };
         if (form.value.id) {
             await axios.put(`/api/membership-package-items/${form.value.id}`, payload);
         } else {

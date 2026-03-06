@@ -7,28 +7,30 @@ use App\Models\MembershipPackage;
 use App\Models\MembershipPackageItem;
 use App\Models\MembershipTransaction;
 use App\Models\Product;
+use App\Models\Role;
 use App\Models\Sale;
-use App\Models\SaleItem;
+use App\Models\StockMovement;
 use App\Models\User;
 use App\Models\Visit;
+use App\Services\SaleService;
+use App\Services\StockMovementService;
+use App\Services\VisitService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Role as SpatieRole;
 
 class TestingMasterSeeder extends Seeder
 {
     public function run(): void
     {
         // 1. Create Roles & Users
-        $adminRole = SpatieRole::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
-        $staffRole = SpatieRole::firstOrCreate(['name' => 'staff', 'guard_name' => 'web']);
+        $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+        $staffRole = Role::firstOrCreate(['name' => 'staff', 'guard_name' => 'web']);
 
         $adminUser = User::firstOrCreate(
             ['email' => 'admin@gym.com'],
             [
                 'name' => 'Admin Gym',
                 'password' => Hash::make('password'),
-                'is_active' => true,
             ]
         );
 
@@ -41,7 +43,6 @@ class TestingMasterSeeder extends Seeder
             [
                 'name' => 'Staff Gym',
                 'password' => Hash::make('password'),
-                'is_active' => true,
             ]
         );
 
@@ -170,7 +171,7 @@ class TestingMasterSeeder extends Seeder
                 'start_date' => now(),
                 'end_date' => now()->addDays($monthlyPackage->duration_days),
                 'price' => $monthlyPackage->price,
-                'status' => 'paid',
+                'status' => 'active',
                 'created_by' => $staffUser->id,
                 'created_at' => now(),
             ]);
@@ -179,38 +180,57 @@ class TestingMasterSeeder extends Seeder
             Visit::create([
                 'customer_id' => $customer1->id,
                 'membership_transaction_id' => $transaction->id,
-                'visit_type' => 'member',
+                'visit_type' => 'MEMBERSHIP',
                 'price' => 0, // Free for members
-                'checkin_method' => 'qr_code',
+                'checkin_method' => 'QR_CODE',
                 'created_by' => $staffUser->id,
                 'checkin_time' => now(),
             ]);
         }
 
         if (Sale::count() === 0) {
-            // Product Sale for Customer 2
-            $sale = Sale::create([
+            // Product Sale for Customer 2 (use service to auto-create OUT movements & deduct stock)
+            $saleService = app(SaleService::class);
+            $saleService->create([
                 'customer_id' => $customer2->id,
-                'total_amount' => $water->price + $proteinShake->price,
-                'created_by' => $staffUser->id,
-                'created_at' => now(),
-            ]);
-
-            SaleItem::create([
-                'sale_id' => $sale->id,
-                'product_id' => $water->id,
-                'quantity' => 1,
-                'price' => $water->price,
-                'subtotal' => $water->price,
-            ]);
-
-            SaleItem::create([
-                'sale_id' => $sale->id,
-                'product_id' => $proteinShake->id,
-                'quantity' => 1,
-                'price' => $proteinShake->price,
-                'subtotal' => $proteinShake->price,
-            ]);
+                'items' => [
+                    ['product_id' => $water->id, 'quantity' => 1, 'price' => $water->price],
+                    ['product_id' => $proteinShake->id, 'quantity' => 1, 'price' => $proteinShake->price],
+                ],
+            ], $staffUser->id);
         }
+
+        // 6. Initial Stock Movements for products (if none exists)
+        foreach ([$water, $proteinShake, $towel] as $product) {
+            if (! StockMovement::where('product_id', $product->id)->exists()) {
+                // Record initial stock as IN movement
+                StockMovement::create([
+                    'product_id' => $product->id,
+                    'type' => 'IN',
+                    'quantity' => $product->stock,
+                    'description' => 'Initial stock seeding',
+                    'created_at' => now(),
+                ]);
+            }
+        }
+
+        // 7. Additional Stock Adjustment example (set towel stock to 25)
+        $stockService = app(StockMovementService::class);
+        $stockService->create([
+            'product_id' => $towel->id,
+            'type' => 'ADJUSTMENT',
+            'quantity' => 25,
+            'description' => 'Inventory adjustment (seeding)',
+        ]);
+
+        // 8. Daily Visit for Customer 2 (use service to enforce rules)
+        $visitService = app(VisitService::class);
+        $visitService->create([
+            'customer_id' => $customer2->id,
+            'visit_type' => 'DAILY',
+            'price' => 50000,
+            'checkin_method' => 'MANUAL',
+        ], $staffUser->id);
+
     }
 }

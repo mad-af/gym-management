@@ -13,7 +13,9 @@ class MembershipPackageItemService
         int $page = 1,
         ?string $packageId = null
     ): LengthAwarePaginator {
-        $query = MembershipPackageItem::query()->latest();
+        $query = MembershipPackageItem::query()
+            ->with(['package'])
+            ->latest('id');
 
         if ($packageId) {
             $query->where('package_id', $packageId);
