@@ -24,11 +24,13 @@ class MembershipPackageController extends Controller
 
     public function index(Request $request)
     {
+        $isActive = $request->has('is_active') ? $request->boolean('is_active') : null;
+
         $packages = $this->service->getAll(
             $request->input('per_page', 10),
             $request->input('search'),
             $request->input('page', 1),
-            $request->boolean('is_active', null),
+            $isActive,
         );
 
         return ApiResponse::success('Membership packages retrieved successfully.', $packages);

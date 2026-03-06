@@ -2,22 +2,16 @@
     <AdminLayout>
         <PageBreadcrumb :pageTitle="currentPageTitle" />
 
-        <DynamicTable
-            :columns="columns"
-            :data="tableData"
-            :items-per-page="perPage"
-            :total-items="totalItems"
-            :current-page="currentPage"
-            :is-server-side="true"
-            @update:page="handlePageChange"
-            @update:search="handleSearch"
-            @update:perPage="handlePerPageChange"
-        >
+        <DynamicTable :columns="columns" :data="tableData" :items-per-page="perPage" :total-items="totalItems"
+            :current-page="currentPage" :is-server-side="true" @update:page="handlePageChange"
+            @update:search="handleSearch" @update:perPage="handlePerPageChange">
             <template #header-actions>
-                <Button size="sm" variant="outline" :onClick="() => isFilterDrawerOpen = true" className="w-full sm:w-auto" :startIcon="FilterIcon">
+                <Button size="sm" variant="outline" :onClick="() => isFilterDrawerOpen = true"
+                    className="w-full sm:w-auto" :startIcon="FilterIcon">
                     Filter
                 </Button>
-                <Button v-can="'create_visits'" size="sm" variant="primary" :onClick="openDrawer" className="w-full sm:w-auto" :endIcon="PlusIcon">
+                <Button v-can="'create_visits'" size="sm" variant="primary" :onClick="openDrawer"
+                    className="w-full sm:w-auto" :endIcon="PlusIcon">
                     Check In
                 </Button>
             </template>
@@ -26,17 +20,57 @@
         <Drawer :isOpen="isDrawerOpen" @close="closeDrawer" title="Check In">
             <div class="space-y-6">
                 <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Pelanggan</label>
-                    <input type="text" v-model="form.customer_id" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200" placeholder="ID pelanggan" />
-                    <p v-if="form.errors.customer_id" class="mt-1 text-sm text-error-500">{{ form.errors.customer_id }}</p>
+                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Jenis
+                        Kunjungan</label>
+                    <select v-model="form.visit_type"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                        <option value="MEMBERSHIP">Member</option>
+                        <option value="DAILY">Harian</option>
+                    </select>
+                    <p v-if="form.errors.visit_type" class="mt-1 text-sm text-error-500">{{ form.errors.visit_type }}
+                    </p>
+                </div>
+                <div v-if="form.visit_type === 'MEMBERSHIP'">
+                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Scan QR</label>
+                    <div class="flex gap-2">
+                        <input type="text" v-model="form.qr_code"
+                            class="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                            placeholder="Tempel hasil scan QR di sini" />
+                        <Button variant="primary" :onClick="checkinByQr" :disabled="form.processing">
+                            Scan / Checkin
+                        </Button>
+                    </div>
+                    <p v-if="form.errors.qr_code" class="mt-1 text-sm text-error-500">{{ form.errors.qr_code }}</p>
+                    <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                        Jika scan QR tidak tersedia, pilih pelanggan secara manual di bawah.
+                    </p>
                 </div>
                 <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Jenis Kunjungan</label>
-                    <select v-model="form.visit_type" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
-                        <option value="member">Member</option>
-                        <option value="daily">Harian</option>
+                    <Combobox label="Pelanggan" v-model="form.customer_id" :options="customerOptions"
+                        placeholder="Cari Pelanggan..." :searchable="true" :remote="true" @search="fetchCustomers"
+                        :loading="loadingCustomers" value-key="id" label-key="name" />
+                    <p v-if="form.errors.customer_id" class="mt-1 text-sm text-error-500">{{ form.errors.customer_id }}
+                    </p>
+                </div>
+                <div v-if="form.visit_type === 'DAILY'">
+                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Harga</label>
+                    <input type="number" v-model.number="form.price"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                        placeholder="Harga daily pass" />
+                    <p v-if="form.errors.price" class="mt-1 text-sm text-error-500">{{ form.errors.price }}</p>
+                </div>
+                <div>
+                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Metode
+                        Check-In</label>
+                    <select v-model="form.checkin_method"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                        <option value="MANUAL">Manual</option>
+                        <option value="QR_CODE">QR Code</option>
+                        <option value="CARD">Kartu</option>
                     </select>
-                    <p v-if="form.errors.visit_type" class="mt-1 text-sm text-error-500">{{ form.errors.visit_type }}</p>
+                    <p v-if="form.errors.checkin_method" class="mt-1 text-sm text-error-500">{{
+                        form.errors.checkin_method }}
+                    </p>
                 </div>
             </div>
             <template #footer>
@@ -51,10 +85,11 @@
             <div class="space-y-6">
                 <div>
                     <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Jenis</label>
-                    <select v-model="filters.visit_type" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                    <select v-model="filters.visit_type"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
                         <option value="">Semua</option>
-                        <option value="member">Member</option>
-                        <option value="daily">Harian</option>
+                        <option value="MEMBERSHIP">Member</option>
+                        <option value="DAILY">Harian</option>
                     </select>
                 </div>
             </div>
@@ -76,6 +111,7 @@ import AdminLayout from '@/components/layout/AdminLayout.vue';
 import DynamicTable from '@/components/tables/data-tables/DynamicTable.vue';
 import type { Column } from '@/components/tables/data-tables/DynamicTable.vue';
 import Button from '@/components/ui/Button.vue';
+import Combobox from '@/components/ui/Combobox.vue';
 import Drawer from '@/components/ui/Drawer.vue';
 import { PlusIcon, FilterIcon } from '@/icons';
 
@@ -90,9 +126,15 @@ const currentPage = ref(1);
 const perPage = ref(10);
 const searchFilter = ref('');
 
+const customerOptions = ref<any[]>([]);
+const loadingCustomers = ref(false);
+
 const form = ref({
     customer_id: '',
-    visit_type: 'member',
+    qr_code: '',
+    visit_type: 'MEMBERSHIP',
+    price: null as number | null,
+    checkin_method: 'MANUAL',
     errors: {} as Record<string, string>,
     processing: false,
 });
@@ -143,19 +185,62 @@ const handlePerPageChange = (n: number) => {
 };
 
 const openDrawer = () => {
-    form.value = { customer_id: '', visit_type: 'member', errors: {}, processing: false };
+    form.value = {
+        customer_id: '',
+        qr_code: '',
+        visit_type: 'MEMBERSHIP',
+        price: null,
+        checkin_method: 'MANUAL',
+        errors: {},
+        processing: false,
+    };
     isDrawerOpen.value = true;
+    fetchCustomers();
 };
 const closeDrawer = () => (isDrawerOpen.value = false);
+
+const checkinByQr = async () => {
+    form.value.processing = true;
+    form.value.errors = {};
+    try {
+        await axios.post('/api/visits', {
+            qr_code: form.value.qr_code,
+            visit_type: 'MEMBERSHIP',
+            checkin_method: 'QR_CODE',
+        });
+        closeDrawer();
+        fetchItems();
+    } catch (error: any) {
+        if (error.response?.status === 422) {
+            form.value.errors = error.response.data.errors || {};
+        } else {
+            console.error('Error checkin by QR', error);
+        }
+    } finally {
+        form.value.processing = false;
+    }
+};
 
 const saveItem = async () => {
     form.value.processing = true;
     form.value.errors = {};
     try {
-        await axios.post('/api/visits', {
-            customer_id: form.value.customer_id,
+        const payload: any = {
             visit_type: form.value.visit_type,
-        });
+            checkin_method: form.value.checkin_method,
+        };
+
+        if (form.value.visit_type === 'DAILY') {
+            payload.price = form.value.price;
+        }
+
+        if (form.value.customer_id) {
+            payload.customer_id = form.value.customer_id;
+        } else if (form.value.qr_code) {
+            payload.qr_code = form.value.qr_code;
+        }
+
+        await axios.post('/api/visits', payload);
         closeDrawer();
         fetchItems();
     } catch (error: any) {
@@ -176,5 +261,22 @@ const handleFilter = () => {
     isFilterDrawerOpen.value = false;
 };
 
-onMounted(fetchItems);
+const fetchCustomers = async (query: string = '') => {
+    loadingCustomers.value = true;
+    try {
+        const { data } = await axios.get('/api/customers/selection', {
+            params: { search: query, per_page: 20 },
+        });
+        customerOptions.value = data.data?.data || data.data || [];
+    } catch (e) {
+        console.error(e);
+    } finally {
+        loadingCustomers.value = false;
+    }
+};
+
+onMounted(() => {
+    fetchItems();
+    fetchCustomers();
+});
 </script>

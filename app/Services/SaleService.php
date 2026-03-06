@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
+use App\Models\StockMovement;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
@@ -70,6 +71,13 @@ class SaleService
                     'quantity' => $quantity,
                     'price' => $price,
                     'subtotal' => $subtotal,
+                ]);
+
+                StockMovement::create([
+                    'product_id' => $product->id,
+                    'type' => 'OUT',
+                    'quantity' => $quantity,
+                    'description' => 'Sold in Sale #'.$sale->id,
                 ]);
 
                 $product->stock -= $quantity;

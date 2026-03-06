@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\MembershipPackage;
 use App\Models\MembershipTransaction;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
@@ -40,6 +41,28 @@ class MembershipTransactionService
     public function create(array $data, ?string $createdBy): MembershipTransaction
     {
         $payload = $data;
+
+        // Fetch Package Details
+        $package = MembershipPackage::findOrFail($data['package_id']);
+
+        // Set Start Date (Default to today if not provided)
+        $startDate = isset($data['start_date']) ? \Carbon\Carbon::parse($data['start_date']) : now();
+        $payload['start_date'] = $startDate->toDateString();
+
+        // Calculate End Date
+        if (! isset($data['end_date'])) {
+            $payload['end_date'] = $startDate->copy()->addDays($package->duration_days)->toDateString();
+        }
+
+        // Set Price from Package if not provided
+        if (! isset($data['price'])) {
+            $payload['price'] = $package->price;
+        }
+
+        // Default Status
+        if (! isset($data['status'])) {
+            $payload['status'] = 'active'; // Default status
+        }
 
         if ($createdBy) {
             $payload['created_by'] = $createdBy;

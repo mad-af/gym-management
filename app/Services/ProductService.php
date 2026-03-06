@@ -3,7 +3,9 @@
 namespace App\Services;
 
 use App\Models\Product;
+use App\Models\StockMovement;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 class ProductService
 {
@@ -37,7 +39,20 @@ class ProductService
 
     public function create(array $data): Product
     {
-        return Product::create($data);
+        return DB::transaction(function () use ($data) {
+            $product = Product::create($data);
+
+            if (isset($data['stock']) && $data['stock'] > 0) {
+                StockMovement::create([
+                    'product_id' => $product->id,
+                    'type' => 'IN',
+                    'quantity' => $data['stock'],
+                    'description' => 'Initial stock',
+                ]);
+            }
+
+            return $product;
+        });
     }
 
     public function update(Product $product, array $data): Product

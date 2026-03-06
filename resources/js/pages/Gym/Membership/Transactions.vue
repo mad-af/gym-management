@@ -2,22 +2,16 @@
     <AdminLayout>
         <PageBreadcrumb :pageTitle="currentPageTitle" />
 
-        <DynamicTable
-            :columns="columns"
-            :data="tableData"
-            :items-per-page="perPage"
-            :total-items="totalItems"
-            :current-page="currentPage"
-            :is-server-side="true"
-            @update:page="handlePageChange"
-            @update:search="handleSearch"
-            @update:perPage="handlePerPageChange"
-        >
+        <DynamicTable :columns="columns" :data="tableData" :items-per-page="perPage" :total-items="totalItems"
+            :current-page="currentPage" :is-server-side="true" @update:page="handlePageChange"
+            @update:search="handleSearch" @update:perPage="handlePerPageChange">
             <template #header-actions>
-                <Button size="sm" variant="outline" :onClick="() => isFilterDrawerOpen = true" className="w-full sm:w-auto" :startIcon="FilterIcon">
+                <Button size="sm" variant="outline" :onClick="() => isFilterDrawerOpen = true"
+                    className="w-full sm:w-auto" :startIcon="FilterIcon">
                     Filter
                 </Button>
-                <Button v-can="'create_membership_transactions'" size="sm" variant="primary" :onClick="openDrawer" className="w-full sm:w-auto" :endIcon="PlusIcon">
+                <Button v-can="'create_membership_transactions'" size="sm" variant="primary" :onClick="openDrawer"
+                    className="w-full sm:w-auto" :endIcon="PlusIcon">
                     Buat Membership
                 </Button>
             </template>
@@ -26,19 +20,34 @@
         <Drawer :isOpen="isDrawerOpen" @close="closeDrawer" title="Buat Membership">
             <div class="space-y-6">
                 <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Pelanggan</label>
-                    <input type="text" v-model="form.customer_id" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200" placeholder="ID pelanggan" />
-                    <p v-if="form.errors.customer_id" class="mt-1 text-sm text-error-500">{{ form.errors.customer_id }}</p>
+                    <Combobox label="Pelanggan" v-model="form.customer_id" :options="customerOptions"
+                        placeholder="Cari Pelanggan..." :searchable="true" :remote="true" @search="fetchCustomers"
+                        :loading="loadingCustomers" value-key="id" label-key="name" />
+                    <p v-if="form.errors.customer_id" class="mt-1 text-sm text-error-500">{{ form.errors.customer_id }}
+                    </p>
                 </div>
                 <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Paket</label>
-                    <input type="text" v-model="form.package_id" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200" placeholder="ID paket" />
-                    <p v-if="form.errors.package_id" class="mt-1 text-sm text-error-500">{{ form.errors.package_id }}</p>
+                    <Combobox label="Paket" v-model="form.package_id" :options="packageOptions"
+                        placeholder="Pilih Paket" value-key="id" label-key="name" />
+                    <p v-if="form.errors.package_id" class="mt-1 text-sm text-error-500">{{ form.errors.package_id }}
+                    </p>
+                    <div v-if="selectedPackage" class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                        <p>Harga: Rp {{ Number(selectedPackage.price).toLocaleString('id-ID') }}</p>
+                        <p>Durasi: {{ selectedPackage.duration_days }} hari</p>
+                    </div>
                 </div>
                 <div>
                     <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Tanggal Mulai</label>
-                    <input type="date" v-model="form.start_date" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200" />
-                    <p v-if="form.errors.start_date" class="mt-1 text-sm text-error-500">{{ form.errors.start_date }}</p>
+                    <input type="date" v-model="form.start_date"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200" />
+                    <p v-if="form.errors.start_date" class="mt-1 text-sm text-error-500">{{ form.errors.start_date }}
+                    </p>
+                </div>
+                <div>
+                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Tanggal Selesai
+                        (Estimasi)</label>
+                    <input type="date" :value="estimatedEndDate" disabled
+                        class="w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-3 text-sm text-gray-500 cursor-not-allowed dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400" />
                 </div>
             </div>
             <template #footer>
@@ -53,7 +62,8 @@
             <div class="space-y-6">
                 <div>
                     <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Status</label>
-                    <select v-model="filters.status" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                    <select v-model="filters.status"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
                         <option value="">Semua</option>
                         <option value="active">Aktif</option>
                         <option value="expired">Expired</option>
@@ -78,6 +88,7 @@ import AdminLayout from '@/components/layout/AdminLayout.vue';
 import DynamicTable from '@/components/tables/data-tables/DynamicTable.vue';
 import type { Column } from '@/components/tables/data-tables/DynamicTable.vue';
 import Button from '@/components/ui/Button.vue';
+import Combobox from '@/components/ui/Combobox.vue';
 import Drawer from '@/components/ui/Drawer.vue';
 import { PlusIcon, FilterIcon } from '@/icons';
 
@@ -92,12 +103,27 @@ const currentPage = ref(1);
 const perPage = ref(10);
 const searchFilter = ref('');
 
+const customerOptions = ref<any[]>([]);
+const packageOptions = ref<any[]>([]);
+const loadingCustomers = ref(false);
+
 const form = ref({
     customer_id: '',
     package_id: '',
-    start_date: '',
+    start_date: new Date().toISOString().split('T')[0],
     errors: {} as Record<string, string>,
     processing: false,
+});
+
+const selectedPackage = computed(() => {
+    return packageOptions.value.find((p: any) => p.id === form.value.package_id);
+});
+
+const estimatedEndDate = computed(() => {
+    if (!form.value.start_date || !selectedPackage.value) return '';
+    const start = new Date(form.value.start_date);
+    start.setDate(start.getDate() + selectedPackage.value.duration_days);
+    return start.toISOString().split('T')[0];
 });
 
 const tableData = computed(() =>
@@ -148,7 +174,7 @@ const handlePerPageChange = (n: number) => {
 };
 
 const openDrawer = () => {
-    form.value = { customer_id: '', package_id: '', start_date: '', errors: {}, processing: false };
+    form.value = { customer_id: '', package_id: '', start_date: new Date().toISOString().split('T')[0], errors: {}, processing: false };
     isDrawerOpen.value = true;
 };
 const closeDrawer = () => (isDrawerOpen.value = false);
@@ -182,5 +208,34 @@ const handleFilter = () => {
     isFilterDrawerOpen.value = false;
 };
 
-onMounted(fetchItems);
+const fetchCustomers = async (query: string = '') => {
+    loadingCustomers.value = true;
+    try {
+        const { data } = await axios.get('/api/customers', {
+            params: { search: query, per_page: 20 },
+        });
+        customerOptions.value = data.data?.data || [];
+    } catch (e) {
+        console.error(e);
+    } finally {
+        loadingCustomers.value = false;
+    }
+};
+
+const fetchPackages = async () => {
+    try {
+        const { data } = await axios.get('/api/membership-packages', {
+            params: { is_active: true, per_page: 100 }
+        });
+        packageOptions.value = data.data?.data || [];
+    } catch (e) {
+        console.error(e);
+    }
+};
+
+onMounted(() => {
+    fetchItems();
+    fetchPackages();
+    fetchCustomers();
+});
 </script>
