@@ -98,10 +98,12 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="row in paginatedData" :key="row.id || JSON.stringify(row)" class="" :class="{
+          <tr v-for="row in paginatedData" :key="row._key || row.id || JSON.stringify(row)" class="" :class="{
             'bg-gray-50 dark:bg-gray-900': row.selected,
           }">
-            <td v-if="isSelectable" class="border border-gray-100 px-4 py-3 dark:border-gray-800">
+            <td v-if="isSelectable && !row._cellAttributes?.checkbox?.hidden"
+              class="border border-gray-100 px-4 py-3 dark:border-gray-800"
+              :rowspan="row._cellAttributes?.checkbox?.rowspan || 1">
               <label
                 class="flex cursor-pointer items-center text-sm font-medium text-gray-700 select-none dark:text-gray-400">
                 <span class="relative">
@@ -123,103 +125,107 @@
                 </span>
               </label>
             </td>
-            <td v-for="col in columns" :key="col.key" class="border border-gray-100 px-4 py-3 dark:border-gray-800">
+            <template v-for="col in columns" :key="col.key">
+              <td v-if="!row._cellAttributes?.[col.key]?.hidden"
+                class="border border-gray-100 px-4 py-3 dark:border-gray-800" :class="col.class"
+                :rowspan="row._cellAttributes?.[col.key]?.rowspan || 1">
 
-              <!-- Custom Slot -->
-              <slot v-if="col.type === 'custom'" :name="`cell-${col.key}`" :row="row">
-                {{ row[col.key] }}
-              </slot>
-
-              <!-- Avatar Type -->
-              <div v-else-if="col.type === 'avatar'" class="flex gap-3">
-                <div
-                  class="h-10 w-10 overflow-hidden rounded-full bg-gray-100 text-gray-400 flex items-center justify-center dark:bg-gray-800 dark:text-gray-500">
-                  <app-image v-if="getAvatarSrc(row, col)" :src="getAvatarSrc(row, col)"
-                    :placeholder="getAvatarPlaceholder(row, col)" :alt="row[col.labelField || col.key]"
-                    class="h-full w-full object-cover" />
-                  <UserCircleIcon v-else class="h-5 w-5" />
-                </div>
-                <div>
-                  <p class="block text-theme-sm font-medium text-gray-800 dark:text-white/90">
-                    {{ row[col.labelField || col.key] }}
-                  </p>
-                  <span class="text-sm text-gray-500 dark:text-gray-400" v-if="col.subLabelField">
-                    {{ row[col.subLabelField] }}
-                  </span>
-                </div>
-              </div>
-
-              <!-- Cover Type -->
-              <div v-else-if="col.type === 'cover'" class="flex gap-3">
-                <div
-                  class="h-12 w-12 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                  <app-image v-if="getAvatarSrc(row, col)" :src="getAvatarSrc(row, col)"
-                    :placeholder="getAvatarPlaceholder(row, col)" :alt="row[col.labelField || col.key]"
-                    class="h-full w-full object-cover" />
-                  <svg v-else class="h-6 w-6 text-gray-400 dark:text-gray-600" viewBox="0 0 24 24" fill="none"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path
-                      d="M5 5C4.44772 5 4 5.44772 4 6V18C4 18.5523 4.44772 19 5 19H19C19.5523 19 20 18.5523 20 18V6C20 5.44772 19.5523 5 19 5H5ZM6 7H18V13.5858L15.7071 11.2929C15.3166 10.9024 14.6834 10.9024 14.2929 11.2929L11 14.5858L9.70711 13.2929C9.31658 12.9024 8.68342 12.9024 8.29289 13.2929L6 15.5858V7Z"
-                      fill="currentColor" />
-                  </svg>
-                </div>
-                <div>
-                  <p class="block text-theme-sm font-medium text-gray-800 dark:text-white/90">
-                    {{ row[col.labelField || col.key] }}
-                  </p>
-                  <span class="text-sm text-gray-500 dark:text-gray-400" v-if="col.subLabelField">
-                    {{ row[col.subLabelField] }}
-                  </span>
-                </div>
-              </div>
-
-              <!-- Status Type -->
-              <span v-else-if="col.type === 'status'" :class="getStatusClass(row[col.key], col.statusMap)"
-                class="rounded-full px-2 py-0.5 text-theme-xs font-medium">
-                {{ row[col.key] }}
-              </span>
-
-              <!-- Action Type -->
-              <div v-else-if="col.type === 'action'" class="flex w-full items-center gap-2 justify-center">
-                <slot name="actions" :row="row">
-                  <div v-if="col.actions && col.actions.length > 0" class="flex items-center gap-2">
-                    <button v-for="(action, idx) in col.actions" :key="idx" @click="handleActionClick(action, row)"
-                      class="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white/90"
-                      :class="action.class" :title="action.label">
-                      <!-- Render string/SVG icon -->
-                      <span v-if="action.icon && typeof action.icon === 'string'" v-html="action.icon"></span>
-                      <!-- Render component icon -->
-                      <component v-else-if="action.icon" :is="action.icon" />
-                      <!-- Render default icon based on type -->
-                      <span v-else v-html="getActionIcon(action)"></span>
-                    </button>
-                  </div>
-                  <div v-else class="flex items-center gap-2">
-                    <button @click="$emit('edit', row)"
-                      class="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white/90">
-                      <svg class="fill-current" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path
-                          d="M3 17.25V21H6.75L17.81 9.94L14.06 6.19L3 17.25ZM20.71 7.04C21.1 6.65 21.1 6.02 20.71 5.63L18.37 3.29C17.98 2.9 17.35 2.9 16.96 3.29L15.13 5.12L18.88 8.87L20.71 7.04Z" />
-                      </svg>
-                    </button>
-                    <button @click="$emit('delete', row)"
-                      class="text-gray-500 hover:text-error-500 dark:text-gray-400 dark:hover:text-error-500">
-                      <svg class="fill-current" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path
-                          d="M6 19C6 20.1 6.9 21 8 21H16C17.1 21 18 20.1 18 19V7H6V19ZM19 4H15.5L14.5 3H9.5L8.5 4H5V6H19V4Z" />
-                      </svg>
-                    </button>
-                  </div>
+                <!-- Custom Slot -->
+                <slot v-if="col.type === 'custom'" :name="`cell-${col.key}`" :row="row">
+                  {{ row[col.key] }}
                 </slot>
-              </div>
 
-              <!-- Default Text -->
-              <p v-else class="text-theme-sm text-gray-700 dark:text-gray-400">
-                {{ row[col.key] }}
-              </p>
-            </td>
+                <!-- Avatar Type -->
+                <div v-else-if="col.type === 'avatar'" class="flex gap-3">
+                  <div
+                    class="h-10 w-10 overflow-hidden rounded-full bg-gray-100 text-gray-400 flex items-center justify-center dark:bg-gray-800 dark:text-gray-500">
+                    <app-image v-if="getAvatarSrc(row, col)" :src="getAvatarSrc(row, col)"
+                      :placeholder="getAvatarPlaceholder(row, col)" :alt="row[col.labelField || col.key]"
+                      class="h-full w-full object-cover" />
+                    <UserCircleIcon v-else class="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p class="block text-theme-sm font-medium text-gray-800 dark:text-white/90">
+                      {{ row[col.labelField || col.key] }}
+                    </p>
+                    <span class="text-sm text-gray-500 dark:text-gray-400" v-if="col.subLabelField">
+                      {{ row[col.subLabelField] }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Cover Type -->
+                <div v-else-if="col.type === 'cover'" class="flex gap-3">
+                  <div
+                    class="h-12 w-12 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                    <app-image v-if="getAvatarSrc(row, col)" :src="getAvatarSrc(row, col)"
+                      :placeholder="getAvatarPlaceholder(row, col)" :alt="row[col.labelField || col.key]"
+                      class="h-full w-full object-cover" />
+                    <svg v-else class="h-6 w-6 text-gray-400 dark:text-gray-600" viewBox="0 0 24 24" fill="none"
+                      xmlns="http://www.w3.org/2000/svg">
+                      <path
+                        d="M5 5C4.44772 5 4 5.44772 4 6V18C4 18.5523 4.44772 19 5 19H19C19.5523 19 20 18.5523 20 18V6C20 5.44772 19.5523 5 19 5H5ZM6 7H18V13.5858L15.7071 11.2929C15.3166 10.9024 14.6834 10.9024 14.2929 11.2929L11 14.5858L9.70711 13.2929C9.31658 12.9024 8.68342 12.9024 8.29289 13.2929L6 15.5858V7Z"
+                        fill="currentColor" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p class="block text-theme-sm font-medium text-gray-800 dark:text-white/90">
+                      {{ row[col.labelField || col.key] }}
+                    </p>
+                    <span class="text-sm text-gray-500 dark:text-gray-400" v-if="col.subLabelField">
+                      {{ row[col.subLabelField] }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Status Type -->
+                <span v-else-if="col.type === 'status'" :class="getStatusClass(row[col.key], col.statusMap)"
+                  class="rounded-full px-2 py-0.5 text-theme-xs font-medium">
+                  {{ row[col.key] }}
+                </span>
+
+                <!-- Action Type -->
+                <div v-else-if="col.type === 'action'" class="flex w-full items-center gap-2 justify-center">
+                  <slot name="actions" :row="row">
+                    <div v-if="col.actions && col.actions.length > 0" class="flex items-center gap-2">
+                      <button v-for="(action, idx) in col.actions" :key="idx" @click="handleActionClick(action, row)"
+                        class="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white/90"
+                        :class="action.class" :title="action.label">
+                        <!-- Render string/SVG icon -->
+                        <span v-if="action.icon && typeof action.icon === 'string'" v-html="action.icon"></span>
+                        <!-- Render component icon -->
+                        <component v-else-if="action.icon" :is="action.icon" />
+                        <!-- Render default icon based on type -->
+                        <span v-else v-html="getActionIcon(action)"></span>
+                      </button>
+                    </div>
+                    <div v-else class="flex items-center gap-2">
+                      <button @click="$emit('edit', row)"
+                        class="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white/90">
+                        <svg class="fill-current" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                          xmlns="http://www.w3.org/2000/svg">
+                          <path
+                            d="M3 17.25V21H6.75L17.81 9.94L14.06 6.19L3 17.25ZM20.71 7.04C21.1 6.65 21.1 6.02 20.71 5.63L18.37 3.29C17.98 2.9 17.35 2.9 16.96 3.29L15.13 5.12L18.88 8.87L20.71 7.04Z" />
+                        </svg>
+                      </button>
+                      <button @click="$emit('delete', row)"
+                        class="text-gray-500 hover:text-error-500 dark:text-gray-400 dark:hover:text-error-500">
+                        <svg class="fill-current" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                          xmlns="http://www.w3.org/2000/svg">
+                          <path
+                            d="M6 19C6 20.1 6.9 21 8 21H16C17.1 21 18 20.1 18 19V7H6V19ZM19 4H15.5L14.5 3H9.5L8.5 4H5V6H19V4Z" />
+                        </svg>
+                      </button>
+                    </div>
+                  </slot>
+                </div>
+
+                <!-- Default Text -->
+                <p v-else class="text-theme-sm text-gray-700 dark:text-gray-400">
+                  {{ row[col.key] }}
+                </p>
+              </td>
+            </template>
           </tr>
           <tr v-if="paginatedData.length === 0">
             <td :colspan="columns.length + (isSelectable ? 1 : 0)"

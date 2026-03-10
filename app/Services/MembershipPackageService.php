@@ -13,7 +13,7 @@ class MembershipPackageService
         int $page = 1,
         ?bool $isActive = null
     ): LengthAwarePaginator {
-        $query = MembershipPackage::query()->latest('created_at');
+        $query = MembershipPackage::query()->with('items')->latest('created_at');
 
         if ($isActive !== null) {
             $query->where('is_active', $isActive);
