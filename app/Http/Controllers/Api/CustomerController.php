@@ -8,12 +8,13 @@ use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\Customer;
 use App\Services\CustomerService;
+use App\Services\MediaService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 
 class CustomerController extends Controller
 {
-    public function __construct(protected CustomerService $service)
+    public function __construct(protected CustomerService $service, protected MediaService $mediaService)
     {
         $this->middleware(['auth:web']);
         $this->middleware('permission:'.Permission::VIEW_CUSTOMERS->value)->only(['index', 'show', 'selection']);
@@ -48,11 +49,19 @@ class CustomerController extends Controller
     {
         $customer = $this->service->create($request->validated());
 
+        if ($request->hasFile('avatar')) {
+            $this->mediaService->upload($request->file('avatar'), $customer, 'avatar');
+        }
+
         return ApiResponse::success('Customer created successfully.', $customer, 201);
     }
 
     public function show(Customer $customer)
     {
+        $customer->load(['media' => function ($q) {
+            $q->where('collection', 'avatar');
+        }]);
+
         return ApiResponse::success('Customer details retrieved successfully.', $customer);
     }
 
@@ -66,6 +75,10 @@ class CustomerController extends Controller
     public function update(UpdateCustomerRequest $request, Customer $customer)
     {
         $updated = $this->service->update($customer, $request->validated());
+
+        if ($request->hasFile('avatar')) {
+            $this->mediaService->upload($request->file('avatar'), $updated, 'avatar');
+        }
 
         return ApiResponse::success('Customer updated successfully.', $updated);
     }

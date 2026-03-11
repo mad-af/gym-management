@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasMedia;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Customer extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasMedia, HasUuids;
 
     public $timestamps = false;
 
@@ -19,6 +20,7 @@ class Customer extends Model
         'phone',
         'email',
         'qr_code',
+        'code',
         'created_at',
     ];
 
@@ -27,10 +29,15 @@ class Customer extends Model
     ];
 
     protected $appends = [
+        'avatar',
         'is_active_member',
         'active_membership_until',
         'active_membership_package_name',
         'active_membership_package_id',
+    ];
+
+    protected $hidden = [
+        'media',
     ];
 
     public function membershipTransactions(): HasMany
@@ -46,6 +53,11 @@ class Customer extends Model
     public function sales(): HasMany
     {
         return $this->hasMany(Sale::class);
+    }
+
+    public function getAvatarAttribute(): ?array
+    {
+        return $this->getFirstMedia('avatar');
     }
 
     public function getIsActiveMemberAttribute(): bool

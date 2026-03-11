@@ -12,6 +12,7 @@ use App\Models\Sale;
 use App\Models\StockMovement;
 use App\Models\User;
 use App\Models\Visit;
+use App\Services\CustomerService;
 use App\Services\SaleService;
 use App\Services\StockMovementService;
 use App\Services\VisitService;
@@ -142,25 +143,30 @@ class TestingMasterSeeder extends Seeder
         );
 
         // 4. Create Customers
-        $customer1 = Customer::firstOrCreate(
-            ['email' => 'member1@example.com'],
-            [
+        $customerService = app(CustomerService::class);
+        $customer1 = Customer::where('email', 'member1@example.com')->first();
+        if (! $customer1) {
+            $customer1 = $customerService->create([
                 'name' => 'Budi Santoso',
                 'phone' => '081234567890',
+                'email' => 'member1@example.com',
                 'qr_code' => 'MEMBER-001',
                 'created_at' => now(),
-            ]
-        );
+            ]);
+        }
+        // Code & avatar handled by service on create
 
-        $customer2 = Customer::firstOrCreate(
-            ['email' => 'member2@example.com'],
-            [
+        $customer2 = Customer::where('email', 'member2@example.com')->first();
+        if (! $customer2) {
+            $customer2 = $customerService->create([
                 'name' => 'Siti Aminah',
                 'phone' => '081234567891',
+                'email' => 'member2@example.com',
                 'qr_code' => 'MEMBER-002',
                 'created_at' => now(),
-            ]
-        );
+            ]);
+        }
+        // Code & avatar handled by service on create
 
         // 5. Simulate Transactions
         if (MembershipTransaction::count() === 0) {

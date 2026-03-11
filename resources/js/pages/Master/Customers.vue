@@ -159,6 +159,8 @@ const tableData = computed(() => {
     return customers.value.map((c: any) => ({
         id: c.id,
         name: c.name,
+        code: c.code || '-',
+        avatar: c.avatar || null,
         phone: c.phone || '-',
         email: c.email || '-',
         membership_status: c.is_active_member ? 'Aktif' : 'Tidak Aktif',
@@ -168,7 +170,7 @@ const tableData = computed(() => {
 });
 
 const columns = ref<Column[]>([
-    { key: 'name', label: 'Nama', sortable: true, class: 'min-w-[180px] font-medium' },
+    { key: 'customer', label: 'Customer', sortable: true, type: 'avatar', labelField: 'name', subLabelField: 'code', class: 'min-w-[220px]' },
     { key: 'phone', label: 'Telepon', class: 'min-w-[120px] whitespace-nowrap' },
     { key: 'email', label: 'Email', class: 'min-w-[160px] whitespace-nowrap' },
     {

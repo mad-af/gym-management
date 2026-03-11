@@ -7,9 +7,31 @@ use App\Models\MembershipTransaction;
 use App\Models\Visit;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 class CustomerService
 {
+    private function generateNumericCode(int $sequenceLength = 4): string
+    {
+        $prefix = now()->format('ym'); // tahun + bulan (2603)
+
+        $lastCode = Customer::query()
+            ->where('code', 'like', $prefix.'%')
+            ->orderByDesc('code')
+            ->value('code');
+
+        if ($lastCode) {
+            $lastSequence = (int) substr($lastCode, -$sequenceLength);
+            $nextSequence = $lastSequence + 1;
+        } else {
+            $nextSequence = 1;
+        }
+
+        $sequence = str_pad((string) $nextSequence, $sequenceLength, '0', STR_PAD_LEFT);
+
+        return $prefix.$sequence;
+    }
+
     public function getAll(
         int $perPage = 10,
         ?string $search = null,
@@ -17,11 +39,16 @@ class CustomerService
     ): LengthAwarePaginator {
         $now = Carbon::now()->startOfDay();
         $query = Customer::query()
-            ->with(['membershipTransactions' => function ($q) use ($now) {
-                $q->whereDate('start_date', '<=', $now)
-                    ->whereDate('end_date', '>=', $now)
-                    ->with('package');
-            }])
+            ->with([
+                'membershipTransactions' => function ($q) use ($now) {
+                    $q->whereDate('start_date', '<=', $now)
+                        ->whereDate('end_date', '>=', $now)
+                        ->with('package');
+                },
+                'media' => function ($q) {
+                    $q->where('collection', 'avatar');
+                },
+            ])
             ->latest('created_at');
 
         if ($search) {
@@ -52,14 +79,39 @@ class CustomerService
 
     public function create(array $data): Customer
     {
-        return Customer::create($data);
+        return DB::transaction(function () use ($data) {
+            if (! isset($data['code']) || $data['code'] === '') {
+                $data['code'] = $this->generateNumericCode();
+            }
+
+            $shouldGenerateAvatar = ! (isset($data['avatar']) && $data['avatar'] instanceof \Illuminate\Http\UploadedFile);
+            unset($data['avatar']);
+
+            $customer = Customer::create($data);
+
+            if ($shouldGenerateAvatar) {
+                try {
+                    $generator = new AvatarGenerator;
+                    $generator->generateAndSave($customer->name, 'svg', $customer);
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('Customer avatar generation failed: '.$e->getMessage());
+                }
+            }
+
+            return $customer->load(['media' => function ($q) {
+                $q->where('collection', 'avatar');
+            }]);
+        });
     }
 
     public function update(Customer $customer, array $data): Customer
     {
+        unset($data['avatar']);
         $customer->update($data);
 
-        return $customer->refresh();
+        return $customer->refresh()->load(['media' => function ($q) {
+            $q->where('collection', 'avatar');
+        }]);
     }
 
     public function delete(Customer $customer): bool
