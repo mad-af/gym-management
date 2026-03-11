@@ -27,17 +27,18 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
+import VueApexCharts from 'vue3-apexcharts';
 import DropdownMenu from '../common/DropdownMenu.vue';
+
 const menuItems = [
     { label: 'View More', onClick: () => console.log('View More clicked') },
     { label: 'Delete', onClick: () => console.log('Delete clicked') },
 ];
-import VueApexCharts from 'vue3-apexcharts';
 
 const series = ref([45, 65, 25]);
 const chartWidth = ref(445);
 
-const chartOptions = ref({
+const chartOptions = ref<any>({
     colors: ['#3641f5', '#7592ff', '#dde9ff'],
     labels: ['Desktop', 'Mobile', 'Tablet'],
     chart: {

@@ -22,6 +22,7 @@ Route::middleware(['auth:web'])->group(function () {
     Route::put('users/{user}/activate', [\App\Http\Controllers\Api\UserController::class, 'activate']);
     Route::put('roles/{role}/activate', [\App\Http\Controllers\Api\RoleController::class, 'activate']);
     Route::put('membership-packages/{membership_package}/activate', [MembershipPackageController::class, 'activate']);
+    Route::put('products/{product}/activate', [ProductController::class, 'activate']);
 
     // Selection routes (Must be defined before apiResource to avoid conflict with show/{id})
     Route::get('roles/selection', [\App\Http\Controllers\Api\RoleController::class, 'selection']);

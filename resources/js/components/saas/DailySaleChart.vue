@@ -5,10 +5,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 import VueApexCharts from 'vue3-apexcharts';
 
-const chartOptions = ref({
+const chartOptions = ref<any>({
     colors: ['#465fff'],
     chart: {
         fontFamily: 'Outfit, sans-serif',
@@ -69,7 +69,7 @@ const chartOptions = ref({
             show: false,
         },
         y: {
-            formatter: (val) => `${val}`,
+            formatter: (val: number) => `${val}`,
         },
     },
 });

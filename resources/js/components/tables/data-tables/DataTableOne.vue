@@ -131,8 +131,8 @@
                     </button>
 
                     <button @click="goToPage(1)" :class="currentPage === 1
-                            ? 'bg-blue-500/[0.08] text-brand-500'
-                            : 'text-gray-700 dark:text-gray-400'
+                        ? 'bg-blue-500/[0.08] text-brand-500'
+                        : 'text-gray-700 dark:text-gray-400'
                         "
                         class="flex h-10 w-10 items-center justify-center rounded-lg text-sm font-medium hover:bg-blue-500/[0.08] hover:text-brand-500 dark:hover:text-brand-500">
                         1
@@ -141,8 +141,8 @@
                     <span v-if="startPage > 2" class="flex h-10 w-10 items-center justify-center">...</span>
 
                     <button v-for="page in pageRange" :key="page" @click="goToPage(page)" :class="currentPage === page
-                            ? 'bg-blue-500/[0.08] text-brand-500'
-                            : 'text-gray-700 dark:text-gray-400'
+                        ? 'bg-blue-500/[0.08] text-brand-500'
+                        : 'text-gray-700 dark:text-gray-400'
                         "
                         class="flex h-10 w-10 items-center justify-center rounded-lg text-sm font-medium hover:bg-blue-500/[0.08] hover:text-brand-500 dark:hover:text-brand-500">
                         {{ page }}
@@ -151,8 +151,8 @@
                     <span v-if="endPage < totalPages - 1" class="flex h-10 w-10 items-center justify-center">...</span>
 
                     <button v-if="totalPages > 1" @click="goToPage(totalPages)" :class="currentPage === totalPages
-                            ? 'bg-blue-500/[0.08] text-brand-500'
-                            : 'text-gray-700 dark:text-gray-400'
+                        ? 'bg-blue-500/[0.08] text-brand-500'
+                        : 'text-gray-700 dark:text-gray-400'
                         "
                         class="flex h-10 w-10 items-center justify-center rounded-lg text-sm font-medium hover:bg-blue-500/[0.08] hover:text-brand-500 dark:hover:text-brand-500">
                         {{ totalPages }}
@@ -176,13 +176,24 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 
+type Person = {
+    id: number;
+    name: string;
+    image: string;
+    position: string;
+    office: string;
+    age: number;
+    startDate: string;
+    salary: string;
+};
+
 const search = ref('');
-const sortColumn = ref('name');
-const sortDirection = ref('asc');
+const sortColumn = ref<keyof Person>('name');
+const sortDirection = ref<'asc' | 'desc'>('asc');
 const currentPage = ref(1);
 const perPage = ref(10);
 
-const columns = [
+const columns: Array<{ key: keyof Person; label: string }> = [
     { key: 'name', label: 'User' },
     { key: 'position', label: 'Position' },
     { key: 'office', label: 'Office' },
@@ -191,7 +202,7 @@ const columns = [
     { key: 'salary', label: 'Salary' },
 ];
 
-const data = [
+const data: Person[] = [
     {
         id: 1,
         name: 'Lindsey Curtis',
@@ -505,8 +516,9 @@ const filteredData = computed(() => {
         )
         .sort((a, b) => {
             const modifier = sortDirection.value === 'asc' ? 1 : -1;
-            if (a[sortColumn.value] < b[sortColumn.value]) return -1 * modifier;
-            if (a[sortColumn.value] > b[sortColumn.value]) return 1 * modifier;
+            const column = sortColumn.value;
+            if (a[column] < b[column]) return -1 * modifier;
+            if (a[column] > b[column]) return 1 * modifier;
             return 0;
         });
 });
@@ -559,18 +571,7 @@ const endPage = computed(
     () => pageRange.value[pageRange.value.length - 1] || totalPages.value - 1,
 );
 
-const pagesAroundCurrent = computed(() => {
-    const pages = [];
-    const startPage = Math.max(2, currentPage.value - 2);
-    const endPage = Math.min(totalPages.value - 1, currentPage.value + 2);
-
-    for (let i = startPage; i <= endPage; i++) {
-        pages.push(i);
-    }
-    return pages;
-});
-
-const goToPage = (page) => {
+const goToPage = (page: number) => {
     if (page >= 1 && page <= totalPages.value) {
         currentPage.value = page;
     }
@@ -588,7 +589,7 @@ const prevPage = () => {
     }
 };
 
-const sortBy = (column) => {
+const sortBy = (column: keyof Person) => {
     if (sortColumn.value === column) {
         sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
     } else {

@@ -350,15 +350,10 @@ const nextPage = () => {
     }
 };
 
-const goToPage = (page) => {
+const goToPage = (page: number | string) => {
     if (typeof page === 'number' && page >= 1 && page <= totalPages.value) {
         currentPage.value = page;
     }
-};
-
-const openDropdown = (id) => {
-    // Implement dropdown functionality here
-    console.log(`Open dropdown for transaction ${id}`);
 };
 </script>
 

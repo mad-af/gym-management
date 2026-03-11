@@ -104,7 +104,9 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import VueApexCharts from 'vue3-apexcharts';
 import DropdownMenu from '../common/DropdownMenu.vue';
+
 const menuItems = [
     { label: 'View More', onClick: () => console.log('View More clicked') },
     { label: 'Delete', onClick: () => console.log('Delete clicked') },
@@ -112,12 +114,11 @@ const menuItems = [
 const options = ['today', 'week', 'month'];
 const selected = ref('today');
 
-const capitalizeFirstLetter = (string) => {
+const capitalizeFirstLetter = (string: string) => {
     return string.charAt(0).toUpperCase() + string.slice(1);
 };
-import VueApexCharts from 'vue3-apexcharts';
 
-const chartOptions = ref({
+const chartOptions = ref<any>({
     chart: {
         fontFamily: 'Outfit, sans-serif',
         type: 'area',

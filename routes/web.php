@@ -42,8 +42,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('gym.visits');
 
     Route::get('inventory/products', function () {
-        return Inertia::render('Gym/Inventory/Products');
+        return Inertia::render('Master/Products');
     })->name('gym.inventory.products');
+
     Route::get('inventory/stock-movements', function () {
         return Inertia::render('Gym/Inventory/StockMovements');
     })->name('gym.inventory.stock-movements');

@@ -1,5 +1,5 @@
 <template>
-    <div class="relative" v-click-outside="closeDropdown" ref="dropdown">
+    <div class="relative" ref="dropdownRef">
         <!-- Dropdown Trigger Button -->
         <button @click="toggleDropdown" :class="buttonClass">
             <slot name="icon">
@@ -34,12 +34,17 @@
 
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { ref } from 'vue';
-import vClickOutside from './v-click-outside.vue';
+import { onMounted, onUnmounted, ref, type PropType } from 'vue';
 
-const props = defineProps({
+type MenuItem = {
+    label: string;
+    onClick?: (() => void) | null;
+    to?: string;
+};
+
+defineProps({
     menuItems: {
-        type: Array,
+        type: Array as PropType<MenuItem[]>,
         default: () => [],
     },
     buttonClass: {
@@ -59,6 +64,7 @@ const props = defineProps({
 });
 
 const open = ref(false);
+const dropdownRef = ref<HTMLElement | null>(null);
 
 const toggleDropdown = () => {
     open.value = !open.value;
@@ -68,18 +74,28 @@ const closeDropdown = () => {
     open.value = false;
 };
 
-const handleMenuItemClick = (callback) => {
+const handleMenuItemClick = (callback?: (() => void) | null) => {
     if (typeof callback === 'function') {
         callback(); // Execute the provided callback function
     }
     closeDropdown(); // Close the dropdown after the item is clicked
 };
-</script>
 
-<script lang="ts">
-export default {
-    directives: {
-        clickOutside: vClickOutside,
-    },
+const handleClickOutside = (event: MouseEvent) => {
+    if (!open.value) return;
+    if (
+        dropdownRef.value &&
+        !dropdownRef.value.contains(event.target as Node)
+    ) {
+        closeDropdown();
+    }
 };
+
+onMounted(() => {
+    document.addEventListener('click', handleClickOutside);
+});
+
+onUnmounted(() => {
+    document.removeEventListener('click', handleClickOutside);
+});
 </script>

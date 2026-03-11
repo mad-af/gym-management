@@ -12,7 +12,7 @@
     <transition enter-active-class="transition duration-200 ease-out" enter-from-class="transform scale-95 opacity-0"
       enter-to-class="transform scale-100 opacity-100" leave-active-class="transition duration-75 ease-in"
       leave-from-class="transform scale-100 opacity-100" leave-to-class="transform scale-95 opacity-0">
-      <div v-if="isOpen" v-click-outside="closeDropdown"
+      <div v-if="isOpen"
         class="absolute left-0 top-full z-40 mt-2 w-full min-w-[260px] rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg dark:border-gray-800 dark:bg-[#1E2635]">
         <ul class="flex flex-col gap-1">
           <li v-for="item in menuItems" :key="item.text">
@@ -31,7 +31,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 
 const isOpen = ref(false)
-const dropdownRef = ref(false)
+const dropdownRef = ref<HTMLElement | null>(null)
 
 const menuItems = [
   { text: 'Edit Profile', href: '#' },
@@ -48,14 +48,14 @@ const closeDropdown = () => {
   isOpen.value = false
 }
 
-const handleItemClick = (event) => {
+const handleItemClick = (event: MouseEvent) => {
   event.preventDefault()
   // Add your logic here for handling item clicks
   closeDropdown()
 }
 
-const handleClickOutside = (event) => {
-  if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {
+const handleClickOutside = (event: MouseEvent) => {
+  if (dropdownRef.value && !dropdownRef.value.contains(event.target as Node)) {
     closeDropdown()
   }
 }

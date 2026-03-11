@@ -27,14 +27,14 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue';
+import VueApexCharts from 'vue3-apexcharts';
 import DropdownMenu from '../common/DropdownMenu.vue';
+
 const menuItems = [
     { label: 'View More', onClick: () => console.log('View More clicked') },
     { label: 'Delete', onClick: () => console.log('Delete clicked') },
 ];
-
-import { ref } from 'vue';
-import VueApexCharts from 'vue3-apexcharts';
 
 const series = ref([
     {
@@ -43,7 +43,7 @@ const series = ref([
     },
 ]);
 
-const chartOptions = ref({
+const chartOptions = ref<any>({
     colors: ['#465fff'],
     chart: {
         fontFamily: 'Outfit, sans-serif',
@@ -105,7 +105,7 @@ const chartOptions = ref({
             show: false,
         },
         y: {
-            formatter: function (val) {
+            formatter: function (val: number) {
                 return val;
             },
         },

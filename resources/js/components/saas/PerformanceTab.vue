@@ -258,13 +258,13 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import DropdownMenu from '../common/DropdownMenu.vue';
 import DailySaleChart from './DailySaleChart.vue';
 import NewUserChart from './NewUserChart.vue';
 import OnlineSaleChart from './OnlineSaleChart.vue';
 
 const selected = ref('daily');
 
-import DropdownMenu from '../common/DropdownMenu.vue';
 const menuItems = [
     { label: 'View More', onClick: () => console.log('View More clicked') },
     { label: 'Delete', onClick: () => console.log('Delete clicked') },
