@@ -56,6 +56,13 @@ class CustomerController extends Controller
         return ApiResponse::success('Customer details retrieved successfully.', $customer);
     }
 
+    public function stats(Request $request)
+    {
+        $stats = $this->service->getStats();
+
+        return ApiResponse::success('Customer statistics retrieved successfully.', $stats);
+    }
+
     public function update(UpdateCustomerRequest $request, Customer $customer)
     {
         $updated = $this->service->update($customer, $request->validated());

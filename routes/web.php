@@ -21,8 +21,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Gym Management
     Route::get('customers', function () {
-        return Inertia::render('Gym/Customers/Index');
+        return Inertia::render('Master/Customers');
     })->name('gym.customers');
+
     Route::get('customers/{customer}', function (Customer $customer) {
         return Inertia::render('Gym/Customers/Detail', [
             'customerId' => $customer->id,

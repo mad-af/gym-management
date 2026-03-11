@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Hash;
 
 class UserService
 {
-    public function getAll(int $perPage = 10, ?string $search = null, int $page = 1, ?string $roleName = null): LengthAwarePaginator
+    public function getAll(int $perPage = 10, ?string $search = null, int $page = 1, ?string $roleName = null, $isActive = null): LengthAwarePaginator
     {
         $query = User::with(['roles'])->latest();
 
@@ -19,9 +19,24 @@ class UserService
             });
         }
 
+        if (! is_null($isActive) && $isActive !== '') {
+            $normalized = $isActive;
+            if (is_string($isActive)) {
+                $lower = strtolower($isActive);
+                if (in_array($lower, ['1', 'true', 'yes'])) {
+                    $normalized = 1;
+                } elseif (in_array($lower, ['0', 'false', 'no'])) {
+                    $normalized = 0;
+                }
+            }
+            $query->where('is_active', (bool) $normalized);
+        }
+
         if ($search) {
-            $query->where('name', 'like', "%{$search}%")
-                ->orWhere('email', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
         }
 
         return $query->paginate($perPage, ['*'], 'page', $page);
@@ -48,6 +63,7 @@ class UserService
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'password' => Hash::make('password'), // Default password
+                'is_active' => $data['is_active'] ?? true,
             ]);
 
             if (isset($data['roles'])) {
@@ -75,6 +91,10 @@ class UserService
                 'email' => $data['email'],
             ];
 
+            if (array_key_exists('is_active', $data)) {
+                $updateData['is_active'] = (bool) $data['is_active'];
+            }
+
             $user->update($updateData);
 
             if (isset($data['roles'])) {
@@ -92,11 +112,15 @@ class UserService
 
     public function deactivate(User $user): bool
     {
-        return true;
+        $user->is_active = false;
+
+        return $user->save();
     }
 
     public function activate(User $user): bool
     {
-        return true;
+        $user->is_active = true;
+
+        return $user->save();
     }
 }

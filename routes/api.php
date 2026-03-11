@@ -28,6 +28,7 @@ Route::middleware(['auth:web'])->group(function () {
     Route::get('roles/selection', [\App\Http\Controllers\Api\RoleController::class, 'selection']);
     Route::get('users/selection', [\App\Http\Controllers\Api\UserController::class, 'selection']);
     Route::get('customers/selection', [CustomerController::class, 'selection']);
+    Route::get('customers/stats', [CustomerController::class, 'stats']);
     Route::get('membership-packages/selection', [MembershipPackageController::class, 'selection']);
     Route::get('products/selection', [ProductController::class, 'selection']);
 

@@ -59,7 +59,7 @@ class UserController extends Controller
 
     public function show(User $user)
     {
-        return ApiResponse::success('User details retrieved successfully.', $user->load(['roles', 'employee', 'opds']));
+        return ApiResponse::success('User details retrieved successfully.', $user->load(['roles', 'employee']));
     }
 
     public function update(UpdateUserRequest $request, User $user)

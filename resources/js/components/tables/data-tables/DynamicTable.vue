@@ -221,7 +221,7 @@
                 </div>
 
                 <!-- Default Text -->
-                <p v-else class="text-theme-sm text-gray-700 dark:text-gray-400">
+                <p v-else class="text-theme-sm text-gray-700 dark:text-gray-400 break-words">
                   {{ row[col.key] }}
                 </p>
               </td>

@@ -20,9 +20,7 @@ class StoreUserRequest extends FormRequest
             'employee_id' => ['nullable', 'exists:employees,id', 'unique:users,employee_id'],
             'roles' => ['required', 'array'],
             'roles.*' => ['exists:roles,name'],
-            'has_all_opds' => ['required', 'boolean'],
-            'opd_ids' => ['required_if:has_all_opds,false', 'array'],
-            'opd_ids.*' => ['uuid', 'exists:opds,id'],
+            'is_active' => ['sometimes', 'boolean'],
             'avatar' => ['sometimes', 'nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
         ];
     }

@@ -15,27 +15,6 @@
                     Tambah Pengguna
                 </Button>
             </template>
-            <template #cell-opds="{ row }">
-                <div class="flex flex-wrap items-center gap-1">
-                    <span v-if="row.has_all_opds"
-                        class="rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-500/15 dark:text-brand-400">
-                        Semua OPD
-                    </span>
-                    <template v-else>
-                        <span v-for="opd in row.opds.slice(0, 2)" :key="opd.id"
-                            class="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-200">
-                            {{ opd.name }}
-                        </span>
-                        <Tooltip v-if="row.opds.length > 2" :content="row.opds.map((opd: any) => opd.name).join(', ')"
-                            position="top">
-                            <span
-                                class="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs text-gray-600 dark:bg-gray-800 dark:text-gray-300 cursor-default">
-                                +{{ row.opds.length - 2 }}
-                            </span>
-                        </Tooltip>
-                    </template>
-                </div>
-            </template>
             <template #actions="{ row }">
                 <div class="flex items-center gap-2">
                     <button v-can="USER_PERMISSIONS.EDIT" @click="editItem(row)"
@@ -117,30 +96,6 @@
                         {{ form.errors.employee_id }}
                     </p>
                 </div>
-
-                <div class="space-y-2">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                        Akses OPD <span class="text-error-500">*</span>
-                    </label>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">
-                        Wajib pilih akses semua OPD atau pilih minimal satu OPD.
-                    </p>
-                    <div class="flex items-center gap-2">
-                        <input id="has_all_opds" type="checkbox" v-model="form.has_all_opds"
-                            class="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800" />
-                        <label for="has_all_opds" class="text-sm text-gray-700 dark:text-gray-200">
-                            Akses semua OPD
-                        </label>
-                    </div>
-                    <div v-if="!form.has_all_opds" class="mt-3">
-                        <ComboboxMulti v-model="form.opd_ids" :options="opdOptions" labelKey="name" valueKey="id"
-                            placeholder="Pilih OPD..." :loading="opdLoading" remote @search="onOpdSearch"
-                            @load-more="onOpdLoadMore" />
-                    </div>
-                    <p v-if="form.errors.opd_ids" class="mt-1 text-sm text-error-500">
-                        {{ form.errors.opd_ids }}
-                    </p>
-                </div>
             </div>
 
             <template #footer>
@@ -201,9 +156,7 @@ import DynamicTable from '@/components/tables/data-tables/DynamicTable.vue';
 import type { Column } from '@/components/tables/data-tables/DynamicTable.vue';
 import Button from '@/components/ui/Button.vue';
 import Combobox from '@/components/ui/Combobox.vue';
-import ComboboxMulti from '@/components/ui/ComboboxMulti.vue';
 import Drawer from '@/components/ui/Drawer.vue';
-import Tooltip from '@/components/ui/Tooltip.vue';
 import { USER_PERMISSIONS } from '@/directives/permissions';
 import { PlusIcon, TrashIcon, CheckCircleIcon, PencilIcon, FilterIcon } from '@/icons';
 
@@ -237,12 +190,6 @@ const employeeSearch = ref('');
 const employeePage = ref(1);
 const employeeHasMore = ref(true);
 
-const opdOptions = ref<any[]>([]);
-const opdLoading = ref(false);
-const opdSearch = ref('');
-const opdPage = ref(1);
-const opdHasMore = ref(true);
-
 const statusOptions = [
     { value: 1, label: 'Active' },
     { value: 0, label: 'Inactive' },
@@ -275,8 +222,6 @@ const form = useForm({
     phone: '',
     roles: '',
     employee_id: null as number | null,
-    has_all_opds: false,
-    opd_ids: [] as string[],
 });
 
 const isEmployeeLocked = computed(() => !!form.id && !!form.employee_id);
@@ -290,8 +235,6 @@ const resetForm = () => {
     form.phone = '';
     form.roles = '';
     form.employee_id = null;
-    form.has_all_opds = false;
-    form.opd_ids = [];
     avatarFile.value = null;
     currentAvatar.value = null;
 };
@@ -318,48 +261,6 @@ const fetchUsers = async () => {
     } catch (error) {
         console.error('Error fetching users:', error);
     }
-};
-
-const fetchOpdOptions = async (reset = false) => {
-    if (reset) {
-        opdPage.value = 1;
-        opdOptions.value = [];
-        opdHasMore.value = true;
-    }
-
-    if (!opdHasMore.value && !reset) return;
-
-    opdLoading.value = true;
-    try {
-        const response = await axios.get('/api/opds/selection', {
-            params: {
-                page: opdPage.value,
-                per_page: 20,
-                search: opdSearch.value,
-            },
-        });
-        const data = response.data.data;
-        if (reset) {
-            opdOptions.value = data.data;
-        } else {
-            opdOptions.value = [...opdOptions.value, ...data.data];
-        }
-        opdHasMore.value = !!data.next_page_url;
-        opdPage.value++;
-    } catch (error) {
-        console.error('Error fetching OPDs:', error);
-    } finally {
-        opdLoading.value = false;
-    }
-};
-
-const onOpdSearch = (query: string) => {
-    opdSearch.value = query;
-    fetchOpdOptions(true);
-};
-
-const onOpdLoadMore = () => {
-    fetchOpdOptions(false);
 };
 
 const fetchRoleOptions = async (reset = false) => {
@@ -454,8 +355,6 @@ watch(isDrawerOpen, (newValue) => {
         if (!isEmployeeLocked.value) {
             fetchEmployeeOptions(true);
         }
-
-        fetchOpdOptions(true);
     }
 });
 
@@ -517,12 +416,6 @@ const columns = ref<Column[]>([
         class: 'min-w-[150px]'
     },
     {
-        key: 'opds',
-        label: 'OPD',
-        type: 'custom',
-        class: 'min-w-[220px]'
-    },
-    {
         key: 'role',
         label: 'Role',
         class: 'min-w-[150px]'
@@ -575,11 +468,6 @@ const editItem = (item: any) => {
     form.phone = item.phone || '';
     form.roles = item.roles && item.roles.length > 0 ? item.roles[0].name : '';
     form.employee_id = item.employee_id;
-
-    form.has_all_opds = !!item.has_all_opds;
-    form.opd_ids = item.has_all_opds
-        ? []
-        : (item.opds ? item.opds.map((opd: any) => opd.id) : []);
 
     currentAvatar.value = item.avatar || null;
     avatarFile.value = null;
