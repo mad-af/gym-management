@@ -20,55 +20,53 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('dashboard');
 
     // Gym Management
-    Route::get('gym/customers', function () {
+    Route::get('customers', function () {
         return Inertia::render('Gym/Customers/Index');
     })->name('gym.customers');
-    Route::get('gym/customers/{customer}', function (Customer $customer) {
+    Route::get('customers/{customer}', function (Customer $customer) {
         return Inertia::render('Gym/Customers/Detail', [
             'customerId' => $customer->id,
         ]);
     })->name('gym.customers.show');
 
-    Route::get('gym/membership/packages', function () {
-        return Inertia::render('Gym/Membership/Packages');
+    Route::get('membership/packages', function () {
+        return Inertia::render('Master/MembershipPackages');
     })->name('gym.membership.packages');
-    Route::get('gym/membership/transactions', function () {
+
+    Route::get('membership/transactions', function () {
         return Inertia::render('Gym/Membership/Transactions');
     })->name('gym.membership.transactions');
-    Route::get('gym/membership/items', function () {
-        return Inertia::render('Gym/Membership/Items');
-    })->name('gym.membership.items');
 
-    Route::get('gym/visits', function () {
+    Route::get('visits', function () {
         return Inertia::render('Gym/Visits/Index');
     })->name('gym.visits');
 
-    Route::get('gym/inventory/products', function () {
+    Route::get('inventory/products', function () {
         return Inertia::render('Gym/Inventory/Products');
     })->name('gym.inventory.products');
-    Route::get('gym/inventory/stock-movements', function () {
+    Route::get('inventory/stock-movements', function () {
         return Inertia::render('Gym/Inventory/StockMovements');
     })->name('gym.inventory.stock-movements');
 
-    Route::get('gym/sales', function () {
+    Route::get('sales', function () {
         return Inertia::render('Gym/Sales/Index');
     })->name('gym.sales');
-    Route::get('gym/sales/{sale}', function (Sale $sale) {
+    Route::get('sales/{sale}', function (Sale $sale) {
         return Inertia::render('Gym/Sales/Detail', [
             'saleId' => $sale->id,
         ]);
     })->name('gym.sales.show');
 
-    Route::get('gym/reports/daily-revenue', function () {
+    Route::get('reports/daily-revenue', function () {
         return Inertia::render('Gym/Reports/DailyRevenue');
     })->name('gym.reports.daily-revenue');
-    Route::get('gym/reports/visits', function () {
+    Route::get('reports/visits', function () {
         return Inertia::render('Gym/Reports/VisitReport');
     })->name('gym.reports.visits');
-    Route::get('gym/reports/memberships', function () {
+    Route::get('reports/memberships', function () {
         return Inertia::render('Gym/Reports/MembershipReport');
     })->name('gym.reports.memberships');
-    Route::get('gym/reports/product-sales', function () {
+    Route::get('reports/product-sales', function () {
         return Inertia::render('Gym/Reports/ProductSalesReport');
     })->name('gym.reports.product-sales');
 });

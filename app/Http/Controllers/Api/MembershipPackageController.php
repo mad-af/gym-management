@@ -18,7 +18,7 @@ class MembershipPackageController extends Controller
         $this->middleware(['auth:web']);
         $this->middleware('permission:'.Permission::VIEW_MEMBERSHIP_PACKAGES->value)->only(['index', 'show', 'selection']);
         $this->middleware('permission:'.Permission::CREATE_MEMBERSHIP_PACKAGES->value)->only(['store']);
-        $this->middleware('permission:'.Permission::EDIT_MEMBERSHIP_PACKAGES->value)->only(['update']);
+        $this->middleware('permission:'.Permission::EDIT_MEMBERSHIP_PACKAGES->value)->only(['update', 'activate']);
         $this->middleware('permission:'.Permission::DELETE_MEMBERSHIP_PACKAGES->value)->only(['destroy']);
     }
 
@@ -71,6 +71,13 @@ class MembershipPackageController extends Controller
     {
         $this->service->delete($membershipPackage);
 
-        return ApiResponse::success('Membership package deleted successfully.');
+        return ApiResponse::success('Membership package deactivated successfully.');
+    }
+
+    public function activate(MembershipPackage $membershipPackage)
+    {
+        $this->service->activate($membershipPackage);
+
+        return ApiResponse::success('Membership package activated successfully.');
     }
 }

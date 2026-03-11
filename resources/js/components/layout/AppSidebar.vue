@@ -184,7 +184,7 @@ import {
     ROLE_PERMISSIONS,
     CUSTOMER_PERMISSIONS,
     MEMBERSHIP_PACKAGE_PERMISSIONS,
-    MEMBERSHIP_PACKAGE_ITEM_PERMISSIONS,
+    // MEMBERSHIP_PACKAGE_ITEM_PERMISSIONS,
     MEMBERSHIP_TRANSACTION_PERMISSIONS,
     VISIT_PERMISSIONS,
     PRODUCT_PERMISSIONS,
@@ -202,7 +202,6 @@ import {
     ChevronDownIcon,
     DoorOpenIcon,
     GridIcon,
-    BarChartIcon,
 } from '../../icons';
 
 const page = usePage();
@@ -243,8 +242,55 @@ const menuGroups = ref<MenuGroup[]>([
         ],
     },
     {
+        title: 'Transactions',
+        items: [
+            {
+                icon: DoorOpenIcon,
+                name: 'Visits / Check In',
+                path: '/visits',
+                permission: VISIT_PERMISSIONS.VIEW,
+            },
+            {
+                icon: PackageIcon,
+                name: 'Membership Transactions',
+                path: '/membership/transactions',
+                permission: MEMBERSHIP_TRANSACTION_PERMISSIONS.VIEW,
+            },
+            {
+                icon: BanknoteIcon,
+                name: 'Sales',
+                path: '/sales',
+                permission: SALE_PERMISSIONS.VIEW,
+            },
+            {
+                icon: GridIcon,
+                name: 'Stock Movements',
+                path: '/inventory/stock-movements',
+                permission: STOCK_MOVEMENT_PERMISSIONS.VIEW,
+            },
+        ],
+    },
+    {
         title: 'Master',
         items: [
+            {
+                icon: PackageIcon,
+                name: 'Membership Packages',
+                path: '/membership/packages',
+                permission: MEMBERSHIP_PACKAGE_PERMISSIONS.VIEW,
+            },
+            {
+                icon: GridIcon,
+                name: 'Products',
+                path: '/inventory/products',
+                permission: PRODUCT_PERMISSIONS.VIEW,
+            },
+            {
+                icon: UserGroupIcon,
+                name: 'Customers',
+                path: '/customers',
+                permission: CUSTOMER_PERMISSIONS.VIEW,
+            },
             {
                 icon: UserCircleIcon,
                 name: 'Manajemen Pengguna',
@@ -256,80 +302,6 @@ const menuGroups = ref<MenuGroup[]>([
                 name: 'Role & Hak Akses',
                 path: '/roles',
                 permission: ROLE_PERMISSIONS.VIEW,
-            },
-        ],
-    },
-    {
-        title: 'Gym',
-        items: [
-            {
-                icon: UserGroupIcon,
-                name: 'Customers',
-                path: '/gym/customers',
-                permission: CUSTOMER_PERMISSIONS.VIEW,
-            },
-            {
-                icon: PackageIcon,
-                name: 'Membership',
-                permission: [
-                    MEMBERSHIP_PACKAGE_PERMISSIONS.VIEW,
-                    MEMBERSHIP_PACKAGE_ITEM_PERMISSIONS.VIEW,
-                    MEMBERSHIP_TRANSACTION_PERMISSIONS.VIEW,
-                ],
-                subItems: [
-                    {
-                        name: 'Packages',
-                        path: '/gym/membership/packages',
-                    },
-                    {
-                        name: 'Package Items',
-                        path: '/gym/membership/items',
-                    },
-                    {
-                        name: 'Transactions',
-                        path: '/gym/membership/transactions',
-                    },
-                ],
-            },
-            {
-                icon: DoorOpenIcon,
-                name: 'Visits / Check In',
-                path: '/gym/visits',
-                permission: VISIT_PERMISSIONS.VIEW,
-            },
-            {
-                icon: GridIcon,
-                name: 'Inventory',
-                permission: [
-                    PRODUCT_PERMISSIONS.VIEW,
-                    STOCK_MOVEMENT_PERMISSIONS.VIEW,
-                ],
-                subItems: [
-                    {
-                        name: 'Products',
-                        path: '/gym/inventory/products',
-                    },
-                    {
-                        name: 'Stock Movements',
-                        path: '/gym/inventory/stock-movements',
-                    },
-                ],
-            },
-            {
-                icon: BanknoteIcon,
-                name: 'Sales',
-                path: '/gym/sales',
-                permission: SALE_PERMISSIONS.VIEW,
-            },
-            {
-                icon: BarChartIcon,
-                name: 'Reports',
-                subItems: [
-                    { name: 'Daily Revenue', path: '/gym/reports/daily-revenue' },
-                    { name: 'Visit Report', path: '/gym/reports/visits' },
-                    { name: 'Membership Report', path: '/gym/reports/memberships' },
-                    { name: 'Product Sales', path: '/gym/reports/product-sales' },
-                ],
             },
         ],
     },

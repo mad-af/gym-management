@@ -24,7 +24,7 @@ class MembershipPackage extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
-        'price' => 'decimal:2',
+        'price' => 'decimal:0',
         'created_at' => 'datetime',
     ];
 

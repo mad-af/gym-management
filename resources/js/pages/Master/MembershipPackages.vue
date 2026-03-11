@@ -22,10 +22,16 @@
                         title="Edit">
                         <PencilIcon class="w-4.5 h-4.5" />
                     </button>
-                    <button v-can="'delete_membership_packages'" @click="deleteItem(row)"
+                    <button v-can="'delete_membership_packages'" v-if="row.is_active === 'Active'"
+                        @click="deactivatePackage(row)"
                         class="text-gray-500 hover:text-error-500 dark:text-gray-400 dark:hover:text-error-500"
-                        title="Hapus">
+                        title="Nonaktifkan">
                         <TrashIcon class="w-4.5 h-4.5" />
+                    </button>
+                    <button v-can="'edit_membership_packages'" v-else @click="activatePackage(row)"
+                        class="text-gray-500 hover:text-success-500 dark:text-gray-400 dark:hover:text-success-500"
+                        title="Aktifkan">
+                        <CheckCircleIcon class="w-4.5 h-4.5" />
                     </button>
                 </div>
             </template>
@@ -45,7 +51,8 @@
                     <label for="price" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">
                         Harga <span class="text-error-500">*</span>
                     </label>
-                    <input type="number" id="price" v-model.number="form.price"
+                    <input type="text" id="price" v-model="priceText" inputmode="numeric" @focus="handlePriceFocus"
+                        @input="handlePriceInput" @blur="handlePriceBlur"
                         class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200" />
                     <p v-if="form.errors.price" class="mt-1 text-sm text-error-500">{{ form.errors.price }}</p>
                 </div>
@@ -58,9 +65,69 @@
                     <p v-if="form.errors.duration_days" class="mt-1 text-sm text-error-500">{{ form.errors.duration_days
                         }}</p>
                 </div>
-                <div class="flex items-center gap-2">
-                    <input type="checkbox" id="is_active" v-model="form.is_active" />
-                    <label for="is_active" class="text-sm text-gray-700 dark:text-gray-200">Aktif</label>
+                <div>
+                    <label for="description" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">
+                        Deskripsi
+                    </label>
+                    <textarea id="description" v-model="form.description" rows="3"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200" />
+                    <p v-if="form.errors.description" class="mt-1 text-sm text-error-500">{{ form.errors.description }}
+                    </p>
+                </div>
+                <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                    <div class="mb-4 flex items-center justify-between gap-3">
+                        <p class="text-sm font-medium text-gray-800 dark:text-white/90">Items Paket</p>
+                        <Button size="sm" variant="outline" :onClick="addItem" className="w-auto" :startIcon="PlusIcon">
+                            Tambah Item
+                        </Button>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div v-for="(it, index) in formItems" :key="it.id || index"
+                            class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-12">
+                                <div class="sm:col-span-6">
+                                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                        Item Name <span class="text-error-500">*</span>
+                                    </label>
+                                    <input type="text" v-model="it.item_name"
+                                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200" />
+                                    <p v-if="getError(`items.${index}.item_name`)" class="mt-1 text-sm text-error-500">
+                                        {{ getError(`items.${index}.item_name`) }}
+                                    </p>
+                                </div>
+
+                                <div class="sm:col-span-3">
+                                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                        Qty <span class="text-error-500">*</span>
+                                    </label>
+                                    <input type="number" v-model.number="it.quantity" min="1"
+                                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200" />
+                                    <p v-if="getError(`items.${index}.quantity`)" class="mt-1 text-sm text-error-500">
+                                        {{ getError(`items.${index}.quantity`) }}
+                                    </p>
+                                </div>
+
+                                <div class="sm:col-span-3">
+                                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                        Unit
+                                    </label>
+                                    <input type="text" v-model="it.unit"
+                                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200" />
+                                    <p v-if="getError(`items.${index}.unit`)" class="mt-1 text-sm text-error-500">
+                                        {{ getError(`items.${index}.unit`) }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 flex justify-end">
+                                <Button size="sm" variant="outline" :onClick="() => removeItem(index)"
+                                    className="w-auto" :startIcon="TrashIcon">
+                                    Hapus Item
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <template #footer>
@@ -99,7 +166,7 @@ import DynamicTable from '@/components/tables/data-tables/DynamicTable.vue';
 import type { Column } from '@/components/tables/data-tables/DynamicTable.vue';
 import Button from '@/components/ui/Button.vue';
 import Drawer from '@/components/ui/Drawer.vue';
-import { PlusIcon, TrashIcon, PencilIcon, FilterIcon } from '@/icons';
+import { PlusIcon, TrashIcon, CheckCircleIcon, PencilIcon, FilterIcon } from '@/icons';
 
 const currentPageTitle = ref('Membership Packages');
 const isDrawerOpen = ref(false);
@@ -117,10 +184,59 @@ const form = ref({
     name: '',
     price: 0,
     duration_days: 30,
-    is_active: true,
+    description: '',
     errors: {} as Record<string, string>,
     processing: false,
 });
+
+const priceText = ref('Rp 0');
+
+const formItems = ref<any[]>([]);
+
+const formatRupiah = (value: unknown): string => {
+    if (value === null || value === undefined || value === '') {
+        return 'Rp 0';
+    }
+
+    const numberValue = typeof value === 'number' ? value : Number(value);
+    if (Number.isNaN(numberValue)) {
+        return 'Rp 0';
+    }
+
+    return `Rp ${Math.trunc(numberValue).toLocaleString('id-ID')}`;
+};
+
+const handlePriceFocus = () => {
+    priceText.value = form.value.price ? String(form.value.price) : '';
+};
+
+const handlePriceInput = () => {
+    const digits = (priceText.value || '').replace(/\D/g, '');
+    priceText.value = digits;
+    form.value.price = digits ? Number(digits) : 0;
+};
+
+const handlePriceBlur = () => {
+    priceText.value = formatRupiah(form.value.price);
+};
+
+const getError = (key: string) => {
+    const err = (form.value.errors as any)?.[key];
+    return Array.isArray(err) ? err[0] : err;
+};
+
+const addItem = () => {
+    formItems.value.push({
+        id: null as string | null,
+        item_name: '',
+        quantity: 1,
+        unit: '',
+    });
+};
+
+const removeItem = (index: number) => {
+    formItems.value.splice(index, 1);
+};
 
 const tableData = computed(() => {
     const rows: any[] = [];
@@ -134,7 +250,7 @@ const tableData = computed(() => {
                 ...p,
                 id: p.id,
                 name: p.name,
-                price: p.price,
+                price: formatRupiah(p.price),
                 duration_days: p.duration_days,
                 is_active: p.is_active ? 'Active' : 'Inactive',
                 item_name: item.item_name || '-',
@@ -170,13 +286,13 @@ const tableData = computed(() => {
 });
 
 const columns = ref<Column[]>([
-    { key: 'name', label: 'Nama Paket', sortable: true, class: 'min-w-[200px] font-medium align-top' },
-    { key: 'price', label: 'Harga', class: 'min-w-[120px] align-top' },
-    { key: 'duration_days', label: 'Durasi (hari)', class: 'min-w-[140px] align-top' },
-    { key: 'is_active', label: 'Status', type: 'status', class: 'min-w-[120px] align-top', statusMap: { Active: 'bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-500', Inactive: 'bg-error-50 text-error-700 dark:bg-error-500/15 dark:text-error-500' } },
-    { key: 'item_name', label: 'Item Name', class: 'min-w-[150px]' },
-    { key: 'item_quantity', label: 'Qty', class: 'min-w-[80px]' },
-    { key: 'item_unit', label: 'Unit', class: 'min-w-[80px]' },
+    { key: 'name', label: 'Nama Paket', sortable: true, class: 'font-medium align-top' },
+    { key: 'price', label: 'Harga', class: 'align-top' },
+    { key: 'duration_days', label: 'Durasi (hari)', class: 'align-top' },
+    { key: 'is_active', label: 'Status', type: 'status', class: 'align-top', statusMap: { Active: 'bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-500', Inactive: 'bg-error-50 text-error-700 dark:bg-error-500/15 dark:text-error-500' } },
+    { key: 'item_name', label: 'Item Name', class: '' },
+    { key: 'item_quantity', label: 'Qty', class: '' },
+    { key: 'item_unit', label: 'Unit', class: '' },
     { key: 'actions', label: 'Aksi', type: 'action', class: 'w-[120px] align-top' },
 ]);
 
@@ -186,7 +302,6 @@ const fetchPackages = async () => {
             per_page: perPage.value,
             page: currentPage.value,
             search: searchFilter.value || undefined,
-            is_active: filters.value.only_active ? true : undefined,
         },
     });
     packages.value = data.data?.data || data.data || [];
@@ -209,17 +324,59 @@ const handlePerPageChange = (n: number) => {
 };
 
 const openDrawer = () => {
-    form.value = { id: null, name: '', price: 0, duration_days: 30, is_active: true, errors: {}, processing: false };
+    form.value = { id: null, name: '', price: 0, duration_days: 30, description: '', errors: {}, processing: false };
+    priceText.value = formatRupiah(0);
+    formItems.value = [];
+    addItem();
     isDrawerOpen.value = true;
 };
 const closeDrawer = () => (isDrawerOpen.value = false);
-const editItem = (row: any) => {
-    form.value = { id: row.id, name: row.name, price: row.price, duration_days: row.duration_days, is_active: row.is_active === 'Active', errors: {}, processing: false };
-    isDrawerOpen.value = true;
+const editItem = async (row: any) => {
+    form.value.errors = {};
+    form.value.processing = true;
+    try {
+        const { data } = await axios.get(`/api/membership-packages/${row.id}`);
+        const pkg = data.data;
+
+        form.value = {
+            id: pkg.id,
+            name: pkg.name,
+            price: Number(pkg.price),
+            duration_days: pkg.duration_days,
+            description: pkg.description || '',
+            errors: {},
+            processing: false,
+        };
+        priceText.value = formatRupiah(form.value.price);
+
+        formItems.value = (pkg.items || []).map((it: any) => ({
+            id: it.id,
+            item_name: it.item_name,
+            quantity: it.quantity,
+            unit: it.unit || '',
+        }));
+
+        if (formItems.value.length === 0) {
+            addItem();
+        }
+
+        isDrawerOpen.value = true;
+    } catch (error) {
+        console.error('Error fetching package details', error);
+    } finally {
+        form.value.processing = false;
+    }
 };
-const deleteItem = async (row: any) => {
-    if (confirm('Hapus paket ini?')) {
+const deactivatePackage = async (row: any) => {
+    if (confirm('Nonaktifkan paket ini?')) {
         await axios.delete(`/api/membership-packages/${row.id}`);
+        fetchPackages();
+    }
+};
+
+const activatePackage = async (row: any) => {
+    if (confirm('Aktifkan paket ini?')) {
+        await axios.put(`/api/membership-packages/${row.id}/activate`);
         fetchPackages();
     }
 };
@@ -228,7 +385,18 @@ const saveItem = async () => {
     form.value.processing = true;
     form.value.errors = {};
     try {
-        const payload = { name: form.value.name, price: form.value.price, duration_days: form.value.duration_days, is_active: form.value.is_active };
+        const payload = {
+            name: form.value.name,
+            price: form.value.price,
+            duration_days: form.value.duration_days,
+            description: form.value.description || null,
+            items: formItems.value.map((it: any) => ({
+                ...(it.id ? { id: it.id } : {}),
+                item_name: it.item_name,
+                quantity: it.quantity,
+                unit: it.unit || null,
+            })),
+        };
         if (form.value.id) {
             await axios.put(`/api/membership-packages/${form.value.id}`, payload);
         } else {
