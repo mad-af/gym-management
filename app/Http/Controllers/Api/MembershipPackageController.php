@@ -7,13 +7,14 @@ use App\Helpers\ApiResponse;
 use App\Http\Requests\StoreMembershipPackageRequest;
 use App\Http\Requests\UpdateMembershipPackageRequest;
 use App\Models\MembershipPackage;
+use App\Services\MediaService;
 use App\Services\MembershipPackageService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 
 class MembershipPackageController extends Controller
 {
-    public function __construct(protected MembershipPackageService $service)
+    public function __construct(protected MembershipPackageService $service, protected MediaService $mediaService)
     {
         $this->middleware(['auth:web']);
         $this->middleware('permission:'.Permission::VIEW_MEMBERSHIP_PACKAGES->value)->only(['index', 'show', 'selection']);
@@ -50,19 +51,35 @@ class MembershipPackageController extends Controller
 
     public function store(StoreMembershipPackageRequest $request)
     {
-        $package = $this->service->create($request->validated());
+        $data = $request->validated();
+        unset($data['cover']);
+
+        $package = $this->service->create($data);
+
+        if ($request->hasFile('cover')) {
+            $this->mediaService->upload($request->file('cover'), $package, 'cover');
+            $package->load(['items', 'media']);
+        }
 
         return ApiResponse::success('Membership package created successfully.', $package, 201);
     }
 
     public function show(MembershipPackage $membershipPackage)
     {
-        return ApiResponse::success('Membership package details retrieved successfully.', $membershipPackage->load(['items']));
+        return ApiResponse::success('Membership package details retrieved successfully.', $membershipPackage->load(['items', 'media']));
     }
 
     public function update(UpdateMembershipPackageRequest $request, MembershipPackage $membershipPackage)
     {
-        $updated = $this->service->update($membershipPackage, $request->validated());
+        $data = $request->validated();
+        unset($data['cover']);
+
+        $updated = $this->service->update($membershipPackage, $data);
+
+        if ($request->hasFile('cover')) {
+            $this->mediaService->upload($request->file('cover'), $updated, 'cover');
+            $updated->load(['items', 'media']);
+        }
 
         return ApiResponse::success('Membership package updated successfully.', $updated);
     }

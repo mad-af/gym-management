@@ -39,6 +39,10 @@
 
         <Drawer :isOpen="isDrawerOpen" @close="closeDrawer" :title="form.id ? 'Edit Paket' : 'Tambah Paket'">
             <div class="space-y-6">
+                <div class="flex justify-start">
+                    <AvatarInput v-model="coverFile" :src="currentCoverSrc" :placeholder="currentCoverPlaceholder"
+                        size="large" variant="square" />
+                </div>
                 <div>
                     <label for="name" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">
                         Nama Paket <span class="text-error-500">*</span>
@@ -161,6 +165,7 @@
 import axios from 'axios';
 import { ref, computed, onMounted } from 'vue';
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue';
+import AvatarInput from '@/components/forms/FormElements/AvatarInput.vue';
 import AdminLayout from '@/components/layout/AdminLayout.vue';
 import DynamicTable from '@/components/tables/data-tables/DynamicTable.vue';
 import type { Column } from '@/components/tables/data-tables/DynamicTable.vue';
@@ -178,6 +183,23 @@ const totalItems = ref(0);
 const currentPage = ref(1);
 const perPage = ref(10);
 const searchFilter = ref('');
+
+const coverFile = ref<File | null>(null);
+const currentCover = ref<any | null>(null);
+
+const currentCoverSrc = computed(() => {
+    if (currentCover.value && typeof currentCover.value === 'object') {
+        return currentCover.value.url || '';
+    }
+    return '';
+});
+
+const currentCoverPlaceholder = computed(() => {
+    if (currentCover.value && typeof currentCover.value === 'object') {
+        return currentCover.value.placeholder || '';
+    }
+    return '';
+});
 
 const form = ref({
     id: null as string | null,
@@ -249,6 +271,7 @@ const tableData = computed(() => {
             const row: any = {
                 ...p,
                 id: p.id,
+                cover: p.cover || null,
                 name: p.name,
                 price: formatRupiah(p.price),
                 duration_days: p.duration_days,
@@ -262,7 +285,7 @@ const tableData = computed(() => {
 
             if (isFirst) {
                 row._cellAttributes = {
-                    name: { rowspan: rowSpan },
+                    cover: { rowspan: rowSpan },
                     price: { rowspan: rowSpan },
                     duration_days: { rowspan: rowSpan },
                     is_active: { rowspan: rowSpan },
@@ -271,7 +294,7 @@ const tableData = computed(() => {
                 };
             } else {
                 row._cellAttributes = {
-                    name: { hidden: true },
+                    cover: { hidden: true },
                     price: { hidden: true },
                     duration_days: { hidden: true },
                     is_active: { hidden: true },
@@ -286,7 +309,7 @@ const tableData = computed(() => {
 });
 
 const columns = ref<Column[]>([
-    { key: 'name', label: 'Nama Paket', sortable: true, class: 'font-medium align-top' },
+    { key: 'cover', label: 'Cover', sortable: false, type: 'cover', avatarField: 'cover', labelField: 'name', class: 'font-medium align-top' },
     { key: 'price', label: 'Harga', class: 'align-top' },
     { key: 'duration_days', label: 'Durasi (hari)', class: 'align-top' },
     { key: 'is_active', label: 'Status', type: 'status', class: 'align-top', statusMap: { Active: 'bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-500', Inactive: 'bg-error-50 text-error-700 dark:bg-error-500/15 dark:text-error-500' } },
@@ -327,6 +350,8 @@ const openDrawer = () => {
     form.value = { id: null, name: '', price: 0, duration_days: 30, description: '', errors: {}, processing: false };
     priceText.value = formatRupiah(0);
     formItems.value = [];
+    coverFile.value = null;
+    currentCover.value = null;
     addItem();
     isDrawerOpen.value = true;
 };
@@ -348,6 +373,8 @@ const editItem = async (row: any) => {
             processing: false,
         };
         priceText.value = formatRupiah(form.value.price);
+        currentCover.value = pkg.cover || null;
+        coverFile.value = null;
 
         formItems.value = (pkg.items || []).map((it: any) => ({
             id: it.id,
@@ -385,22 +412,33 @@ const saveItem = async () => {
     form.value.processing = true;
     form.value.errors = {};
     try {
-        const payload = {
-            name: form.value.name,
-            price: form.value.price,
-            duration_days: form.value.duration_days,
-            description: form.value.description || null,
-            items: formItems.value.map((it: any) => ({
-                ...(it.id ? { id: it.id } : {}),
-                item_name: it.item_name,
-                quantity: it.quantity,
-                unit: it.unit || null,
-            })),
-        };
+        const formData = new FormData();
+        formData.append('name', form.value.name);
+        formData.append('price', String(form.value.price));
+        formData.append('duration_days', String(form.value.duration_days));
+        formData.append('description', form.value.description || '');
+
+        formItems.value.forEach((it: any, index: number) => {
+            if (it.id) {
+                formData.append(`items[${index}][id]`, String(it.id));
+            }
+            formData.append(`items[${index}][item_name]`, String(it.item_name || ''));
+            formData.append(`items[${index}][quantity]`, String(it.quantity || 1));
+            formData.append(`items[${index}][unit]`, String(it.unit || ''));
+        });
+
+        if (coverFile.value) {
+            formData.append('cover', coverFile.value);
+        }
+
         if (form.value.id) {
-            await axios.put(`/api/membership-packages/${form.value.id}`, payload);
+            await axios.post(`/api/membership-packages/${form.value.id}?_method=PUT`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
         } else {
-            await axios.post('/api/membership-packages', payload);
+            await axios.post('/api/membership-packages', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
         }
         closeDrawer();
         fetchPackages();

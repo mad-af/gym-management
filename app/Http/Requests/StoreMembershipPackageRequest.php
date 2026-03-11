@@ -19,6 +19,7 @@ class StoreMembershipPackageRequest extends FormRequest
             'price' => ['required', 'numeric', 'min:0'],
             'description' => ['nullable', 'string'],
             'is_active' => ['sometimes', 'boolean'],
+            'cover' => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
             'items' => ['nullable', 'array'],
             'items.*.item_name' => ['required', 'string', 'max:255'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],

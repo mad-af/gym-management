@@ -27,6 +27,7 @@ class UpdateMembershipPackageRequest extends FormRequest
             'price' => ['required', 'numeric', 'min:0'],
             'description' => ['nullable', 'string'],
             'is_active' => ['sometimes', 'boolean'],
+            'cover' => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
             'items' => ['nullable', 'array'],
             'items.*.id' => [
                 'nullable',

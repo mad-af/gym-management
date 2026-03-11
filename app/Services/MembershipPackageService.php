@@ -15,7 +15,7 @@ class MembershipPackageService
         int $page = 1,
         ?bool $isActive = null
     ): LengthAwarePaginator {
-        $query = MembershipPackage::query()->with('items')->latest('created_at');
+        $query = MembershipPackage::query()->with(['items', 'media'])->latest('created_at');
         if ($isActive !== null) {
             $query->where('is_active', $isActive);
         }
@@ -66,7 +66,7 @@ class MembershipPackageService
                 );
             }
 
-            return $package->load('items');
+            return $package->load(['items', 'media']);
         });
     }
 
@@ -118,7 +118,7 @@ class MembershipPackageService
                 }
             }
 
-            return $package->load('items');
+            return $package->load(['items', 'media']);
         });
     }
 
