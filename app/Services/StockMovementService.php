@@ -18,7 +18,7 @@ class StockMovementService
         ?string $type = null
     ): LengthAwarePaginator {
         $query = StockMovement::query()
-            ->with(['product'])
+            ->with(['product', 'creator'])
             ->latest('created_at');
 
         if ($productId) {
@@ -26,7 +26,7 @@ class StockMovementService
         }
 
         if ($type) {
-            $query->where('type', $type);
+            $query->where('type', strtoupper($type));
         }
 
         if ($search) {
@@ -38,9 +38,9 @@ class StockMovementService
         return $query->paginate($perPage, ['*'], 'page', $page);
     }
 
-    public function create(array $data): StockMovement
+    public function create(array $data, ?string $createdBy = null): StockMovement
     {
-        return DB::transaction(function () use ($data) {
+        return DB::transaction(function () use ($data, $createdBy) {
             $product = Product::lockForUpdate()->findOrFail($data['product_id']);
 
             $type = $data['type'];
@@ -59,7 +59,12 @@ class StockMovementService
 
             $product->save();
 
-            return StockMovement::create($data)->refresh();
+            $payload = $data;
+            if ($createdBy) {
+                $payload['created_by'] = $createdBy;
+            }
+
+            return StockMovement::create($payload)->refresh()->load(['product', 'creator']);
         });
     }
 

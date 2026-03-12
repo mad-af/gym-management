@@ -35,14 +35,14 @@ class StockMovementController extends Controller
 
     public function store(StoreStockMovementRequest $request)
     {
-        $movement = $this->service->create($request->validated());
+        $movement = $this->service->create($request->validated(), $request->user()?->id);
 
         return ApiResponse::success('Stock movement created successfully.', $movement, 201);
     }
 
     public function show(StockMovement $stockMovement)
     {
-        return ApiResponse::success('Stock movement details retrieved successfully.', $stockMovement->load(['product']));
+        return ApiResponse::success('Stock movement details retrieved successfully.', $stockMovement->load(['product', 'creator']));
     }
 
     public function destroy(StockMovement $stockMovement)

@@ -88,6 +88,7 @@ const tableData = computed(() =>
                 _key: `${s.id}-${idx}`,
                 id: s.id,
                 customer_name: s.customer?.name || '-',
+                staff_name: s.creator?.name || '-',
                 total_amount: s.total_amount,
                 created_at: s.created_at,
                 item_product_name: it?.product?.name || '-',
@@ -99,12 +100,14 @@ const tableData = computed(() =>
             if (idx === 0) {
                 row._cellAttributes = {
                     customer_name: { rowspan: rowSpan },
+                    staff_name: { rowspan: rowSpan },
                     total_amount: { rowspan: rowSpan },
                     created_at: { rowspan: rowSpan },
                 };
             } else {
                 row._cellAttributes = {
                     customer_name: { hidden: true },
+                    staff_name: { hidden: true },
                     total_amount: { hidden: true },
                     created_at: { hidden: true },
                 };
@@ -123,6 +126,7 @@ const columns: Column[] = [
     { key: 'item_price', label: 'Harga', type: 'custom', class: 'min-w-[130px] text-right' },
     { key: 'item_subtotal', label: 'Subtotal', type: 'custom', class: 'min-w-[130px] text-right' },
     { key: 'total_amount', label: 'Total', type: 'custom', class: 'min-w-[140px] text-right' },
+    { key: 'staff_name', label: 'Petugas', class: 'min-w-[180px]' },
 ];
 
 const formatNumberId = (value: unknown): string => {

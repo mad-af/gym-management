@@ -16,7 +16,7 @@ class MembershipTransactionService
         ?string $status = null
     ): LengthAwarePaginator {
         $query = MembershipTransaction::query()
-            ->with(['customer', 'package'])
+            ->with(['customer', 'package', 'creator'])
             ->latest('created_at');
 
         if ($customerId) {

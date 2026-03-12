@@ -19,6 +19,7 @@ class StockMovement extends Model
         'quantity',
         'cost_price',
         'description',
+        'created_by',
         'created_at',
     ];
 
@@ -30,5 +31,10 @@ class StockMovement extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

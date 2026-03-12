@@ -11,6 +11,11 @@
                     Filter
                 </Button>
             </template>
+            <template #cell-price="{ row }">
+                <span class="text-theme-sm font-medium text-gray-800 dark:text-white/90">
+                    {{ formatCurrencyId(row.price) }}
+                </span>
+            </template>
             <template #cell-start_date="{ row }">
                 <span class="text-theme-sm text-gray-700 dark:text-gray-400">
                     {{ formatDateId(row.start_date) }}
@@ -76,7 +81,9 @@ const tableData = computed(() =>
     items.value.map((t: any) => ({
         id: t.id,
         customer_name: t.customer?.name || '-',
+        staff_name: t.creator?.name || '-',
         package_name: t.package?.name || '-',
+        price: t.price ?? null,
         start_date: t.start_date,
         end_date: t.end_date,
         status: t.status || '-',
@@ -86,10 +93,32 @@ const tableData = computed(() =>
 const columns = ref<Column[]>([
     { key: 'customer_name', label: 'Pelanggan', class: 'min-w-[200px]' },
     { key: 'package_name', label: 'Paket', class: 'min-w-[200px]' },
+    { key: 'price', label: 'Harga', type: 'custom', class: 'min-w-[140px] text-right' },
     { key: 'start_date', label: 'Mulai', type: 'custom', class: 'min-w-[140px]' },
     { key: 'end_date', label: 'Selesai', type: 'custom', class: 'min-w-[140px]' },
     { key: 'status', label: 'Status', type: 'custom', class: 'min-w-[120px]' },
+    { key: 'staff_name', label: 'Petugas', class: 'min-w-[180px]' },
 ]);
+
+const formatCurrencyId = (value: unknown): string => {
+    if (value === null || value === undefined || value === '') {
+        return '-';
+    }
+
+    const numberValue = typeof value === 'number' ? value : Number(value);
+    if (Number.isNaN(numberValue)) {
+        return String(value);
+    }
+
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    })
+        .format(numberValue)
+        .replace('Rp', 'Rp ');
+};
 
 const formatDateId = (value: unknown): string => {
     if (!value) return '-';

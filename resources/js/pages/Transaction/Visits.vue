@@ -16,6 +16,14 @@
                     {{ getVisitTypeLabel(row.visit_type) }}
                 </Badge>
             </template>
+            <template #cell-price="{ row }">
+                <span v-if="String(row.visit_type || '').toUpperCase() === 'MEMBERSHIP'" class="text-theme-sm font-medium text-gray-800 dark:text-white/90">
+                    -
+                </span>
+                <span v-else class="text-theme-sm font-medium text-gray-800 dark:text-white/90">
+                    {{ formatCurrencyId(row.price) }}
+                </span>
+            </template>
             <template #cell-checkin_time="{ row }">
                 <span class="text-theme-sm text-gray-700 dark:text-gray-400">
                     {{ formatDateTimeId(row.checkin_time) }}
@@ -72,6 +80,7 @@ const tableData = computed(() =>
         id: v.id,
         customer_name: v.customer?.name || '-',
         visit_type: v.visit_type || '-',
+        price: v.price ?? null,
         checkin_time: v.checkin_time || '-',
         created_by: v.creator?.name || '-',
     })),
@@ -80,9 +89,30 @@ const tableData = computed(() =>
 const columns = ref<Column[]>([
     { key: 'customer_name', label: 'Pelanggan', class: 'min-w-[200px]' },
     { key: 'visit_type', label: 'Jenis', type: 'custom', class: 'min-w-[120px]' },
+    { key: 'price', label: 'Harga', type: 'custom', class: 'min-w-[140px] text-right' },
     { key: 'checkin_time', label: 'Check-In', type: 'custom', class: 'min-w-[180px]' },
     { key: 'created_by', label: 'Petugas', class: 'min-w-[180px]' },
 ]);
+
+const formatCurrencyId = (value: unknown): string => {
+    if (value === null || value === undefined || value === '') {
+        return 'Rp 0';
+    }
+
+    const numberValue = typeof value === 'number' ? value : Number(value);
+    if (Number.isNaN(numberValue)) {
+        return String(value);
+    }
+
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    })
+        .format(numberValue)
+        .replace('Rp', 'Rp ');
+};
 
 const formatDateTimeId = (value: unknown): string => {
     if (!value) return '-';

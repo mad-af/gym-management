@@ -19,7 +19,7 @@ class SaleService
         ?string $customerId = null
     ): LengthAwarePaginator {
         $query = Sale::query()
-            ->with(['customer', 'items.product'])
+            ->with(['customer', 'creator', 'items.product'])
             ->latest('created_at');
 
         if ($customerId) {
@@ -78,6 +78,7 @@ class SaleService
                     'type' => 'OUT',
                     'quantity' => $quantity,
                     'description' => 'Sold in Sale #'.$sale->id,
+                    'created_by' => $createdBy,
                 ]);
 
                 $product->stock -= $quantity;
@@ -89,7 +90,7 @@ class SaleService
             $sale->total_amount = $total;
             $sale->save();
 
-            return $sale->load(['customer', 'items.product']);
+            return $sale->load(['customer', 'creator', 'items.product']);
         });
     }
 

@@ -19,7 +19,7 @@ class VisitService
         ?string $visitType = null
     ): LengthAwarePaginator {
         $query = Visit::query()
-            ->with(['customer', 'membershipTransaction'])
+            ->with(['customer', 'membershipTransaction', 'creator'])
             ->latest('checkin_time');
 
         if ($customerId) {

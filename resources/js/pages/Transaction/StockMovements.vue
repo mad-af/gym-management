@@ -80,6 +80,7 @@ const tableData = computed(() =>
         type: m.type || '-',
         quantity: m.quantity,
         created_at: m.created_at,
+        created_by: m.creator?.name || '-',
     })),
 );
 
@@ -88,6 +89,7 @@ const columns = ref<Column[]>([
     { key: 'type', label: 'Jenis', type: 'custom', class: 'min-w-[120px]' },
     { key: 'quantity', label: 'Jumlah', type: 'custom', class: 'min-w-[120px]' },
     { key: 'created_at', label: 'Tanggal', type: 'custom', class: 'min-w-[160px]' },
+    { key: 'created_by', label: 'Petugas', class: 'min-w-[180px]' },
 ]);
 
 const formatDateTimeId = (value: unknown): string => {
