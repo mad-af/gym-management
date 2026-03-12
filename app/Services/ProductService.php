@@ -9,6 +9,29 @@ use Illuminate\Support\Facades\DB;
 
 class ProductService
 {
+    public function getStats(int $lowStockThreshold = 5): array
+    {
+        $total = Product::query()->count();
+        $active = Product::query()->where('is_active', true)->count();
+        $outOfStock = Product::query()
+            ->where(function ($q) {
+                $q->whereNull('stock')->orWhere('stock', '<=', 0);
+            })
+            ->count();
+        $lowStock = Product::query()
+            ->whereNotNull('stock')
+            ->where('stock', '>', 0)
+            ->where('stock', '<=', $lowStockThreshold)
+            ->count();
+
+        return [
+            'total' => $total,
+            'active' => $active,
+            'outOfStock' => $outOfStock,
+            'lowStock' => $lowStock,
+        ];
+    }
+
     public function getAll(
         int $perPage = 10,
         ?string $search = null,

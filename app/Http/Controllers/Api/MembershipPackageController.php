@@ -17,7 +17,7 @@ class MembershipPackageController extends Controller
     public function __construct(protected MembershipPackageService $service, protected MediaService $mediaService)
     {
         $this->middleware(['auth:web']);
-        $this->middleware('permission:'.Permission::VIEW_MEMBERSHIP_PACKAGES->value)->only(['index', 'show', 'selection']);
+        $this->middleware('permission:'.Permission::VIEW_MEMBERSHIP_PACKAGES->value)->only(['index', 'show', 'selection', 'stats']);
         $this->middleware('permission:'.Permission::CREATE_MEMBERSHIP_PACKAGES->value)->only(['store']);
         $this->middleware('permission:'.Permission::EDIT_MEMBERSHIP_PACKAGES->value)->only(['update', 'activate']);
         $this->middleware('permission:'.Permission::DELETE_MEMBERSHIP_PACKAGES->value)->only(['destroy']);
@@ -47,6 +47,13 @@ class MembershipPackageController extends Controller
         );
 
         return ApiResponse::success('Membership packages selection retrieved successfully.', $items);
+    }
+
+    public function stats(Request $request)
+    {
+        $stats = $this->service->getStats();
+
+        return ApiResponse::success('Membership packages statistics retrieved successfully.', $stats);
     }
 
     public function store(StoreMembershipPackageRequest $request)

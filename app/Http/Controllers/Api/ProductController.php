@@ -17,7 +17,7 @@ class ProductController extends Controller
     public function __construct(protected ProductService $service, protected MediaService $mediaService)
     {
         $this->middleware(['auth:web']);
-        $this->middleware('permission:'.Permission::VIEW_PRODUCTS->value)->only(['index', 'show', 'selection']);
+        $this->middleware('permission:'.Permission::VIEW_PRODUCTS->value)->only(['index', 'show', 'selection', 'stats']);
         $this->middleware('permission:'.Permission::CREATE_PRODUCTS->value)->only(['store']);
         $this->middleware('permission:'.Permission::EDIT_PRODUCTS->value)->only(['update', 'activate']);
         $this->middleware('permission:'.Permission::DELETE_PRODUCTS->value)->only(['destroy']);
@@ -71,6 +71,14 @@ class ProductController extends Controller
     public function show(Product $product)
     {
         return ApiResponse::success('Product details retrieved successfully.', $product->load(['media']));
+    }
+
+    public function stats(Request $request)
+    {
+        $threshold = (int) $request->input('low_stock_threshold', 5);
+        $stats = $this->service->getStats($threshold);
+
+        return ApiResponse::success('Product statistics retrieved successfully.', $stats);
     }
 
     public function update(UpdateProductRequest $request, Product $product)

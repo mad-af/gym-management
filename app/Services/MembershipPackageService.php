@@ -9,6 +9,21 @@ use Illuminate\Support\Facades\DB;
 
 class MembershipPackageService
 {
+    public function getStats(): array
+    {
+        $total = MembershipPackage::query()->count();
+        $active = MembershipPackage::query()->where('is_active', true)->count();
+        $inactive = MembershipPackage::query()->where('is_active', false)->count();
+        $items = MembershipPackageItem::query()->count();
+
+        return [
+            'total' => $total,
+            'active' => $active,
+            'inactive' => $inactive,
+            'items' => $items,
+        ];
+    }
+
     public function getAll(
         int $perPage = 10,
         ?string $search = null,

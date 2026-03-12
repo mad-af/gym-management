@@ -30,7 +30,9 @@ Route::middleware(['auth:web'])->group(function () {
     Route::get('customers/selection', [CustomerController::class, 'selection']);
     Route::get('customers/stats', [CustomerController::class, 'stats']);
     Route::get('membership-packages/selection', [MembershipPackageController::class, 'selection']);
+    Route::get('membership-packages/stats', [MembershipPackageController::class, 'stats']);
     Route::get('products/selection', [ProductController::class, 'selection']);
+    Route::get('products/stats', [ProductController::class, 'stats']);
 
     Route::prefix('dashboard')->group(function () {
         Route::get('stats', [DashboardController::class, 'stats']);

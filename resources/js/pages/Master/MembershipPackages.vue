@@ -1,6 +1,7 @@
 <template>
     <AdminLayout>
         <PageBreadcrumb :pageTitle="currentPageTitle" />
+        <Stats2 :items="statsItems" />
 
         <DynamicTable :columns="columns" :data="tableData" :items-per-page="perPage" :total-items="totalItems"
             :current-page="currentPage" :is-server-side="true" @update:page="handlePageChange"
@@ -171,12 +172,40 @@ import DynamicTable from '@/components/tables/data-tables/DynamicTable.vue';
 import type { Column } from '@/components/tables/data-tables/DynamicTable.vue';
 import Button from '@/components/ui/Button.vue';
 import Drawer from '@/components/ui/Drawer.vue';
-import { PlusIcon, TrashIcon, CheckCircleIcon, PencilIcon, FilterIcon } from '@/icons';
+import Stats2 from '@/components/ui/Stats2.vue';
+import { PlusIcon, TrashIcon, CheckCircleIcon, PencilIcon, FilterIcon, PackageIcon, ErrorIcon } from '@/icons';
 
 const currentPageTitle = ref('Membership Packages');
 const isDrawerOpen = ref(false);
 const isFilterDrawerOpen = ref(false);
 const filters = ref({ only_active: true });
+
+const stats = ref({
+    total: 0,
+    active: 0,
+    inactive: 0,
+});
+
+const statsItems = computed(() => [
+    {
+        label: 'Total Paket',
+        value: stats.value.total,
+        icon: PackageIcon,
+        iconBgClass: 'bg-brand-50 text-brand-500 dark:bg-brand-500/10',
+    },
+    {
+        label: 'Paket Aktif',
+        value: stats.value.active,
+        icon: CheckCircleIcon,
+        iconBgClass: 'bg-success-50 text-success-600 dark:bg-success-500/10',
+    },
+    {
+        label: 'Paket Nonaktif',
+        value: stats.value.inactive,
+        icon: ErrorIcon,
+        iconBgClass: 'bg-error-50 text-error-600 dark:bg-error-500/10',
+    }
+]);
 
 const packages = ref<any[]>([]);
 const totalItems = ref(0);
@@ -319,6 +348,20 @@ const columns = ref<Column[]>([
     { key: 'actions', label: 'Aksi', type: 'action', class: 'w-[120px] align-top' },
 ]);
 
+const fetchStats = async () => {
+    try {
+        const { data } = await axios.get('/api/membership-packages/stats');
+        const s = data.data || data;
+        stats.value = {
+            total: s.total ?? 0,
+            active: s.active ?? 0,
+            inactive: s.inactive ?? 0,
+        };
+    } catch (e) {
+        console.error('Error fetching membership package stats', e);
+    }
+};
+
 const fetchPackages = async () => {
     const { data } = await axios.get('/api/membership-packages', {
         params: {
@@ -329,6 +372,7 @@ const fetchPackages = async () => {
     });
     packages.value = data.data?.data || data.data || [];
     totalItems.value = data.data?.total || packages.value.length;
+    fetchStats();
 };
 
 const handlePageChange = (p: number) => {
@@ -460,5 +504,8 @@ const handleFilter = () => {
     isFilterDrawerOpen.value = false;
 };
 
-onMounted(fetchPackages);
+onMounted(() => {
+    fetchPackages();
+    fetchStats();
+});
 </script>

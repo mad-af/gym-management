@@ -1,6 +1,7 @@
 <template>
     <AdminLayout>
         <PageBreadcrumb :pageTitle="currentPageTitle" />
+        <Stats2 :items="statsItems" />
 
         <DynamicTable :columns="columns" :data="tableData" :items-per-page="perPage" :total-items="totalItems"
             :current-page="currentPage" :is-server-side="true" @update:page="handlePageChange"
@@ -100,7 +101,8 @@ import DynamicTable from '@/components/tables/data-tables/DynamicTable.vue';
 import type { Column } from '@/components/tables/data-tables/DynamicTable.vue';
 import Button from '@/components/ui/Button.vue';
 import Drawer from '@/components/ui/Drawer.vue';
-import { PlusIcon, TrashIcon, CheckCircleIcon, PencilIcon, FilterIcon } from '@/icons';
+import Stats2 from '@/components/ui/Stats2.vue';
+import { PlusIcon, TrashIcon, CheckCircleIcon, PencilIcon, FilterIcon, PackageIcon, WarningIcon, ErrorIcon } from '@/icons';
 
 const currentPageTitle = ref('Products');
 const isDrawerOpen = ref(false);
@@ -112,6 +114,40 @@ const totalItems = ref(0);
 const currentPage = ref(1);
 const perPage = ref(10);
 const searchFilter = ref('');
+
+const stats = ref({
+    total: 0,
+    active: 0,
+    outOfStock: 0,
+    lowStock: 0,
+});
+
+const statsItems = computed(() => [
+    {
+        label: 'Total Produk',
+        value: stats.value.total,
+        icon: PackageIcon,
+        iconBgClass: 'bg-brand-50 text-brand-500 dark:bg-brand-500/10',
+    },
+    {
+        label: 'Produk Aktif',
+        value: stats.value.active,
+        icon: CheckCircleIcon,
+        iconBgClass: 'bg-success-50 text-success-600 dark:bg-success-500/10',
+    },
+    {
+        label: 'Stok Habis',
+        value: stats.value.outOfStock,
+        icon: ErrorIcon,
+        iconBgClass: 'bg-error-50 text-error-600 dark:bg-error-500/10',
+    },
+    {
+        label: 'Stok Rendah',
+        value: stats.value.lowStock,
+        icon: WarningIcon,
+        iconBgClass: 'bg-yellow-50 text-yellow-600 dark:bg-yellow-500/10',
+    },
+]);
 
 const coverFile = ref<File | null>(null);
 const currentCover = ref<any | null>(null);
@@ -187,6 +223,21 @@ const columns = ref<Column[]>([
     { key: 'actions', label: 'Aksi', type: 'action', class: 'w-[120px]' },
 ]);
 
+const fetchStats = async () => {
+    try {
+        const { data } = await axios.get('/api/products/stats');
+        const s = data.data || data;
+        stats.value = {
+            total: s.total ?? 0,
+            active: s.active ?? 0,
+            outOfStock: s.outOfStock ?? 0,
+            lowStock: s.lowStock ?? 0,
+        };
+    } catch (e) {
+        console.error('Error fetching product stats', e);
+    }
+};
+
 const fetchItems = async () => {
     const { data } = await axios.get('/api/products', {
         params: {
@@ -198,6 +249,7 @@ const fetchItems = async () => {
     });
     items.value = data.data?.data || data.data || [];
     totalItems.value = data.data?.total || items.value.length;
+    fetchStats();
 };
 
 const handlePageChange = (p: number) => {
@@ -288,5 +340,8 @@ const handleFilter = () => {
     isFilterDrawerOpen.value = false;
 };
 
-onMounted(fetchItems);
+onMounted(() => {
+    fetchItems();
+    fetchStats();
+});
 </script>
