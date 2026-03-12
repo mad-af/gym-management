@@ -1,6 +1,7 @@
 <template>
     <AdminLayout>
         <PageBreadcrumb :pageTitle="currentPageTitle" />
+        <Stats2 :items="statsItems" />
 
         <DynamicTable :columns="columns" :data="tableData" :items-per-page="perPage" :total-items="totalItems"
             :current-page="currentPage" :is-server-side="true" @update:page="handlePageChange"
@@ -17,7 +18,8 @@
                 </Badge>
             </template>
             <template #cell-price="{ row }">
-                <span v-if="String(row.visit_type || '').toUpperCase() === 'MEMBERSHIP'" class="text-theme-sm font-medium text-gray-800 dark:text-white/90">
+                <span v-if="String(row.visit_type || '').toUpperCase() === 'MEMBERSHIP'"
+                    class="text-theme-sm font-medium text-gray-800 dark:text-white/90">
                     -
                 </span>
                 <span v-else class="text-theme-sm font-medium text-gray-800 dark:text-white/90">
@@ -63,17 +65,45 @@ import type { Column } from '@/components/tables/data-tables/DynamicTable.vue';
 import Badge from '@/components/ui/Badge.vue';
 import Button from '@/components/ui/Button.vue';
 import Drawer from '@/components/ui/Drawer.vue';
-import { FilterIcon } from '@/icons';
+import Stats2 from '@/components/ui/Stats2.vue';
+import { BanknoteIcon, DoorOpenIcon, FilterIcon, ShieldCheckIcon } from '@/icons';
 
 const currentPageTitle = ref('Visits / Check In');
 const isFilterDrawerOpen = ref(false);
 const filters = ref({ visit_type: '' });
+
+const stats = ref({
+    visitsToday: 0,
+    memberVisitsToday: 0,
+    dailyRevenueToday: 0,
+});
 
 const items = ref<any[]>([]);
 const totalItems = ref(0);
 const currentPage = ref(1);
 const perPage = ref(10);
 const searchFilter = ref('');
+
+const statsItems = computed(() => [
+    {
+        label: 'Kunjungan Hari Ini',
+        value: stats.value.visitsToday,
+        icon: DoorOpenIcon,
+        iconBgClass: 'bg-brand-50 text-brand-500 dark:bg-brand-500/10',
+    },
+    {
+        label: 'Customer Hari Ini',
+        value: stats.value.memberVisitsToday,
+        icon: ShieldCheckIcon,
+        iconBgClass: 'bg-success-50 text-success-600 dark:bg-success-500/10',
+    },
+    {
+        label: 'Pendapatan Harian',
+        value: formatCurrencyCompactId(stats.value.dailyRevenueToday),
+        icon: BanknoteIcon,
+        iconBgClass: 'bg-blue-50 text-blue-500 dark:bg-blue-500/10',
+    },
+]);
 
 const tableData = computed(() =>
     items.value.map((v: any) => ({
@@ -114,6 +144,41 @@ const formatCurrencyId = (value: unknown): string => {
         .replace('Rp', 'Rp ');
 };
 
+const formatCompactNumberId = (value: number): string => {
+    const abs = Math.abs(value);
+
+    const formatWithSuffix = (divisor: number, suffix: string) => {
+        const scaled = value / divisor;
+        const maximumFractionDigits = Math.abs(scaled) < 10 ? 1 : 0;
+
+        const formatted = new Intl.NumberFormat('id-ID', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits,
+        }).format(scaled);
+
+        return `${formatted.replace(/,0$/, '')} ${suffix}`;
+    };
+
+    if (abs < 1_000) return value.toLocaleString('id-ID');
+    if (abs < 1_000_000) return formatWithSuffix(1_000, 'rb');
+    if (abs < 1_000_000_000) return formatWithSuffix(1_000_000, 'jt');
+    if (abs < 1_000_000_000_000) return formatWithSuffix(1_000_000_000, 'M');
+    return formatWithSuffix(1_000_000_000_000, 'T');
+};
+
+const formatCurrencyCompactId = (value: unknown): string => {
+    if (value === null || value === undefined || value === '') {
+        return 'Rp 0';
+    }
+
+    const numberValue = typeof value === 'number' ? value : Number(value);
+    if (Number.isNaN(numberValue)) {
+        return String(value);
+    }
+
+    return `Rp ${formatCompactNumberId(numberValue)}`;
+};
+
 const formatDateTimeId = (value: unknown): string => {
     if (!value) return '-';
 
@@ -143,6 +208,20 @@ const getVisitTypeBadgeColor = (value: unknown) => {
     return 'light';
 };
 
+const fetchStats = async () => {
+    try {
+        const { data } = await axios.get('/api/visits/stats');
+        const s = data.data || data;
+        stats.value = {
+            visitsToday: s.visitsToday ?? 0,
+            memberVisitsToday: s.memberVisitsToday ?? 0,
+            dailyRevenueToday: s.dailyRevenueToday ?? 0,
+        };
+    } catch (e) {
+        console.error('Error fetching visit stats', e);
+    }
+};
+
 const fetchItems = async () => {
     const { data } = await axios.get('/api/visits', {
         params: {
@@ -154,6 +233,7 @@ const fetchItems = async () => {
     });
     items.value = data.data?.data || data.data || [];
     totalItems.value = data.data?.total || items.value.length;
+    fetchStats();
 };
 
 const handlePageChange = (p: number) => {

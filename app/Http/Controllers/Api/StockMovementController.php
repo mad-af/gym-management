@@ -15,7 +15,7 @@ class StockMovementController extends Controller
     public function __construct(protected StockMovementService $service)
     {
         $this->middleware(['auth:web']);
-        $this->middleware('permission:'.Permission::VIEW_STOCK_MOVEMENTS->value)->only(['index', 'show']);
+        $this->middleware('permission:'.Permission::VIEW_STOCK_MOVEMENTS->value)->only(['index', 'show', 'stats']);
         $this->middleware('permission:'.Permission::CREATE_STOCK_MOVEMENTS->value)->only(['store']);
         $this->middleware('permission:'.Permission::DELETE_STOCK_MOVEMENTS->value)->only(['destroy']);
     }
@@ -31,6 +31,13 @@ class StockMovementController extends Controller
         );
 
         return ApiResponse::success('Stock movements retrieved successfully.', $movements);
+    }
+
+    public function stats(Request $request)
+    {
+        $stats = $this->service->getStats();
+
+        return ApiResponse::success('Stock movement statistics retrieved successfully.', $stats);
     }
 
     public function store(StoreStockMovementRequest $request)

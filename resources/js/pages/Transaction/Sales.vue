@@ -1,6 +1,7 @@
 <template>
     <AdminLayout>
         <PageBreadcrumb :pageTitle="currentPageTitle" />
+        <Stats2 :items="statsItems" />
 
         <DynamicTable :columns="columns" :data="tableData" :items-per-page="perPage" :total-items="totalItems"
             :current-page="currentPage" :is-server-side="true" @update:page="handlePageChange"
@@ -65,17 +66,45 @@ import DynamicTable from '@/components/tables/data-tables/DynamicTable.vue';
 import type { Column } from '@/components/tables/data-tables/DynamicTable.vue';
 import Button from '@/components/ui/Button.vue';
 import Drawer from '@/components/ui/Drawer.vue';
-import { FilterIcon } from '@/icons';
+import Stats2 from '@/components/ui/Stats2.vue';
+import { BanknoteIcon, BarChartIcon, ClipboardCheckIcon, FilterIcon } from '@/icons';
 
 const currentPageTitle = ref('Sales');
 const isFilterDrawerOpen = ref(false);
 const filters = ref({ customer_id: '' });
+
+const stats = ref({
+    totalSales: 0,
+    revenueThisMonth: 0,
+    revenueToday: 0,
+});
 
 const items = ref<any[]>([]);
 const totalItems = ref(0);
 const currentPage = ref(1);
 const perPage = ref(10);
 const searchFilter = ref('');
+
+const statsItems = computed(() => [
+    {
+        label: 'Total Penjualan',
+        value: stats.value.totalSales,
+        icon: ClipboardCheckIcon,
+        iconBgClass: 'bg-brand-50 text-brand-500 dark:bg-brand-500/10',
+    },
+    {
+        label: 'Omzet Bulan Ini',
+        value: formatCurrencyCompactId(stats.value.revenueThisMonth),
+        icon: BanknoteIcon,
+        iconBgClass: 'bg-success-50 text-success-600 dark:bg-success-500/10',
+    },
+    {
+        label: 'Omzet Hari Ini',
+        value: formatCurrencyCompactId(stats.value.revenueToday),
+        icon: BarChartIcon,
+        iconBgClass: 'bg-blue-50 text-blue-500 dark:bg-blue-500/10',
+    },
+]);
 
 const tableData = computed(() =>
     items.value.flatMap((s: any) => {
@@ -162,6 +191,41 @@ const formatCurrencyId = (value: unknown): string => {
         .replace('Rp', 'Rp ');
 };
 
+const formatCompactNumberId = (value: number): string => {
+    const abs = Math.abs(value);
+
+    const formatWithSuffix = (divisor: number, suffix: string) => {
+        const scaled = value / divisor;
+        const maximumFractionDigits = Math.abs(scaled) < 10 ? 1 : 0;
+
+        const formatted = new Intl.NumberFormat('id-ID', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits,
+        }).format(scaled);
+
+        return `${formatted.replace(/,0$/, '')} ${suffix}`;
+    };
+
+    if (abs < 1_000) return value.toLocaleString('id-ID');
+    if (abs < 1_000_000) return formatWithSuffix(1_000, 'rb');
+    if (abs < 1_000_000_000) return formatWithSuffix(1_000_000, 'jt');
+    if (abs < 1_000_000_000_000) return formatWithSuffix(1_000_000_000, 'M');
+    return formatWithSuffix(1_000_000_000_000, 'T');
+};
+
+const formatCurrencyCompactId = (value: unknown): string => {
+    if (value === null || value === undefined || value === '') {
+        return 'Rp 0';
+    }
+
+    const numberValue = typeof value === 'number' ? value : Number(value);
+    if (Number.isNaN(numberValue)) {
+        return String(value);
+    }
+
+    return `Rp ${formatCompactNumberId(numberValue)}`;
+};
+
 const formatDateTimeId = (value: unknown): string => {
     if (!value) return '-';
 
@@ -177,6 +241,20 @@ const formatDateTimeId = (value: unknown): string => {
     }).format(d);
 };
 
+const fetchStats = async () => {
+    try {
+        const { data } = await axios.get('/api/sales/stats');
+        const s = data.data || data;
+        stats.value = {
+            totalSales: s.totalSales ?? 0,
+            revenueThisMonth: s.revenueThisMonth ?? 0,
+            revenueToday: s.revenueToday ?? 0,
+        };
+    } catch (e) {
+        console.error('Error fetching sales stats', e);
+    }
+};
+
 const fetchItems = async () => {
     try {
         const { data } = await axios.get('/api/sales', {
@@ -189,6 +267,7 @@ const fetchItems = async () => {
         });
         items.value = data.data?.data || [];
         totalItems.value = data.data?.total || 0;
+        fetchStats();
     } catch (e) {
         console.error(e);
     }

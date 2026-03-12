@@ -4,12 +4,43 @@ namespace App\Services;
 
 use App\Models\Product;
 use App\Models\StockMovement;
+use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 
 class StockMovementService
 {
+    public function getStats(): array
+    {
+        $today = Carbon::today();
+        $startOfMonth = $today->copy()->startOfMonth();
+        $endOfMonth = $today->copy()->endOfMonth();
+
+        $movementsThisMonth = StockMovement::query()
+            ->whereDate('created_at', '>=', $startOfMonth)
+            ->whereDate('created_at', '<=', $endOfMonth)
+            ->count();
+
+        $inThisMonth = (int) StockMovement::query()
+            ->where('type', 'IN')
+            ->whereDate('created_at', '>=', $startOfMonth)
+            ->whereDate('created_at', '<=', $endOfMonth)
+            ->sum('quantity');
+
+        $outThisMonth = (int) StockMovement::query()
+            ->where('type', 'OUT')
+            ->whereDate('created_at', '>=', $startOfMonth)
+            ->whereDate('created_at', '<=', $endOfMonth)
+            ->sum('quantity');
+
+        return [
+            'movementsThisMonth' => $movementsThisMonth,
+            'inThisMonth' => $inThisMonth,
+            'outThisMonth' => $outThisMonth,
+        ];
+    }
+
     public function getAll(
         int $perPage = 10,
         ?string $search = null,

@@ -4,10 +4,41 @@ namespace App\Services;
 
 use App\Models\MembershipPackage;
 use App\Models\MembershipTransaction;
+use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class MembershipTransactionService
 {
+    public function getStats(): array
+    {
+        $today = Carbon::today();
+        $startOfMonth = $today->copy()->startOfMonth();
+        $endOfMonth = $today->copy()->endOfMonth();
+
+        $activeMembers = MembershipTransaction::query()
+            ->where('status', 'active')
+            ->whereDate('start_date', '<=', $today)
+            ->whereDate('end_date', '>=', $today)
+            ->distinct('customer_id')
+            ->count('customer_id');
+
+        $transactionsThisMonth = MembershipTransaction::query()
+            ->whereDate('created_at', '>=', $startOfMonth)
+            ->whereDate('created_at', '<=', $endOfMonth)
+            ->count();
+
+        $revenueThisMonth = (float) MembershipTransaction::query()
+            ->whereDate('created_at', '>=', $startOfMonth)
+            ->whereDate('created_at', '<=', $endOfMonth)
+            ->sum('price');
+
+        return [
+            'activeMembers' => $activeMembers,
+            'transactionsThisMonth' => $transactionsThisMonth,
+            'revenueThisMonth' => $revenueThisMonth,
+        ];
+    }
+
     public function getAll(
         int $perPage = 10,
         ?string $search = null,

@@ -48,8 +48,12 @@ const props = defineProps<Stats2Props>();
 const cardClass = computed(() => {
   const count = props.items.length;
 
+  if (count <= 1) {
+    return 'w-full';
+  }
+
   if (count <= 3) {
-    return 'min-w-[14rem] flex-1';
+    return 'min-w-[12rem] flex-1';
   }
 
   return 'w-64 flex-shrink-0';

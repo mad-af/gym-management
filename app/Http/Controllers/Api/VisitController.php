@@ -16,7 +16,7 @@ class VisitController extends Controller
     public function __construct(protected VisitService $service)
     {
         $this->middleware(['auth:web']);
-        $this->middleware('permission:'.Permission::VIEW_VISITS->value)->only(['index', 'show']);
+        $this->middleware('permission:'.Permission::VIEW_VISITS->value)->only(['index', 'show', 'stats']);
         $this->middleware('permission:'.Permission::CREATE_VISITS->value)->only(['store']);
         $this->middleware('permission:'.Permission::EDIT_VISITS->value)->only(['update']);
         $this->middleware('permission:'.Permission::DELETE_VISITS->value)->only(['destroy']);
@@ -33,6 +33,13 @@ class VisitController extends Controller
         );
 
         return ApiResponse::success('Visits retrieved successfully.', $visits);
+    }
+
+    public function stats(Request $request)
+    {
+        $stats = $this->service->getStats();
+
+        return ApiResponse::success('Visit statistics retrieved successfully.', $stats);
     }
 
     public function store(StoreVisitRequest $request)

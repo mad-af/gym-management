@@ -1,6 +1,7 @@
 <template>
     <AdminLayout>
         <PageBreadcrumb :pageTitle="currentPageTitle" />
+        <Stats2 :items="statsItems" />
 
         <DynamicTable :columns="columns" :data="tableData" :items-per-page="perPage" :total-items="totalItems"
             :current-page="currentPage" :is-server-side="true" @update:page="handlePageChange"
@@ -65,17 +66,45 @@ import type { Column } from '@/components/tables/data-tables/DynamicTable.vue';
 import Badge from '@/components/ui/Badge.vue';
 import Button from '@/components/ui/Button.vue';
 import Drawer from '@/components/ui/Drawer.vue';
-import { FilterIcon } from '@/icons';
+import Stats2 from '@/components/ui/Stats2.vue';
+import { BanknoteIcon, CalenderIcon, FilterIcon, ShieldCheckIcon } from '@/icons';
 
 const currentPageTitle = ref('Membership Transactions');
 const isFilterDrawerOpen = ref(false);
 const filters = ref({ status: '' });
+
+const stats = ref({
+    activeMembers: 0,
+    transactionsThisMonth: 0,
+    revenueThisMonth: 0,
+});
 
 const items = ref<any[]>([]);
 const totalItems = ref(0);
 const currentPage = ref(1);
 const perPage = ref(10);
 const searchFilter = ref('');
+
+const statsItems = computed(() => [
+    {
+        label: 'Member Aktif',
+        value: stats.value.activeMembers,
+        icon: ShieldCheckIcon,
+        iconBgClass: 'bg-success-50 text-success-600 dark:bg-success-500/10',
+    },
+    {
+        label: 'Transaksi Bulan Ini',
+        value: stats.value.transactionsThisMonth,
+        icon: CalenderIcon,
+        iconBgClass: 'bg-blue-50 text-blue-500 dark:bg-blue-500/10',
+    },
+    {
+        label: 'Omzet Bulan Ini',
+        value: formatCurrencyCompactId(stats.value.revenueThisMonth),
+        icon: BanknoteIcon,
+        iconBgClass: 'bg-brand-50 text-brand-500 dark:bg-brand-500/10',
+    },
+]);
 
 const tableData = computed(() =>
     items.value.map((t: any) => ({
@@ -118,6 +147,55 @@ const formatCurrencyId = (value: unknown): string => {
     })
         .format(numberValue)
         .replace('Rp', 'Rp ');
+};
+
+const formatCompactNumberId = (value: number): string => {
+    const abs = Math.abs(value);
+
+    const formatWithSuffix = (divisor: number, suffix: string) => {
+        const scaled = value / divisor;
+        const maximumFractionDigits = Math.abs(scaled) < 10 ? 1 : 0;
+
+        const formatted = new Intl.NumberFormat('id-ID', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits,
+        }).format(scaled);
+
+        return `${formatted.replace(/,0$/, '')} ${suffix}`;
+    };
+
+    if (abs < 1_000) return value.toLocaleString('id-ID');
+    if (abs < 1_000_000) return formatWithSuffix(1_000, 'rb');
+    if (abs < 1_000_000_000) return formatWithSuffix(1_000_000, 'jt');
+    if (abs < 1_000_000_000_000) return formatWithSuffix(1_000_000_000, 'M');
+    return formatWithSuffix(1_000_000_000_000, 'T');
+};
+
+const formatCurrencyCompactId = (value: unknown): string => {
+    if (value === null || value === undefined || value === '') {
+        return 'Rp 0';
+    }
+
+    const numberValue = typeof value === 'number' ? value : Number(value);
+    if (Number.isNaN(numberValue)) {
+        return String(value);
+    }
+
+    return `Rp ${formatCompactNumberId(numberValue)}`;
+};
+
+const fetchStats = async () => {
+    try {
+        const { data } = await axios.get('/api/membership-transactions/stats');
+        const s = data.data || data;
+        stats.value = {
+            activeMembers: s.activeMembers ?? 0,
+            transactionsThisMonth: s.transactionsThisMonth ?? 0,
+            revenueThisMonth: s.revenueThisMonth ?? 0,
+        };
+    } catch (e) {
+        console.error('Error fetching membership transaction stats', e);
+    }
 };
 
 const formatDateId = (value: unknown): string => {
@@ -170,6 +248,7 @@ const fetchItems = async () => {
     });
     items.value = data.data?.data || data.data || [];
     totalItems.value = data.data?.total || items.value.length;
+    fetchStats();
 };
 
 const handlePageChange = (p: number) => {

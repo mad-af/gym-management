@@ -1,6 +1,7 @@
 <template>
     <AdminLayout>
         <PageBreadcrumb :pageTitle="currentPageTitle" />
+        <Stats2 :items="statsItems" />
 
         <DynamicTable :columns="columns" :data="tableData" :items-per-page="perPage" :total-items="totalItems"
             :current-page="currentPage" :is-server-side="true" @update:page="handlePageChange"
@@ -61,17 +62,45 @@ import type { Column } from '@/components/tables/data-tables/DynamicTable.vue';
 import Badge from '@/components/ui/Badge.vue';
 import Button from '@/components/ui/Button.vue';
 import Drawer from '@/components/ui/Drawer.vue';
-import { FilterIcon } from '@/icons';
+import Stats2 from '@/components/ui/Stats2.vue';
+import { CheckCircleIcon, ErrorIcon, FilterIcon, GridIcon } from '@/icons';
 
 const currentPageTitle = ref('Stock Movements');
 const isFilterDrawerOpen = ref(false);
 const filters = ref({ type: '' });
+
+const stats = ref({
+    movementsThisMonth: 0,
+    inThisMonth: 0,
+    outThisMonth: 0,
+});
 
 const items = ref<any[]>([]);
 const totalItems = ref(0);
 const currentPage = ref(1);
 const perPage = ref(10);
 const searchFilter = ref('');
+
+const statsItems = computed(() => [
+    {
+        label: 'Pergerakan Bulan Ini',
+        value: stats.value.movementsThisMonth,
+        icon: GridIcon,
+        iconBgClass: 'bg-brand-50 text-brand-500 dark:bg-brand-500/10',
+    },
+    {
+        label: 'Stok Masuk',
+        value: stats.value.inThisMonth,
+        icon: CheckCircleIcon,
+        iconBgClass: 'bg-success-50 text-success-600 dark:bg-success-500/10',
+    },
+    {
+        label: 'Stok Keluar',
+        value: stats.value.outThisMonth,
+        icon: ErrorIcon,
+        iconBgClass: 'bg-error-50 text-error-600 dark:bg-error-500/10',
+    },
+]);
 
 const tableData = computed(() =>
     items.value.map((m: any) => ({
@@ -132,6 +161,20 @@ const formatQuantity = (value: unknown, type: unknown): string => {
     return text;
 };
 
+const fetchStats = async () => {
+    try {
+        const { data } = await axios.get('/api/stock-movements/stats');
+        const s = data.data || data;
+        stats.value = {
+            movementsThisMonth: s.movementsThisMonth ?? 0,
+            inThisMonth: s.inThisMonth ?? 0,
+            outThisMonth: s.outThisMonth ?? 0,
+        };
+    } catch (e) {
+        console.error('Error fetching stock movement stats', e);
+    }
+};
+
 const fetchItems = async () => {
     const { data } = await axios.get('/api/stock-movements', {
         params: {
@@ -143,6 +186,7 @@ const fetchItems = async () => {
     });
     items.value = data.data?.data || data.data || [];
     totalItems.value = data.data?.total || items.value.length;
+    fetchStats();
 };
 
 const handlePageChange = (p: number) => {

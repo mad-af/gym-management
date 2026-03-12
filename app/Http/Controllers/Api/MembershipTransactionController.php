@@ -16,7 +16,7 @@ class MembershipTransactionController extends Controller
     public function __construct(protected MembershipTransactionService $service)
     {
         $this->middleware(['auth:web']);
-        $this->middleware('permission:'.Permission::VIEW_MEMBERSHIP_TRANSACTIONS->value)->only(['index', 'show']);
+        $this->middleware('permission:'.Permission::VIEW_MEMBERSHIP_TRANSACTIONS->value)->only(['index', 'show', 'stats']);
         $this->middleware('permission:'.Permission::CREATE_MEMBERSHIP_TRANSACTIONS->value)->only(['store']);
         $this->middleware('permission:'.Permission::EDIT_MEMBERSHIP_TRANSACTIONS->value)->only(['update']);
         $this->middleware('permission:'.Permission::DELETE_MEMBERSHIP_TRANSACTIONS->value)->only(['destroy']);
@@ -33,6 +33,13 @@ class MembershipTransactionController extends Controller
         );
 
         return ApiResponse::success('Membership transactions retrieved successfully.', $transactions);
+    }
+
+    public function stats(Request $request)
+    {
+        $stats = $this->service->getStats();
+
+        return ApiResponse::success('Membership transaction statistics retrieved successfully.', $stats);
     }
 
     public function store(StoreMembershipTransactionRequest $request)

@@ -6,12 +6,37 @@ use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\StockMovement;
+use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 
 class SaleService
 {
+    public function getStats(): array
+    {
+        $today = Carbon::today();
+        $startOfMonth = $today->copy()->startOfMonth();
+        $endOfMonth = $today->copy()->endOfMonth();
+
+        $totalSales = Sale::query()->count();
+
+        $revenueThisMonth = (float) Sale::query()
+            ->whereDate('created_at', '>=', $startOfMonth)
+            ->whereDate('created_at', '<=', $endOfMonth)
+            ->sum('total_amount');
+
+        $revenueToday = (float) Sale::query()
+            ->whereDate('created_at', $today)
+            ->sum('total_amount');
+
+        return [
+            'totalSales' => $totalSales,
+            'revenueThisMonth' => $revenueThisMonth,
+            'revenueToday' => $revenueToday,
+        ];
+    }
+
     public function getAll(
         int $perPage = 10,
         ?string $search = null,

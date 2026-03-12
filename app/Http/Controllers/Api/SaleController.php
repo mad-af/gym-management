@@ -15,7 +15,7 @@ class SaleController extends Controller
     public function __construct(protected SaleService $service)
     {
         $this->middleware(['auth:web']);
-        $this->middleware('permission:'.Permission::VIEW_SALES->value)->only(['index', 'show']);
+        $this->middleware('permission:'.Permission::VIEW_SALES->value)->only(['index', 'show', 'stats']);
         $this->middleware('permission:'.Permission::CREATE_SALES->value)->only(['store']);
         $this->middleware('permission:'.Permission::DELETE_SALES->value)->only(['destroy']);
     }
@@ -30,6 +30,13 @@ class SaleController extends Controller
         );
 
         return ApiResponse::success('Sales retrieved successfully.', $sales);
+    }
+
+    public function stats(Request $request)
+    {
+        $stats = $this->service->getStats();
+
+        return ApiResponse::success('Sales statistics retrieved successfully.', $stats);
     }
 
     public function store(StoreSaleRequest $request)

@@ -11,6 +11,31 @@ use Illuminate\Validation\ValidationException;
 
 class VisitService
 {
+    public function getStats(): array
+    {
+        $today = Carbon::today();
+
+        $visitsToday = Visit::query()
+            ->whereDate('checkin_time', $today)
+            ->count();
+
+        $memberVisitsToday = Visit::query()
+            ->where('visit_type', 'MEMBERSHIP')
+            ->whereDate('checkin_time', $today)
+            ->count();
+
+        $dailyRevenueToday = (float) Visit::query()
+            ->where('visit_type', 'DAILY')
+            ->whereDate('checkin_time', $today)
+            ->sum('price');
+
+        return [
+            'visitsToday' => $visitsToday,
+            'memberVisitsToday' => $memberVisitsToday,
+            'dailyRevenueToday' => $dailyRevenueToday,
+        ];
+    }
+
     public function getAll(
         int $perPage = 10,
         ?string $search = null,
