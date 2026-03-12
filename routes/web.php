@@ -35,11 +35,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('gym.membership.packages');
 
     Route::get('membership/transactions', function () {
-        return Inertia::render('Gym/Membership/Transactions');
+        return Inertia::render('Transaction/MembershipTransactions');
     })->name('gym.membership.transactions');
 
     Route::get('visits', function () {
-        return Inertia::render('Gym/Visits/Index');
+        return Inertia::render('Transaction/Visits');
     })->name('gym.visits');
 
     Route::get('inventory/products', function () {
@@ -47,14 +47,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('gym.inventory.products');
 
     Route::get('inventory/stock-movements', function () {
-        return Inertia::render('Gym/Inventory/StockMovements');
+        return Inertia::render('Transaction/StockMovements');
     })->name('gym.inventory.stock-movements');
 
     Route::get('sales', function () {
-        return Inertia::render('Gym/Sales/Index');
+        return Inertia::render('Transaction/Sales');
     })->name('gym.sales');
+
     Route::get('sales/{sale}', function (Sale $sale) {
-        return Inertia::render('Gym/Sales/Detail', [
+        return Inertia::render('Transaction/Sales/Detail', [
             'saleId' => $sale->id,
         ]);
     })->name('gym.sales.show');
@@ -62,12 +63,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('reports/daily-revenue', function () {
         return Inertia::render('Gym/Reports/DailyRevenue');
     })->name('gym.reports.daily-revenue');
+
     Route::get('reports/visits', function () {
         return Inertia::render('Gym/Reports/VisitReport');
     })->name('gym.reports.visits');
+
     Route::get('reports/memberships', function () {
         return Inertia::render('Gym/Reports/MembershipReport');
     })->name('gym.reports.memberships');
+
     Route::get('reports/product-sales', function () {
         return Inertia::render('Gym/Reports/ProductSalesReport');
     })->name('gym.reports.product-sales');

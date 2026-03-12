@@ -1,0 +1,171 @@
+<template>
+    <AdminLayout>
+        <PageBreadcrumb :pageTitle="currentPageTitle" />
+
+        <DynamicTable :columns="columns" :data="tableData" :items-per-page="perPage" :total-items="totalItems"
+            :current-page="currentPage" :is-server-side="true" @update:page="handlePageChange"
+            @update:search="handleSearch" @update:perPage="handlePerPageChange">
+            <template #header-actions>
+                <Button size="sm" variant="outline" :onClick="() => isFilterDrawerOpen = true"
+                    className="w-full sm:w-auto" :startIcon="FilterIcon">
+                    Filter
+                </Button>
+            </template>
+            <template #cell-start_date="{ row }">
+                <span class="text-theme-sm text-gray-700 dark:text-gray-400">
+                    {{ formatDateId(row.start_date) }}
+                </span>
+            </template>
+            <template #cell-end_date="{ row }">
+                <span class="text-theme-sm text-gray-700 dark:text-gray-400">
+                    {{ formatDateId(row.end_date) }}
+                </span>
+            </template>
+            <template #cell-status="{ row }">
+                <Badge size="sm" :color="getStatusBadgeColor(row.status)">
+                    {{ getStatusLabel(row.status) }}
+                </Badge>
+            </template>
+        </DynamicTable>
+
+        <Drawer :isOpen="isFilterDrawerOpen" @close="isFilterDrawerOpen = false" title="Filter Membership">
+            <div class="space-y-6">
+                <div>
+                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Status</label>
+                    <select v-model="filters.status"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                        <option value="">Semua</option>
+                        <option value="active">Aktif</option>
+                        <option value="expired">Expired</option>
+                    </select>
+                </div>
+            </div>
+            <template #footer>
+                <div class="flex w-full justify-end gap-3">
+                    <Button variant="outline" :onClick="resetFilter">Reset</Button>
+                    <Button variant="primary" :onClick="handleFilter">Terapkan Filter</Button>
+                </div>
+            </template>
+        </Drawer>
+    </AdminLayout>
+</template>
+
+<script setup lang="ts">
+import axios from 'axios';
+import { ref, computed, onMounted } from 'vue';
+import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue';
+import AdminLayout from '@/components/layout/AdminLayout.vue';
+import DynamicTable from '@/components/tables/data-tables/DynamicTable.vue';
+import type { Column } from '@/components/tables/data-tables/DynamicTable.vue';
+import Badge from '@/components/ui/Badge.vue';
+import Button from '@/components/ui/Button.vue';
+import Drawer from '@/components/ui/Drawer.vue';
+import { FilterIcon } from '@/icons';
+
+const currentPageTitle = ref('Membership Transactions');
+const isFilterDrawerOpen = ref(false);
+const filters = ref({ status: '' });
+
+const items = ref<any[]>([]);
+const totalItems = ref(0);
+const currentPage = ref(1);
+const perPage = ref(10);
+const searchFilter = ref('');
+
+const tableData = computed(() =>
+    items.value.map((t: any) => ({
+        id: t.id,
+        customer_name: t.customer?.name || '-',
+        package_name: t.package?.name || '-',
+        start_date: t.start_date,
+        end_date: t.end_date,
+        status: t.status || '-',
+    })),
+);
+
+const columns = ref<Column[]>([
+    { key: 'customer_name', label: 'Pelanggan', class: 'min-w-[200px]' },
+    { key: 'package_name', label: 'Paket', class: 'min-w-[200px]' },
+    { key: 'start_date', label: 'Mulai', type: 'custom', class: 'min-w-[140px]' },
+    { key: 'end_date', label: 'Selesai', type: 'custom', class: 'min-w-[140px]' },
+    { key: 'status', label: 'Status', type: 'custom', class: 'min-w-[120px]' },
+]);
+
+const formatDateId = (value: unknown): string => {
+    if (!value) return '-';
+
+    const raw = String(value);
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+        const [y, m, d] = raw.split('-').map(Number);
+        const dt = new Date(y, (m || 1) - 1, d || 1);
+        return new Intl.DateTimeFormat('id-ID', {
+            year: 'numeric',
+            month: 'short',
+            day: '2-digit',
+        }).format(dt);
+    }
+
+    const dt = new Date(raw);
+    if (Number.isNaN(dt.getTime())) return raw;
+
+    return new Intl.DateTimeFormat('id-ID', {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+    }).format(dt);
+};
+
+const getStatusLabel = (value: unknown): string => {
+    const v = String(value || '').toLowerCase();
+    if (v === 'active') return 'Aktif';
+    if (v === 'expired') return 'Expired';
+    return value ? String(value) : '-';
+};
+
+const getStatusBadgeColor = (value: unknown) => {
+    const v = String(value || '').toLowerCase();
+    if (v === 'active') return 'success';
+    if (v === 'expired') return 'warning';
+    return 'light';
+};
+
+const fetchItems = async () => {
+    const { data } = await axios.get('/api/membership-transactions', {
+        params: {
+            per_page: perPage.value,
+            page: currentPage.value,
+            search: searchFilter.value || undefined,
+            status: filters.value.status || undefined,
+        },
+    });
+    items.value = data.data?.data || data.data || [];
+    totalItems.value = data.data?.total || items.value.length;
+};
+
+const handlePageChange = (p: number) => {
+    currentPage.value = p;
+    fetchItems();
+};
+const handleSearch = (s: string) => {
+    searchFilter.value = s;
+    currentPage.value = 1;
+    fetchItems();
+};
+const handlePerPageChange = (n: number) => {
+    perPage.value = n;
+    currentPage.value = 1;
+    fetchItems();
+};
+
+const resetFilter = () => (filters.value = { status: '' });
+const handleFilter = () => {
+    currentPage.value = 1;
+    fetchItems();
+    isFilterDrawerOpen.value = false;
+};
+
+onMounted(() => {
+    fetchItems();
+});
+</script>

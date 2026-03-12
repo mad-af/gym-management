@@ -1,5 +1,5 @@
 <template>
-  <div class="overflow-hidden rounded-xl bg-white dark:border-gray-800 dark:bg-white/3">
+  <div class="w-full min-w-0 overflow-hidden rounded-xl bg-white dark:border-gray-800 dark:bg-white/3">
     <div
       class="flex flex-col gap-2 rounded-xl rounded-b-none border border-b-0 border-gray-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-gray-800">
       <div class="flex items-center gap-3">
@@ -45,8 +45,8 @@
       </div>
     </div>
 
-    <div class="max-w-full overflow-x-auto">
-      <table class="w-full min-w-full">
+    <div class="custom-scrollbar w-full min-w-0 max-w-full overflow-x-auto">
+      <table class="w-max min-w-full whitespace-nowrap">
         <thead>
           <tr>
             <th v-if="isSelectable" class="border border-gray-100 px-4 py-3 text-left dark:border-gray-800 w-[50px]">
