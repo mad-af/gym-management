@@ -35,7 +35,8 @@ class CustomerService
     public function getAll(
         int $perPage = 10,
         ?string $search = null,
-        int $page = 1
+        int $page = 1,
+        ?bool $isMember = null
     ): LengthAwarePaginator {
         $now = Carbon::now()->startOfDay();
         $query = Customer::query()
@@ -51,11 +52,20 @@ class CustomerService
             ])
             ->latest('created_at');
 
+        if ($isMember === true) {
+            $query->whereHas('membershipTransactions', function ($q) use ($now) {
+                $q->where('status', 'active')
+                    ->whereDate('start_date', '<=', $now)
+                    ->whereDate('end_date', '>=', $now);
+            });
+        }
+
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('phone', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('code', 'like', "%{$search}%")
                     ->orWhere('qr_code', 'like', "%{$search}%");
             });
         }
@@ -71,7 +81,11 @@ class CustomerService
         $query = Customer::query()->latest('created_at');
 
         if ($search) {
-            $query->where('name', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('code', 'like', "%{$search}%")
+                    ->orWhere('qr_code', 'like', "%{$search}%");
+            });
         }
 
         return $query->select(['id', 'name'])->paginate($perPage, ['*'], 'page', $page);
@@ -84,19 +98,19 @@ class CustomerService
                 $data['code'] = $this->generateNumericCode();
             }
 
-            $shouldGenerateAvatar = ! (isset($data['avatar']) && $data['avatar'] instanceof \Illuminate\Http\UploadedFile);
-            unset($data['avatar']);
+            // $shouldGenerateAvatar = ! (isset($data['avatar']) && $data['avatar'] instanceof \Illuminate\Http\UploadedFile);
+            // unset($data['avatar']);
 
             $customer = Customer::create($data);
 
-            if ($shouldGenerateAvatar) {
-                try {
-                    $generator = new AvatarGenerator;
-                    $generator->generateAndSave($customer->name, 'svg', $customer);
-                } catch (\Exception $e) {
-                    \Illuminate\Support\Facades\Log::error('Customer avatar generation failed: '.$e->getMessage());
-                }
+            // if ($shouldGenerateAvatar) {
+            try {
+                $generator = new AvatarGenerator;
+                $generator->generateAndSave($customer->name, 'svg', $customer);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Customer avatar generation failed: '.$e->getMessage());
             }
+            // }
 
             return $customer->load(['media' => function ($q) {
                 $q->where('collection', 'avatar');

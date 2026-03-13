@@ -18,34 +18,40 @@
     <transition enter-active-class="transition duration-100 ease-out" enter-from-class="transform scale-95 opacity-0"
       enter-to-class="transform scale-100 opacity-100" leave-active-class="transition duration-75 ease-in"
       leave-from-class="transform scale-100 opacity-100" leave-to-class="transform scale-95 opacity-0">
-      <ul v-if="isOpen && filteredOptions.length > 0" ref="listRef"
-        class="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm dark:bg-gray-800 dark:ring-gray-700">
-        <li v-for="(option, index) in filteredOptions" :key="index" @click="selectOption(option)"
-          class="relative cursor-default select-none py-2 pl-10 pr-4 text-gray-900 hover:bg-brand-50 hover:text-brand-600 dark:text-gray-200 dark:hover:bg-gray-700/50 dark:hover:text-brand-400"
-          :class="{ 'bg-brand-50 text-brand-600 dark:bg-gray-700/50 dark:text-brand-400': isSelected(option) }">
-          <span class="block truncate"
-            :class="{ 'font-medium': isSelected(option), 'font-normal': !isSelected(option) }">
-            {{ getOptionLabel(option) }}
-          </span>
-          <span v-if="isSelected(option)"
-            class="absolute inset-y-0 left-0 flex items-center pl-3 text-brand-600 dark:text-brand-400">
-            <CheckIcon class="h-5 w-5" aria-hidden="true" />
-          </span>
-        </li>
-        <li v-if="loading"
-          class="relative cursor-default select-none py-2 text-center text-gray-500 dark:text-gray-400">
-          Loading...
-        </li>
-      </ul>
-      <ul v-else-if="isOpen && filteredOptions.length === 0"
-        class="absolute z-50 mt-1 w-full overflow-auto rounded-lg bg-white py-2 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm dark:bg-gray-800 dark:ring-gray-700">
-        <li v-if="loading" class="relative cursor-default select-none px-4 py-2 text-gray-500 dark:text-gray-400">
-          Loading...
-        </li>
-        <li v-else class="relative cursor-default select-none px-4 py-2 text-gray-500 dark:text-gray-400">
-          Tidak ada hasil ditemukan.
-        </li>
-      </ul>
+      <div v-if="isOpen"
+        class="absolute z-50 mt-1 w-full overflow-hidden rounded-lg bg-white text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm dark:bg-gray-800 dark:ring-gray-700">
+        <div ref="listRef" class="max-h-60 overflow-auto py-1">
+          <ul v-if="filteredOptions.length > 0">
+            <li v-for="(option, index) in filteredOptions" :key="index" @click="selectOption(option)"
+              class="relative cursor-default select-none py-2 pl-10 pr-4 text-gray-900 hover:bg-brand-50 hover:text-brand-600 dark:text-gray-200 dark:hover:bg-gray-700/50 dark:hover:text-brand-400"
+              :class="{ 'bg-brand-50 text-brand-600 dark:bg-gray-700/50 dark:text-brand-400': isSelected(option) }">
+              <span class="block truncate"
+                :class="{ 'font-medium': isSelected(option), 'font-normal': !isSelected(option) }">
+                {{ getOptionLabel(option) }}
+              </span>
+              <span v-if="isSelected(option)"
+                class="absolute inset-y-0 left-0 flex items-center pl-3 text-brand-600 dark:text-brand-400">
+                <CheckIcon class="h-5 w-5" aria-hidden="true" />
+              </span>
+            </li>
+          </ul>
+          <div v-else class="px-4 py-2 text-gray-500 dark:text-gray-400">
+            <span v-if="loading">Loading...</span>
+            <span v-else>Tidak ada hasil ditemukan.</span>
+          </div>
+          <div v-if="filteredOptions.length > 0 && loading" class="py-2 text-center text-gray-500 dark:text-gray-400">
+            Loading...
+          </div>
+        </div>
+
+        <div v-if="actionText" class="border-t border-gray-200 p-2 dark:border-gray-700">
+          <button type="button"
+            class="mx-auto block text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 disabled:cursor-not-allowed disabled:opacity-50"
+            :disabled="actionDisabled" @click="handleAction">
+            {{ actionText }}
+          </button>
+        </div>
+      </div>
     </transition>
   </div>
 </template>
@@ -70,6 +76,8 @@ interface Props {
   labelKey?: string
   remote?: boolean
   loading?: boolean
+  actionText?: string
+  actionDisabled?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -81,9 +89,11 @@ const props = withDefaults(defineProps<Props>(), {
   labelKey: 'label',
   remote: false,
   loading: false,
+  actionText: '',
+  actionDisabled: false,
 })
 
-const emit = defineEmits(['update:modelValue', 'change', 'search', 'load-more'])
+const emit = defineEmits(['update:modelValue', 'change', 'search', 'load-more', 'action'])
 
 const isOpen = ref(false)
 const searchQuery = ref('')
@@ -174,6 +184,12 @@ const handleInput = (event: Event) => {
   if (props.remote) {
     emitSearch(searchQuery.value)
   }
+}
+
+const handleAction = () => {
+  if (props.actionDisabled) return
+  emit('action')
+  close()
 }
 
 onClickOutside(target, close)

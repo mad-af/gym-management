@@ -25,10 +25,13 @@ class CustomerController extends Controller
 
     public function index(Request $request)
     {
+        $isMember = $request->has('is_member') ? $request->boolean('is_member') : null;
+
         $customers = $this->service->getAll(
             $request->input('per_page', 10),
             $request->input('search'),
             $request->input('page', 1),
+            $isMember,
         );
 
         return ApiResponse::success('Customers retrieved successfully.', $customers);
