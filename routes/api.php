@@ -45,6 +45,7 @@ Route::middleware(['auth:web'])->group(function () {
         Route::get('proposals', [DashboardController::class, 'proposals']);
         Route::get('maintenances', [DashboardController::class, 'maintenances']);
     });
+    Route::get('operations/stats-today', [DashboardController::class, 'operationsToday']);
 
     Route::apiResource('users', \App\Http\Controllers\Api\UserController::class);
     Route::apiResource('roles', \App\Http\Controllers\Api\RoleController::class);

@@ -19,6 +19,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('General/Dashboard');
     })->name('dashboard');
 
+    Route::get('operations', function () {
+        return Inertia::render('General/Operations');
+    })->name('general.operations');
+
     // Gym Management
     Route::get('customers', function () {
         return Inertia::render('Master/Customers');
