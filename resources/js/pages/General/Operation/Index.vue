@@ -12,10 +12,12 @@
                     </div>
                 </div>
                 <div class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                    <VisitsOperation v-if="canView(VISIT_PERMISSIONS.VIEW)" />
-                    <SalesOperation v-if="canView(SALE_PERMISSIONS.VIEW)" />
-                    <MembershipOperation v-if="canView(MEMBERSHIP_TRANSACTION_PERMISSIONS.VIEW)" />
-                    <StockMovementOperation v-if="canView(STOCK_MOVEMENT_PERMISSIONS.VIEW)" />
+                    <VisitsOperation v-if="canView(VISIT_PERMISSIONS.VIEW)" @submitted="fetchOpsStats" />
+                    <SalesOperation v-if="canView(SALE_PERMISSIONS.VIEW)" @submitted="fetchOpsStats" />
+                    <MembershipOperation v-if="canView(MEMBERSHIP_TRANSACTION_PERMISSIONS.VIEW)"
+                        @submitted="fetchOpsStats" />
+                    <StockMovementOperation v-if="canView(STOCK_MOVEMENT_PERMISSIONS.VIEW)"
+                        @submitted="fetchOpsStats" />
                 </div>
             </div>
         </div>
