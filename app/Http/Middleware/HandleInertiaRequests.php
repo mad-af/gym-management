@@ -2,7 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\AppSetting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -36,10 +38,19 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user();
+        $appSetting = null;
+        if (Schema::hasTable('app_settings')) {
+            $appSetting = AppSetting::query()->with('media')->first();
+        }
+        $appName = $appSetting?->app_name ?? config('app.name');
 
         return [
             ...parent::share($request),
-            'name' => config('app.name'),
+            'name' => $appName,
+            'app' => [
+                'name' => $appName,
+                'logo' => $appSetting?->logo,
+            ],
             'auth' => [
                 'user' => $user,
                 'permissions' => $user

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AppSettingController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\MembershipPackageController;
@@ -17,6 +18,8 @@ Route::middleware(['auth:web'])->group(function () {
     Route::delete('media/{media}', [MediaController::class, 'destroy'])->name('api.media.destroy');
 
     Route::get('permissions', [\App\Http\Controllers\Api\RoleController::class, 'permissions']);
+    Route::get('app-settings', [AppSettingController::class, 'index'])->name('api.app-settings.index');
+    Route::put('app-settings', [AppSettingController::class, 'update'])->name('api.app-settings.update');
 
     // Custom activation routes
     Route::put('users/{user}/activate', [\App\Http\Controllers\Api\UserController::class, 'activate']);

@@ -1,14 +1,10 @@
 <template>
-    <Link href="/" class="lg:hidden">
-        <img class="dark:hidden" src="/images/logo/logo.svg" alt="Logo" />
-        <img
-            class="hidden dark:block"
-            src="/images/logo/logo-dark.svg"
-            alt="Logo"
-        />
+    <Link href="/dashboard" class="lg:hidden">
+        <ApplicationLogo />
     </Link>
 </template>
 
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
+import ApplicationLogo from '@/components/common/ApplicationLogo.vue';
 </script>
