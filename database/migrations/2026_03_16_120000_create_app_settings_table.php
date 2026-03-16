@@ -10,7 +10,8 @@ return new class extends Migration
     {
         Schema::create('app_settings', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('app_name');
+            $table->string('type')->unique();
+            $table->json('data')->nullable();
             $table->timestamps();
         });
     }

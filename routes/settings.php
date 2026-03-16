@@ -30,6 +30,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('settings/application', [ApplicationSettingController::class, 'edit'])
         ->name('application-settings.edit');
 
+    Route::get('settings/whatsapp-config', function () {
+        return Inertia::render('settings/WhatsappConfig');
+    })
+        ->middleware('permission:view_whatsapp_config')
+        ->name('whatsapp-config.edit');
+
     Route::get('settings/two-factor', [TwoFactorAuthenticationController::class, 'show'])
         ->name('two-factor.show');
 });

@@ -76,6 +76,9 @@ enum Permission: string
     case CREATE_SALES = 'create_sales';
     case DELETE_SALES = 'delete_sales';
 
+    case VIEW_WHATSAPP_CONFIG = 'view_whatsapp_config';
+    case MANAGE_WHATSAPP_CONFIG = 'manage_whatsapp_config';
+
     public static function values(): array
     {
         return array_column(self::cases(), 'value');
@@ -156,6 +159,10 @@ enum Permission: string
                 self::CREATE_SALES,
                 self::DELETE_SALES,
             ],
+            'Konfigurasi WhatsApp' => [
+                self::VIEW_WHATSAPP_CONFIG,
+                self::MANAGE_WHATSAPP_CONFIG,
+            ],
         ];
 
         return collect($groups)->map(function ($permissions, $group) {
@@ -233,6 +240,9 @@ enum Permission: string
             self::VIEW_SALES => 'Lihat Penjualan',
             self::CREATE_SALES => 'Tambah Penjualan',
             self::DELETE_SALES => 'Hapus Penjualan',
+
+            self::VIEW_WHATSAPP_CONFIG => 'Lihat Konfigurasi WhatsApp',
+            self::MANAGE_WHATSAPP_CONFIG => 'Kelola Konfigurasi WhatsApp',
         };
     }
 }

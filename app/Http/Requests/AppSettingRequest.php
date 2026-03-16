@@ -15,6 +15,7 @@ class AppSettingRequest extends FormRequest
     {
         return [
             'app_name' => ['required', 'string', 'max:255'],
+            'app_description' => ['nullable', 'string', 'max:500'],
             'logo' => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
         ];
     }

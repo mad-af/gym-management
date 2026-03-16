@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\SaleController;
 use App\Http\Controllers\Api\StockMovementController;
 use App\Http\Controllers\Api\VisitController;
+use App\Http\Controllers\Api\WhatsappConfigController;
 use App\Http\Controllers\MediaController;
 use Illuminate\Support\Facades\Route;
 
@@ -20,6 +21,12 @@ Route::middleware(['auth:web'])->group(function () {
     Route::get('permissions', [\App\Http\Controllers\Api\RoleController::class, 'permissions']);
     Route::get('app-settings', [AppSettingController::class, 'index'])->name('api.app-settings.index');
     Route::put('app-settings', [AppSettingController::class, 'update'])->name('api.app-settings.update');
+    Route::get('whatsapp-config', [WhatsappConfigController::class, 'index'])->name('api.whatsapp-config.index');
+    Route::post('whatsapp-config', [WhatsappConfigController::class, 'update'])->name('api.whatsapp-config.update');
+    Route::delete('whatsapp-config', [WhatsappConfigController::class, 'destroy'])->name('api.whatsapp-config.destroy');
+    Route::post('whatsapp-config/test', [WhatsappConfigController::class, 'test'])->name('api.whatsapp-config.test');
+    Route::get('whatsapp-config/qr', [WhatsappConfigController::class, 'getQr'])->name('api.whatsapp-config.qr');
+    Route::get('whatsapp-config/check', [WhatsappConfigController::class, 'check'])->name('api.whatsapp-config.check');
 
     // Custom activation routes
     Route::put('users/{user}/activate', [\App\Http\Controllers\Api\UserController::class, 'activate']);

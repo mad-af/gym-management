@@ -14,23 +14,25 @@ class AppSettingController extends Controller
 
     public function index(): JsonResponse
     {
-        $setting = $this->appSettingService->getSettings();
+        $settings = $this->appSettingService->getAppSettings();
 
         return ApiResponse::success('App setting retrieved successfully', [
-            'id' => $setting->id,
-            'app_name' => $setting->app_name,
-            'logo' => $setting->logo,
+            'id' => $settings['id'],
+            'app_name' => $settings['app_name'],
+            'app_description' => $settings['app_description'],
+            'logo' => $settings['logo'],
         ]);
     }
 
     public function update(AppSettingRequest $request): JsonResponse
     {
-        $setting = $this->appSettingService->saveSettings($request->validated());
+        $settings = $this->appSettingService->saveAppSettings($request->validated());
 
         return ApiResponse::success('App setting updated successfully', [
-            'id' => $setting->id,
-            'app_name' => $setting->app_name,
-            'logo' => $setting->logo,
+            'id' => $settings['id'],
+            'app_name' => $settings['app_name'],
+            'app_description' => $settings['app_description'],
+            'logo' => $settings['logo'],
         ]);
     }
 }

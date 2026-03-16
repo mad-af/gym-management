@@ -13,13 +13,14 @@ class ApplicationSettingController extends Controller
 
     public function edit(): Response
     {
-        $setting = $this->appSettingService->getSettings();
+        $settings = $this->appSettingService->getAppSettings();
 
         return Inertia::render('settings/Application', [
             'settings' => [
-                'id' => $setting->id,
-                'app_name' => $setting->app_name,
-                'logo' => $setting->logo,
+                'id' => $settings['id'],
+                'app_name' => $settings['app_name'],
+                'app_description' => $settings['app_description'],
+                'logo' => $settings['logo'],
             ],
         ]);
     }

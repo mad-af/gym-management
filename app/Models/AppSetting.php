@@ -12,19 +12,68 @@ class AppSetting extends Model
     use HasFactory, HasMedia, HasUuids;
 
     protected $fillable = [
-        'app_name',
+        'type',
+        'data',
     ];
 
-    protected $appends = [
-        'logo',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'data' => 'array',
+        ];
+    }
+
+    public function getValue(?string $key = null): mixed
+    {
+        $data = $this->data;
+        if (! is_array($data)) {
+            return null;
+        }
+
+        if ($key === null) {
+            return $data;
+        }
+
+        return $data[$key] ?? null;
+    }
+
+    public function setValue(mixed $value, ?string $key = null): void
+    {
+        if ($key === null) {
+            $this->data = is_array($value) ? $value : ['value' => $value];
+
+            return;
+        }
+
+        $data = is_array($this->data) ? $this->data : [];
+        $data[$key] = $value;
+        $this->data = $data;
+    }
+
+    public function getLogo(): ?array
+    {
+        return $this->getFirstMedia('logo');
+    }
+
+    public static function findByType(string $type): ?self
+    {
+        return self::query()->where('type', $type)->first();
+    }
+
+    public static function findOrCreateType(string $type, array $data = []): self
+    {
+        $setting = self::findByType($type);
+        if ($setting) {
+            return $setting;
+        }
+
+        return self::query()->create([
+            'type' => $type,
+            'data' => $data,
+        ]);
+    }
 
     protected $hidden = [
         'media',
     ];
-
-    public function getLogoAttribute(): ?array
-    {
-        return $this->getFirstMedia('logo');
-    }
 }

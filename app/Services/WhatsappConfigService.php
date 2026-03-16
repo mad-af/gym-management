@@ -2,81 +2,85 @@
 
 namespace App\Services;
 
-use App\Models\WhatsappConfig;
 use App\Services\Fonnte\FonnteService;
-use Illuminate\Support\Facades\DB;
 
 class WhatsappConfigService
 {
-    public function __construct(protected FonnteService $fonnteService) {}
+    public function __construct(
+        protected FonnteService $fonnteService,
+        protected AppSettingService $appSettingService,
+    ) {}
 
-    public function getConfig(): ?WhatsappConfig
+    public function getConfig(): ?array
     {
-        return WhatsappConfig::first();
+        $config = $this->appSettingService->getWhatsappConfigData();
+
+        return $config['token'] === '' ? null : $config;
     }
 
-    public function saveConfig(array $data): WhatsappConfig
+    public function saveConfig(array $data): array
     {
-        return DB::transaction(function () use ($data) {
-            $config = WhatsappConfig::firstOrNew();
+        $token = trim((string) ($data['token'] ?? ''));
+        $currentConfig = $this->appSettingService->getWhatsappConfigData();
+        $tokenChanged = $token !== $currentConfig['token'];
 
-            $config->token = $data['token'];
+        $payload = [
+            'token' => $token,
+        ];
 
-            try {
-                $response = $this->fonnteService->getDevice($config->token);
-                $result = $response->json();
+        if ($tokenChanged) {
+            $payload['is_connected'] = false;
+            $payload['connected_at'] = null;
+            $payload['phone'] = null;
+        }
 
-                if (isset($result['status']) && $result['status']) {
-                    $name = trim($result['name'] ?? '');
-                    $device = trim($result['device'] ?? '');
-                    $deviceStatus = trim($result['device_status'] ?? '');
+        try {
+            $response = $this->fonnteService->getDevice($token);
+            $result = $response->json();
 
-                    $config->name = ! empty($name) ? $name : 'Main Device';
-                    $config->phone = ! empty($device) ? $device : null;
+            if (isset($result['status']) && $result['status']) {
+                $name = trim((string) ($result['name'] ?? ''));
+                $device = trim((string) ($result['device'] ?? ''));
+                $deviceStatus = trim((string) ($result['device_status'] ?? ''));
 
-                    $isConnected = $deviceStatus === 'connect';
-                    $config->is_connected = $isConnected;
-                    $config->connected_at = $isConnected ? now() : null;
+                $isConnected = $deviceStatus === 'connect';
 
-                    $config->quota = trim($result['quota'] ?? '');
-                    $config->expired = trim($result['expired'] ?? '');
-                }
-            } catch (\Exception $e) {
-                // If API fails, fallback to default behavior
+                $payload['name'] = $name !== '' ? $name : 'Main Device';
+                $payload['phone'] = $device !== '' ? $device : null;
+                $payload['is_connected'] = $isConnected;
+                $payload['connected_at'] = $isConnected ? now()->toIso8601String() : null;
+                $payload['quota'] = trim((string) ($result['quota'] ?? '')) ?: null;
+                $payload['expired'] = trim((string) ($result['expired'] ?? '')) ?: null;
             }
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
-            // Fallback for name if not set from API
-            if (! $config->name) {
-                $config->name = 'Main Device';
-            }
-
-            // Reset status if token changed and API didn't confirm connection
-            if ($config->isDirty('token') && ! $config->isDirty('is_connected')) {
-                $config->is_connected = false;
-                $config->connected_at = null;
-                $config->phone = null;
-            }
-
-            $config->save();
-
-            return $config;
-        });
+        return $this->appSettingService->setWhatsappConfigData($payload);
     }
 
     public function resetConfig(): void
     {
-        WhatsappConfig::truncate();
+        $this->appSettingService->setWhatsappConfigData([
+            'token' => '',
+            'name' => 'Main Device',
+            'phone' => null,
+            'is_connected' => false,
+            'connected_at' => null,
+            'quota' => null,
+            'expired' => null,
+        ]);
     }
 
     public function sendMessage(string $target, string $message): array
     {
         $config = $this->getConfig();
 
-        if (! $config || ! $config->token) {
+        if (! $config || ! $config['token']) {
             throw new \Exception('WhatsApp token is not configured.');
         }
 
-        $response = $this->fonnteService->sendMessage($target, $message, [], $config->token);
+        $response = $this->fonnteService->sendMessage($target, $message, [], $config['token']);
         $data = $response->json();
 
         if (isset($data['status']) && ! $data['status']) {
@@ -95,17 +99,16 @@ class WhatsappConfigService
     {
         $config = $this->getConfig();
 
-        if (! $config || ! $config->token) {
+        if (! $config || ! $config['token']) {
             throw new \Exception('WhatsApp token is not configured.');
         }
 
-        $response = $this->fonnteService->getQr('qr', null, $config->token);
+        $response = $this->fonnteService->getQr('qr', null, $config['token']);
         $data = $response->json();
 
         if (isset($data['status']) && ! $data['status']) {
             $reason = strtolower($data['reason'] ?? '');
             if (str_contains($reason, 'connected')) {
-                // If already connected, trigger check to update status in DB
                 $this->checkConnection();
 
                 return [
@@ -125,7 +128,7 @@ class WhatsappConfigService
     {
         $config = $this->getConfig();
 
-        if (! $config || ! $config->token) {
+        if (! $config || ! $config['token']) {
             return [
                 'status' => false,
                 'message' => 'WhatsApp token is not configured.',
@@ -134,36 +137,35 @@ class WhatsappConfigService
         }
 
         try {
-            $response = $this->fonnteService->getDevice($config->token);
+            $response = $this->fonnteService->getDevice($config['token']);
             $result = $response->json();
 
             if (isset($result['status']) && $result['status']) {
-                $name = trim($result['name'] ?? '');
-                $device = trim($result['device'] ?? '');
-                $deviceStatus = trim($result['device_status'] ?? '');
-
-                $config->name = ! empty($name) ? $name : ($config->name ?? 'Main Device');
-                $config->phone = ! empty($device) ? $device : null;
+                $name = trim((string) ($result['name'] ?? ''));
+                $device = trim((string) ($result['device'] ?? ''));
+                $deviceStatus = trim((string) ($result['device_status'] ?? ''));
 
                 $isConnected = $deviceStatus === 'connect';
 
-                $config->is_connected = $isConnected;
-                $config->connected_at = $isConnected ? ($config->connected_at ?? now()) : null;
-
-                $config->quota = trim($result['quota'] ?? '');
-                $config->expired = trim($result['expired'] ?? '');
-
-                $config->save();
+                $updatedConfig = $this->appSettingService->setWhatsappConfigData([
+                    'name' => $name !== '' ? $name : ($config['name'] ?? 'Main Device'),
+                    'phone' => $device !== '' ? $device : null,
+                    'is_connected' => $isConnected,
+                    'connected_at' => $isConnected
+                        ? ($config['connected_at'] ?? now()->toIso8601String())
+                        : null,
+                    'quota' => trim((string) ($result['quota'] ?? '')) ?: null,
+                    'expired' => trim((string) ($result['expired'] ?? '')) ?: null,
+                ]);
 
                 return [
                     'status' => true,
                     'message' => 'Connection checked successfully.',
                     'connected' => $isConnected,
-                    'data' => $config,
+                    'data' => $updatedConfig,
                 ];
             }
 
-            // If API call success but data invalid or status false
             return [
                 'status' => false,
                 'message' => 'Failed to retrieve device status.',
@@ -184,10 +186,10 @@ class WhatsappConfigService
         $config = $this->getConfig();
 
         if ($config) {
-            $config->update([
+            $this->appSettingService->setWhatsappConfigData([
                 'is_connected' => $isConnected,
-                'connected_at' => $isConnected ? now() : null,
-                'phone' => $phone ?? $config->phone,
+                'connected_at' => $isConnected ? now()->toIso8601String() : null,
+                'phone' => $phone ?? $config['phone'],
             ]);
         }
     }

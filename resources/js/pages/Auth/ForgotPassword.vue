@@ -123,9 +123,14 @@
                                 <ApplicationLogo />
                             </Link>
                             <p
-                                class="text-center text-gray-400 dark:text-white/60"
+                                class="text-center text-base font-semibold text-white"
                             >
                                 {{ appName }}
+                            </p>
+                            <p
+                                class="mt-2 text-center text-sm leading-6 text-white/85"
+                            >
+                                {{ appDescription }}
                             </p>
                         </div>
                     </div>
@@ -146,12 +151,18 @@ import type { AppPageProps } from '@/types';
 interface BrandingPageProps extends AppPageProps {
     app?: {
         name?: string;
+        description?: string;
     };
 }
 
 const page = usePage<BrandingPageProps>();
 const appName = computed(
     () => page.props.app?.name ?? page.props.name ?? 'Gym Management',
+);
+const appDescription = computed(
+    () =>
+        page.props.app?.description ??
+        'Kelola operasional gym Anda dengan lebih efisien.',
 );
 
 defineProps<{

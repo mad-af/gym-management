@@ -28,6 +28,28 @@
                 </div>
 
                 <div>
+                    <label
+                        for="app_description"
+                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                        Deskripsi Singkat Aplikasi
+                    </label>
+                    <textarea
+                        id="app_description"
+                        v-model="form.app_description"
+                        rows="3"
+                        class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                        placeholder="Masukkan deskripsi singkat aplikasi"
+                    ></textarea>
+                    <p
+                        v-if="errors.app_description"
+                        class="mt-2 text-sm text-red-500"
+                    >
+                        {{ errors.app_description }}
+                    </p>
+                </div>
+
+                <div>
                     <p
                         class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
                     >
@@ -77,8 +99,9 @@ interface MediaItem {
 }
 
 interface AppSettingData {
-    id: string;
+    id: string | null;
     app_name: string;
+    app_description: string;
     logo: MediaItem | null;
 }
 
@@ -91,6 +114,7 @@ interface ApiResponse<T> {
 
 interface ValidationErrors {
     app_name?: string;
+    app_description?: string;
     logo?: string;
 }
 
@@ -100,6 +124,7 @@ const props = defineProps<{
 
 const form = ref({
     app_name: props.settings.app_name,
+    app_description: props.settings.app_description,
 });
 
 const logoFile = ref<File | null>(null);
@@ -118,6 +143,7 @@ const handleSubmit = async () => {
 
     const formData = new FormData();
     formData.append('app_name', form.value.app_name);
+    formData.append('app_description', form.value.app_description ?? '');
     formData.append('_method', 'PUT');
 
     if (logoFile.value) {
@@ -131,6 +157,7 @@ const handleSubmit = async () => {
         );
         currentSetting.value = response.data.data;
         form.value.app_name = response.data.data.app_name;
+        form.value.app_description = response.data.data.app_description;
         logoFile.value = null;
         router.reload();
     } catch (error: unknown) {
@@ -140,6 +167,7 @@ const handleSubmit = async () => {
 
             errors.value = {
                 app_name: validationErrors.app_name?.[0],
+                app_description: validationErrors.app_description?.[0],
                 logo: validationErrors.logo?.[0],
             };
 

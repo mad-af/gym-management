@@ -255,6 +255,7 @@ import {
     PRODUCT_PERMISSIONS,
     STOCK_MOVEMENT_PERMISSIONS,
     SALE_PERMISSIONS,
+    WHATSAPP_CONFIG_PERMISSIONS,
 } from '@/directives/permissions';
 import {
     LayoutDashboardIcon,
@@ -314,6 +315,12 @@ const menuGroups = ref<MenuGroup[]>([
                 icon: ShieldCheckIcon,
                 name: 'Setting Aplikasi',
                 path: '/settings/application',
+            },
+            {
+                icon: ShieldCheckIcon,
+                name: 'WhatsApp Config',
+                path: '/settings/whatsapp-config',
+                permission: WHATSAPP_CONFIG_PERMISSIONS.VIEW,
             },
         ],
     },
