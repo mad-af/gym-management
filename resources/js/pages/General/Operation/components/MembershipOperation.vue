@@ -75,11 +75,17 @@
                 </div>
 
                 <div class="space-y-3">
-                    <label
-                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200"
-                    >
-                        Paket Membership
-                    </label>
+                    <div class="space-y-1">
+                        <label
+                            class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                        >
+                            Paket Membership
+                        </label>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                            Pilih paket untuk melihat detail harga dan rincian
+                            item di bawah.
+                        </p>
+                    </div>
 
                     <div
                         v-if="packageLoading"
@@ -95,78 +101,218 @@
                         Belum ada paket membership aktif.
                     </div>
 
-                    <div v-else class="grid gap-3 md:grid-cols-2">
-                        <button
-                            v-for="pkg in packageOptions"
-                            :key="pkg.id"
-                            type="button"
-                            :aria-checked="form.package_id === pkg.id"
-                            role="radio"
-                            class="rounded-xl border p-4 text-left transition-all"
-                            :class="
-                                form.package_id === pkg.id
-                                    ? 'border-brand-400 bg-brand-50 shadow-sm ring-2 ring-brand-500/20 dark:border-brand-400 dark:bg-brand-500/10'
-                                    : 'border-gray-200 bg-white hover:border-brand-200 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-brand-500/60'
-                            "
-                            @click="form.package_id = pkg.id"
+                    <div
+                        v-else
+                        class="space-y-4 rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900"
+                    >
+                        <div
+                            role="radiogroup"
+                            aria-label="Paket membership"
+                            class="grid grid-cols-1 gap-3 sm:grid-cols-2"
                         >
-                            <div class="mb-3 flex items-start gap-3">
+                            <button
+                                v-for="pkg in packageOptions"
+                                :key="pkg.id"
+                                type="button"
+                                :aria-checked="form.package_id === pkg.id"
+                                role="radio"
+                                class="overflow-hidden rounded-xl border text-left transition-all"
+                                :class="
+                                    form.package_id === pkg.id
+                                        ? 'border-brand-400 bg-brand-50 shadow-sm ring-2 ring-brand-500/20 dark:border-brand-400 dark:bg-brand-500/10'
+                                        : 'border-gray-200 bg-white hover:border-brand-200 dark:border-gray-700 dark:bg-gray-950 dark:hover:border-brand-500/60'
+                                "
+                                @click="form.package_id = pkg.id"
+                            >
                                 <div
-                                    class="h-14 w-14 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800"
+                                    class="flex aspect-[16/9] w-full items-center justify-center overflow-hidden bg-gray-100 dark:bg-gray-800"
                                 >
                                     <AppImage
                                         v-if="pkg.cover"
                                         :src="pkg.cover.url"
                                         :alt="pkg.name"
-                                        containerClass="h-14 w-14 rounded-lg"
-                                        imgClass="rounded-lg"
+                                        containerClass="h-full w-full"
+                                        imgClass="h-full w-full object-cover"
                                     />
-                                    <div
+                                    <svg
                                         v-else
-                                        class="flex h-14 w-14 items-center justify-center"
+                                        class="h-6 w-6 text-gray-400 dark:text-gray-600"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
                                     >
-                                        <PackageIcon
-                                            class="h-6 w-6 text-gray-400 dark:text-gray-500"
+                                        <path
+                                            d="M5 5C4.44772 5 4 5.44772 4 6V18C4 18.5523 4.44772 19 5 19H19C19.5523 19 20 18.5523 20 18V6C20 5.44772 19.5523 5 19 5H5ZM6 7H18V13.5858L15.7071 11.2929C15.3166 10.9024 14.6834 10.9024 14.2929 11.2929L11 14.5858L9.70711 13.2929C9.31658 12.9024 8.68342 12.9024 8.29289 13.2929L6 15.5858V7Z"
+                                            fill="currentColor"
                                         />
-                                    </div>
+                                    </svg>
                                 </div>
-                                <div class="min-w-0 flex-1">
-                                    <p
-                                        class="truncate text-sm font-semibold text-gray-900 dark:text-white/90"
+
+                                <div class="space-y-3 p-4">
+                                    <div
+                                        class="flex items-start justify-between gap-3"
                                     >
-                                        {{ pkg.name }}
+                                        <div class="min-w-0">
+                                            <p
+                                                class="truncate text-sm font-semibold text-gray-900 dark:text-white/90"
+                                            >
+                                                {{ pkg.name }}
+                                            </p>
+                                            <p
+                                                class="mt-1 text-xs text-gray-500 dark:text-gray-400"
+                                            >
+                                                {{
+                                                    formatDuration(
+                                                        pkg.duration_days,
+                                                    )
+                                                }}
+                                            </p>
+                                        </div>
+                                        <span
+                                            v-if="form.package_id === pkg.id"
+                                            class="rounded-full bg-brand-100 px-2 py-1 text-[11px] font-medium text-brand-700 dark:bg-brand-500/20 dark:text-brand-300"
+                                        >
+                                            Dipilih
+                                        </span>
+                                    </div>
+
+                                    <p
+                                        class="text-sm font-semibold text-brand-700 dark:text-brand-300"
+                                    >
+                                        {{ formatCurrencyId(pkg.price) }}
                                     </p>
+
                                     <p
                                         class="text-xs text-gray-500 dark:text-gray-400"
                                     >
-                                        {{ pkg.duration_days }} hari
+                                        {{
+                                            pkg.description ||
+                                            'Paket tanpa deskripsi tambahan.'
+                                        }}
+                                    </p>
+                                </div>
+                            </button>
+                        </div>
+
+                        <div
+                            v-if="selectedPackage"
+                            class="rounded-xl border border-brand-100 bg-brand-50/60 p-4 dark:border-brand-500/30 dark:bg-brand-500/10"
+                        >
+                            <p
+                                class="text-sm font-semibold text-gray-900 dark:text-white/90"
+                            >
+                                Paket Terpilih: {{ selectedPackage.name }}
+                            </p>
+
+                            <div
+                                class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3"
+                            >
+                                <div
+                                    class="rounded-lg border border-brand-100 bg-white p-3 dark:border-brand-500/30 dark:bg-gray-900"
+                                >
+                                    <p
+                                        class="text-[11px] font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400"
+                                    >
+                                        Harga
                                     </p>
                                     <p
-                                        class="mt-1 text-sm font-medium text-brand-700 dark:text-brand-300"
+                                        class="mt-1 text-sm font-semibold text-brand-700 dark:text-brand-300"
                                     >
-                                        {{ formatCurrencyId(pkg.price) }}
+                                        {{
+                                            formatCurrencyId(
+                                                selectedPackage.price,
+                                            )
+                                        }}
+                                    </p>
+                                </div>
+
+                                <div
+                                    class="rounded-lg border border-brand-100 bg-white p-3 dark:border-brand-500/30 dark:bg-gray-900"
+                                >
+                                    <p
+                                        class="text-[11px] font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400"
+                                    >
+                                        Durasi
+                                    </p>
+                                    <p
+                                        class="mt-1 text-sm font-semibold text-gray-900 dark:text-white/90"
+                                    >
+                                        {{
+                                            formatDuration(
+                                                selectedPackage.duration_days,
+                                            )
+                                        }}
+                                    </p>
+                                </div>
+
+                                <div
+                                    class="rounded-lg border border-brand-100 bg-white p-3 dark:border-brand-500/30 dark:bg-gray-900"
+                                >
+                                    <p
+                                        class="text-[11px] font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400"
+                                    >
+                                        Total Item
+                                    </p>
+                                    <p
+                                        class="mt-1 text-sm font-semibold text-gray-900 dark:text-white/90"
+                                    >
+                                        {{ selectedPackage.items.length }} item
                                     </p>
                                 </div>
                             </div>
 
-                            <p
-                                v-if="pkg.description"
-                                class="mb-2 line-clamp-2 text-xs text-gray-600 dark:text-gray-300"
-                            >
-                                {{ pkg.description }}
-                            </p>
-
-                            <ul v-if="pkg.items.length" class="space-y-1">
-                                <li
-                                    v-for="item in pkg.items"
-                                    :key="item.id"
-                                    class="text-xs text-gray-600 dark:text-gray-300"
+                            <div class="mt-4 space-y-2">
+                                <p
+                                    class="text-[11px] font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400"
                                 >
-                                    • {{ item.item_name }}: {{ item.quantity }}
-                                    {{ item.unit || '' }}
-                                </li>
-                            </ul>
-                        </button>
+                                    Keterangan Paket
+                                </p>
+                                <p
+                                    class="text-sm text-gray-700 dark:text-gray-300"
+                                >
+                                    {{
+                                        selectedPackage.description ||
+                                        'Tidak ada keterangan tambahan untuk paket ini.'
+                                    }}
+                                </p>
+                            </div>
+
+                            <div class="mt-4">
+                                <p
+                                    class="mb-2 text-[11px] font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400"
+                                >
+                                    Item Membership
+                                </p>
+                                <ul
+                                    v-if="selectedPackage.items.length"
+                                    class="space-y-1.5"
+                                >
+                                    <li
+                                        v-for="item in selectedPackage.items"
+                                        :key="item.id"
+                                        class="text-sm text-gray-700 dark:text-gray-300"
+                                    >
+                                        • {{ item.item_name }}:
+                                        {{ item.quantity }}
+                                        {{ item.unit || '' }}
+                                    </li>
+                                </ul>
+                                <p
+                                    v-else
+                                    class="text-sm text-gray-500 dark:text-gray-400"
+                                >
+                                    Tidak ada item pada paket ini.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div
+                            v-else
+                            class="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3 text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-300"
+                        >
+                            Pilih salah satu paket untuk menampilkan detail
+                            harga, durasi, dan item membership.
+                        </div>
                     </div>
 
                     <p
@@ -327,7 +473,7 @@ import Combobox from '@/components/ui/Combobox.vue';
 import Drawer from '@/components/ui/Drawer.vue';
 import Modal from '@/components/ui/Modal.vue';
 import OperationActionButton from '@/components/ui/OperationActionButton.vue';
-import { PackageIcon, UserCircleIcon } from '@/icons';
+import { UserCircleIcon } from '@/icons';
 
 interface MediaItem {
     url: string;
@@ -610,6 +756,25 @@ const submitDisabled = computed(() => {
     }
     return false;
 });
+
+const selectedPackage = computed<MembershipPackageOption | null>(() => {
+    if (!form.value.package_id) {
+        return null;
+    }
+
+    return (
+        packageOptions.value.find((pkg) => pkg.id === form.value.package_id) ??
+        null
+    );
+});
+
+const formatDuration = (durationDays: number): string => {
+    if (!Number.isFinite(durationDays) || durationDays <= 0) {
+        return '-';
+    }
+
+    return `${durationDays} hari`;
+};
 
 const formatCurrencyId = (value: unknown): string => {
     if (value === null || value === undefined || value === '') {

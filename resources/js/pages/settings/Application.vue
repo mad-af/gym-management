@@ -50,6 +50,30 @@
                 </div>
 
                 <div>
+                    <label
+                        for="daily_visit_price"
+                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                        Harga Visit Harian
+                    </label>
+                    <input
+                        id="daily_visit_price"
+                        v-model.number="form.daily_visit_price"
+                        type="number"
+                        min="0"
+                        step="1000"
+                        class="h-11 w-full rounded-lg border border-gray-300 px-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                        placeholder="Masukkan harga visit harian"
+                    />
+                    <p
+                        v-if="errors.daily_visit_price"
+                        class="mt-2 text-sm text-red-500"
+                    >
+                        {{ errors.daily_visit_price }}
+                    </p>
+                </div>
+
+                <div>
                     <p
                         class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
                     >
@@ -102,6 +126,7 @@ interface AppSettingData {
     id: string | null;
     app_name: string;
     app_description: string;
+    daily_visit_price: number;
     logo: MediaItem | null;
 }
 
@@ -115,6 +140,7 @@ interface ApiResponse<T> {
 interface ValidationErrors {
     app_name?: string;
     app_description?: string;
+    daily_visit_price?: string;
     logo?: string;
 }
 
@@ -125,6 +151,7 @@ const props = defineProps<{
 const form = ref({
     app_name: props.settings.app_name,
     app_description: props.settings.app_description,
+    daily_visit_price: Number(props.settings.daily_visit_price ?? 0),
 });
 
 const logoFile = ref<File | null>(null);
@@ -144,6 +171,10 @@ const handleSubmit = async () => {
     const formData = new FormData();
     formData.append('app_name', form.value.app_name);
     formData.append('app_description', form.value.app_description ?? '');
+    formData.append(
+        'daily_visit_price',
+        String(form.value.daily_visit_price ?? 0),
+    );
     formData.append('_method', 'PUT');
 
     if (logoFile.value) {
@@ -158,6 +189,9 @@ const handleSubmit = async () => {
         currentSetting.value = response.data.data;
         form.value.app_name = response.data.data.app_name;
         form.value.app_description = response.data.data.app_description;
+        form.value.daily_visit_price = Number(
+            response.data.data.daily_visit_price ?? 0,
+        );
         logoFile.value = null;
         router.reload();
     } catch (error: unknown) {
@@ -168,6 +202,7 @@ const handleSubmit = async () => {
             errors.value = {
                 app_name: validationErrors.app_name?.[0],
                 app_description: validationErrors.app_description?.[0],
+                daily_visit_price: validationErrors.daily_visit_price?.[0],
                 logo: validationErrors.logo?.[0],
             };
 

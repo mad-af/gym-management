@@ -54,6 +54,7 @@ class HandleInertiaRequests extends Middleware
                 'name' => $appName,
                 'description' => $appDescription,
                 'logo' => $appSettings['logo'] ?? null,
+                'daily_visit_price' => $appSettings['daily_visit_price'] ?? 0,
             ],
             'auth' => [
                 'user' => $user,

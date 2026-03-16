@@ -11,6 +11,8 @@ use Illuminate\Validation\ValidationException;
 
 class VisitService
 {
+    public function __construct(protected AppSettingService $appSettingService) {}
+
     public function getStats(): array
     {
         $today = Carbon::today();
@@ -87,13 +89,7 @@ class VisitService
         unset($payload['qr_code']);
 
         if (($payload['visit_type'] ?? null) === 'DAILY') {
-            $hasPrice = array_key_exists('price', $payload) && $payload['price'] !== null;
-
-            if (! $hasPrice) {
-                throw ValidationException::withMessages([
-                    'price' => 'Harga wajib diisi untuk kunjungan harian.',
-                ]);
-            }
+            $payload['price'] = $this->appSettingService->getDailyVisitPrice();
         }
 
         if (($payload['visit_type'] ?? null) === 'MEMBERSHIP') {

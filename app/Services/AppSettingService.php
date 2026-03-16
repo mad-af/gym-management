@@ -16,9 +16,13 @@ class AppSettingService
 
     public const TYPE_APP_LOGO = 'app_logo';
 
+    public const TYPE_DAILY_VISIT_PRICE = 'daily_visit_price';
+
     public const TYPE_WHATSAPP_CONFIG = 'whatsapp_config';
 
     private const DEFAULT_APP_DESCRIPTION = 'Kelola operasional gym Anda dengan lebih efisien.';
+
+    private const DEFAULT_DAILY_VISIT_PRICE = 50000;
 
     private const WHATSAPP_CONFIG_DEFAULTS = [
         'token' => '',
@@ -70,15 +74,23 @@ class AppSettingService
         ]);
 
         $logoSetting = $this->getByType(self::TYPE_APP_LOGO);
+        $dailyVisitPriceSetting = $this->getByType(self::TYPE_DAILY_VISIT_PRICE, [
+            'value' => self::DEFAULT_DAILY_VISIT_PRICE,
+        ]);
         $appName = $this->normalizeNullableString($nameSetting->getValue('value')) ?? (string) config('app.name');
         $appDescription = $this->normalizeNullableString($descriptionSetting->getValue('value'))
             ?? self::DEFAULT_APP_DESCRIPTION;
+        $dailyVisitPrice = $this->normalizeNonNegativeNumber(
+            $dailyVisitPriceSetting->getValue('value'),
+            self::DEFAULT_DAILY_VISIT_PRICE,
+        );
 
         return [
             'id' => $nameSetting->id,
             'app_name' => $appName,
             'app_description' => $appDescription,
             'logo' => $logoSetting->getLogo(),
+            'daily_visit_price' => $dailyVisitPrice,
         ];
     }
 
@@ -94,6 +106,14 @@ class AppSettingService
 
             $descriptionSetting = $this->setByType(self::TYPE_APP_DESCRIPTION, [
                 'value' => $appDescription,
+            ]);
+
+            $dailyVisitPrice = $this->normalizeNonNegativeNumber(
+                $data['daily_visit_price'] ?? null,
+                self::DEFAULT_DAILY_VISIT_PRICE,
+            );
+            $dailyVisitPriceSetting = $this->setByType(self::TYPE_DAILY_VISIT_PRICE, [
+                'value' => $dailyVisitPrice,
             ]);
 
             $logoSetting = $this->getByType(self::TYPE_APP_LOGO);
@@ -114,6 +134,7 @@ class AppSettingService
 
             $nameSetting->load('media');
             $descriptionSetting->load('media');
+            $dailyVisitPriceSetting->load('media');
             $logoSetting->load('media');
 
             return [
@@ -122,8 +143,24 @@ class AppSettingService
                 'app_description' => $this->normalizeNullableString($descriptionSetting->getValue('value'))
                     ?? self::DEFAULT_APP_DESCRIPTION,
                 'logo' => $logoSetting->getLogo(),
+                'daily_visit_price' => $this->normalizeNonNegativeNumber(
+                    $dailyVisitPriceSetting->getValue('value'),
+                    self::DEFAULT_DAILY_VISIT_PRICE,
+                ),
             ];
         });
+    }
+
+    public function getDailyVisitPrice(): float
+    {
+        $setting = $this->getByType(self::TYPE_DAILY_VISIT_PRICE, [
+            'value' => self::DEFAULT_DAILY_VISIT_PRICE,
+        ]);
+
+        return $this->normalizeNonNegativeNumber(
+            $setting->getValue('value'),
+            self::DEFAULT_DAILY_VISIT_PRICE,
+        );
     }
 
     public function getWhatsappConfigData(): array
@@ -173,6 +210,17 @@ class AppSettingService
         $string = trim((string) $value);
 
         return $string === '' ? null : $string;
+    }
+
+    private function normalizeNonNegativeNumber(mixed $value, float|int $fallback = 0): float
+    {
+        if (! is_numeric($value)) {
+            return (float) $fallback;
+        }
+
+        $number = (float) $value;
+
+        return $number < 0 ? (float) $fallback : $number;
     }
 
     public function normalizeLegacyRows(): void

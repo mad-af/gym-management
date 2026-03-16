@@ -409,6 +409,7 @@
 </template>
 
 <script setup lang="ts">
+import { usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import { ref, onMounted, watch, computed, nextTick } from 'vue';
 import AppImage from '@/components/common/AppImage.vue';
@@ -417,8 +418,14 @@ import Combobox from '@/components/ui/Combobox.vue';
 import Drawer from '@/components/ui/Drawer.vue';
 import Modal from '@/components/ui/Modal.vue';
 import OperationActionButton from '@/components/ui/OperationActionButton.vue';
-import { DoorOpenIcon } from '@/icons';
-import { UserCircleIcon } from '@/icons';
+import { DoorOpenIcon, UserCircleIcon } from '@/icons';
+import type { AppPageProps } from '@/types';
+
+interface OperationPageProps extends AppPageProps {
+    app?: {
+        daily_visit_price?: number | string | null;
+    };
+}
 
 const isOpen = ref(false);
 const processing = ref(false);
@@ -430,6 +437,18 @@ const form = ref({
     qr_code: '' as string,
 });
 const errors = ref<Record<string, string>>({});
+const page = usePage<OperationPageProps>();
+
+const dailyVisitPrice = computed<number>(() => {
+    const raw = page.props.app?.daily_visit_price;
+    const parsed = typeof raw === 'number' ? raw : Number(raw ?? 0);
+
+    if (!Number.isFinite(parsed) || parsed < 0) {
+        return 0;
+    }
+
+    return parsed;
+});
 
 const visitorCustomerId = ref<string | null>(null);
 const customerOptions = ref<any[]>([]);
@@ -802,7 +821,7 @@ const setActiveTab = (next: 'member' | 'visitor') => {
         void closeScannerModal();
     } else {
         form.value.visit_type = 'DAILY';
-        form.value.price = null;
+        form.value.price = dailyVisitPrice.value;
         void closeScannerModal();
         fetchCustomerOptions(true);
     }
@@ -858,7 +877,7 @@ const submit = async () => {
                 foundCustomer.value?.id || form.value.customer_id || null,
             checkin_method: activeTab.value === 'member' ? 'QR_CODE' : 'MANUAL',
             visit_type: activeTab.value === 'member' ? 'MEMBERSHIP' : 'DAILY',
-            price: activeTab.value === 'visitor' ? form.value.price : null,
+            price: activeTab.value === 'visitor' ? dailyVisitPrice.value : null,
             qr_code:
                 activeTab.value === 'member'
                     ? form.value.qr_code || null

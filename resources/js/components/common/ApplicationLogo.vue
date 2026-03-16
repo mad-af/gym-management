@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import { ImageIcon } from '@/icons';
 import type { AppPageProps } from '@/types';
 
 defineProps<{
@@ -35,12 +36,14 @@ const appLogo = computed(() => page.props.app?.logo ?? null);
             :alt="appName"
             class="h-10 w-10 rounded-lg object-cover"
         />
-        <img
+        <div
             v-else
-            src="/images/logo/logo.webp"
-            :alt="appName"
-            class="h-10 w-auto object-contain"
-        />
+            class="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"
+            :aria-label="`${appName} logo placeholder`"
+            role="img"
+        >
+            <ImageIcon class="h-5 w-5" />
+        </div>
 
         <span
             v-if="!collapsed"

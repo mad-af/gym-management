@@ -20,6 +20,7 @@ class AppSettingController extends Controller
             'id' => $settings['id'],
             'app_name' => $settings['app_name'],
             'app_description' => $settings['app_description'],
+            'daily_visit_price' => $settings['daily_visit_price'],
             'logo' => $settings['logo'],
         ]);
     }
@@ -32,6 +33,7 @@ class AppSettingController extends Controller
             'id' => $settings['id'],
             'app_name' => $settings['app_name'],
             'app_description' => $settings['app_description'],
+            'daily_visit_price' => $settings['daily_visit_price'],
             'logo' => $settings['logo'],
         ]);
     }

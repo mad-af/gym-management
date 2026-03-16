@@ -21,6 +21,9 @@ class AppSettingSeeder extends Seeder
                     'value' => 'Kelola operasional gym Anda dengan lebih efisien.',
                 ],
                 AppSettingService::TYPE_APP_LOGO => [],
+                AppSettingService::TYPE_DAILY_VISIT_PRICE => [
+                    'value' => 50000,
+                ],
                 AppSettingService::TYPE_WHATSAPP_CONFIG => [
                     'token' => '',
                     'name' => 'Main Device',

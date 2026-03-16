@@ -19,7 +19,7 @@ class StoreVisitRequest extends FormRequest
             'qr_code' => ['required_without:customer_id', 'nullable', 'string', 'max:255'],
             'membership_transaction_id' => ['nullable', 'uuid', 'exists:membership_transactions,id'],
             'visit_type' => ['required', Rule::in(['MEMBERSHIP', 'DAILY'])],
-            'price' => ['required_if:visit_type,DAILY', 'nullable', 'numeric', 'min:0'],
+            'price' => ['nullable', 'numeric', 'min:0'],
             'checkin_method' => ['required', Rule::in(['QR_CODE', 'CARD', 'MANUAL'])],
             'checkin_time' => ['nullable', 'date'],
         ];
