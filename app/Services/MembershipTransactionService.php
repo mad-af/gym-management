@@ -71,29 +71,17 @@ class MembershipTransactionService
 
     public function create(array $data, ?string $createdBy): MembershipTransaction
     {
-        $payload = $data;
+        $package = MembershipPackage::query()->findOrFail($data['package_id']);
+        $startDate = Carbon::today();
 
-        // Fetch Package Details
-        $package = MembershipPackage::findOrFail($data['package_id']);
-
-        // Set Start Date (Default to today if not provided)
-        $startDate = isset($data['start_date']) ? \Carbon\Carbon::parse($data['start_date']) : now();
-        $payload['start_date'] = $startDate->toDateString();
-
-        // Calculate End Date
-        if (! isset($data['end_date'])) {
-            $payload['end_date'] = $startDate->copy()->addDays($package->duration_days)->toDateString();
-        }
-
-        // Set Price from Package if not provided
-        if (! isset($data['price'])) {
-            $payload['price'] = $package->price;
-        }
-
-        // Default Status
-        if (! isset($data['status'])) {
-            $payload['status'] = 'active'; // Default status
-        }
+        $payload = [
+            'customer_id' => $data['customer_id'],
+            'package_id' => $package->id,
+            'start_date' => $startDate->toDateString(),
+            'end_date' => $startDate->copy()->addDays((int) $package->duration_days)->toDateString(),
+            'price' => (float) $package->price,
+            'status' => strtolower((string) ($data['status'] ?? 'active')),
+        ];
 
         if ($createdBy) {
             $payload['created_by'] = $createdBy;

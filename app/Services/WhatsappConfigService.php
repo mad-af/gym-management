@@ -72,7 +72,7 @@ class WhatsappConfigService
         ]);
     }
 
-    public function sendMessage(string $target, string $message): array
+    public function sendMessage(string $target, string $message, array $options = []): array
     {
         $config = $this->getConfig();
 
@@ -80,7 +80,7 @@ class WhatsappConfigService
             throw new \Exception('WhatsApp token is not configured.');
         }
 
-        $response = $this->fonnteService->sendMessage($target, $message, [], $config['token']);
+        $response = $this->fonnteService->sendMessage($target, $message, $options, $config['token']);
         $data = $response->json();
 
         if (isset($data['status']) && ! $data['status']) {

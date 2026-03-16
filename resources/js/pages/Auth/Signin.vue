@@ -257,11 +257,6 @@
                                 <ApplicationLogo />
                             </Link>
                             <p
-                                class="text-center text-base font-semibold text-white"
-                            >
-                                {{ appName }}
-                            </p>
-                            <p
                                 class="mt-2 text-center text-sm leading-6 text-white/85"
                             >
                                 {{ appDescription }}
@@ -290,9 +285,6 @@ interface BrandingPageProps extends AppPageProps {
 }
 
 const page = usePage<BrandingPageProps>();
-const appName = computed(
-    () => page.props.app?.name ?? page.props.name ?? 'Gym Management',
-);
 const appDescription = computed(
     () =>
         page.props.app?.description ??

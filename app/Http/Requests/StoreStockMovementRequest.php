@@ -16,9 +16,8 @@ class StoreStockMovementRequest extends FormRequest
     {
         return [
             'product_id' => ['required', 'uuid', 'exists:products,id'],
-            'type' => ['required', Rule::in(['IN', 'OUT', 'ADJUSTMENT'])],
+            'type' => ['required', Rule::in(['IN', 'ADJUSTMENT'])],
             'quantity' => ['required', 'integer', 'min:0'],
-            'cost_price' => ['nullable', 'numeric', 'min:0'],
             'description' => ['nullable', 'string', 'max:255'],
         ];
     }

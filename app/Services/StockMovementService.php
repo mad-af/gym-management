@@ -6,8 +6,8 @@ use App\Models\Product;
 use App\Models\StockMovement;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 
 class StockMovementService
 {
@@ -74,23 +74,25 @@ class StockMovementService
         return DB::transaction(function () use ($data, $createdBy) {
             $product = Product::lockForUpdate()->findOrFail($data['product_id']);
 
-            $type = $data['type'];
+            $type = strtoupper((string) $data['type']);
             $quantity = (int) $data['quantity'];
 
             if ($type === 'IN') {
                 $product->stock += $quantity;
-            } elseif ($type === 'OUT') {
-                if ($product->stock < $quantity) {
-                    abort(Response::HTTP_UNPROCESSABLE_ENTITY, 'Stok produk tidak mencukupi.');
-                }
-                $product->stock -= $quantity;
             } elseif ($type === 'ADJUSTMENT') {
                 $product->stock = $quantity;
+            } else {
+                throw new InvalidArgumentException('Tipe pergerakan stok tidak valid.');
             }
 
             $product->save();
 
-            $payload = $data;
+            $payload = [
+                'product_id' => $product->id,
+                'type' => $type,
+                'quantity' => $quantity,
+                'description' => $data['description'] ?? null,
+            ];
             if ($createdBy) {
                 $payload['created_by'] = $createdBy;
             }

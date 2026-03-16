@@ -19,6 +19,11 @@ export const WHATSAPP_CONFIG_PERMISSIONS = {
     MANAGE: 'manage_whatsapp_config',
 } as const;
 
+export const APP_SETTINGS_PERMISSIONS = {
+    VIEW: 'view_app_settings',
+    MANAGE: 'manage_app_settings',
+} as const;
+
 // Gym Management
 export const CUSTOMER_PERMISSIONS = {
     VIEW: 'view_customers',

@@ -1,47 +1,100 @@
 <template>
     <AdminLayout>
-
         <Head title="Pengaturan WhatsApp" />
         <PageBreadcrumb pageTitle="Pengaturan WhatsApp" />
 
-        <div class="max-w-3xl mx-auto">
+        <div class="mx-auto max-w-3xl">
             <!-- Loading State -->
             <div v-if="loading" class="flex justify-center py-12">
                 <Loader2Icon class="h-8 w-8 animate-spin text-brand-500" />
             </div>
 
             <template v-else>
+                <div
+                    class="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200"
+                >
+                    <p class="font-medium">Pemberitahuan Penting</p>
+                    <p class="mt-1">
+                        Usahakan customer sudah pernah chat terlebih dahulu ke
+                        nomor WhatsApp yang dikonfigurasi sebelum pengiriman
+                        otomatis, untuk mengurangi risiko pembatasan atau ban
+                        dari Meta.
+                    </p>
+                </div>
+
                 <!-- Configured State -->
-                <ComponentCard v-if="configState?.token" title="Status WhatsApp"
-                    desc="Perangkat WhatsApp Anda sudah dikonfigurasi">
+                <ComponentCard
+                    v-if="configState?.token"
+                    title="Status WhatsApp"
+                    desc="Perangkat WhatsApp Anda sudah dikonfigurasi"
+                >
                     <div class="space-y-6">
                         <!-- Status Indicator -->
-                        <div class="flex items-center justify-between rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
+                        <div
+                            class="flex items-center justify-between rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50"
+                        >
                             <div class="flex items-center gap-3">
-                                <div class="rounded-full p-2"
-                                    :class="configState.is_connected ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'">
-                                    <component :is="configState.is_connected ? CheckCircleIcon : UnplugIcon"
-                                        class="h-6 w-6" />
+                                <div
+                                    class="rounded-full p-2"
+                                    :class="
+                                        configState.is_connected
+                                            ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
+                                            : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
+                                    "
+                                >
+                                    <component
+                                        :is="
+                                            configState.is_connected
+                                                ? CheckCircleIcon
+                                                : UnplugIcon
+                                        "
+                                        class="h-6 w-6"
+                                    />
                                 </div>
                                 <div>
-                                    <h4 class="font-medium text-gray-900 dark:text-white">{{ configState.name }}</h4>
-                                    <p class="text-sm text-gray-500">{{ configState.is_connected ? 'Terhubung' :
-                                        'Terputus' }}</p>
+                                    <h4
+                                        class="font-medium text-gray-900 dark:text-white"
+                                    >
+                                        {{ configState.name }}
+                                    </h4>
+                                    <p class="text-sm text-gray-500">
+                                        {{
+                                            configState.is_connected
+                                                ? 'Terhubung'
+                                                : 'Terputus'
+                                        }}
+                                    </p>
                                 </div>
                             </div>
                             <div class="flex items-center gap-2">
-                                <Button variant="outline" size="sm" @click="checkConnection(true)" :disabled="checking">
-                                    <RefreshCwIcon class="h-4 w-4 mr-2" :class="{ 'animate-spin': checking }" />
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    @click="checkConnection(true)"
+                                    :disabled="checking"
+                                >
+                                    <RefreshCwIcon
+                                        class="mr-2 h-4 w-4"
+                                        :class="{ 'animate-spin': checking }"
+                                    />
                                     Cek Status
                                 </Button>
-                                <Button v-if="configState.is_connected" variant="outline" size="sm"
-                                    @click="openTestDrawer">
+                                <Button
+                                    v-if="configState.is_connected"
+                                    variant="outline"
+                                    size="sm"
+                                    @click="openTestDrawer"
+                                >
                                     Test Koneksi
                                 </Button>
-                                <Button variant="outline" size="sm"
-                                    class="text-error-600 border-error-200 hover:bg-error-50 dark:border-error-800 dark:hover:bg-error-900/20"
-                                    @click="resetConfig" :disabled="processing">
-                                    <TrashIcon class="h-4 w-4 mr-2" />
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    class="border-error-200 text-error-600 hover:bg-error-50 dark:border-error-800 dark:hover:bg-error-900/20"
+                                    @click="resetConfig"
+                                    :disabled="processing"
+                                >
+                                    <TrashIcon class="mr-2 h-4 w-4" />
                                     Reset Token
                                 </Button>
                             </div>
@@ -49,58 +102,110 @@
 
                         <!-- Connection Info -->
                         <div v-if="configState.is_connected" class="mt-6">
-                            <DetailGrid :items="connectionDetails" :columns="3" />
+                            <DetailGrid
+                                :items="connectionDetails"
+                                :columns="3"
+                            />
                         </div>
 
                         <!-- QR Code Section (if disconnected) -->
-                        <div v-if="!configState.is_connected"
-                            class="flex flex-col items-center space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                            <div v-if="qrCode" class="flex flex-col items-center space-y-4">
+                        <div
+                            v-if="!configState.is_connected"
+                            class="flex flex-col items-center space-y-4 border-t border-gray-200 pt-4 dark:border-gray-700"
+                        >
+                            <div
+                                v-if="qrCode"
+                                class="flex flex-col items-center space-y-4"
+                            >
                                 <div
-                                    class="rounded-lg border-2 border-dashed border-gray-300 p-2 dark:border-gray-600 bg-white">
-                                    <img :src="qrCode.startsWith('data:') ? qrCode : 'data:image/png;base64,' + qrCode"
-                                        alt="WhatsApp QR Code" class="h-64 w-64 object-contain" />
+                                    class="rounded-lg border-2 border-dashed border-gray-300 bg-white p-2 dark:border-gray-600"
+                                >
+                                    <img
+                                        :src="
+                                            qrCode.startsWith('data:')
+                                                ? qrCode
+                                                : 'data:image/png;base64,' +
+                                                  qrCode
+                                        "
+                                        alt="WhatsApp QR Code"
+                                        class="h-64 w-64 object-contain"
+                                    />
                                 </div>
                                 <p class="text-center text-sm text-gray-500">
-                                    Scan QR code di atas menggunakan WhatsApp pada ponsel Anda.
+                                    Scan QR code di atas menggunakan WhatsApp
+                                    pada ponsel Anda.
                                 </p>
                             </div>
 
-                            <div v-else class="flex flex-col items-center justify-center py-4 text-center">
-                                <QrCodeIcon class="mb-4 h-12 w-12 text-gray-300" />
-                                <p class="text-sm text-gray-500">Perangkat belum terhubung. Scan QR Code untuk
-                                    menghubungkan.</p>
+                            <div
+                                v-else
+                                class="flex flex-col items-center justify-center py-4 text-center"
+                            >
+                                <QrCodeIcon
+                                    class="mb-4 h-12 w-12 text-gray-300"
+                                />
+                                <p class="text-sm text-gray-500">
+                                    Perangkat belum terhubung. Scan QR Code
+                                    untuk menghubungkan.
+                                </p>
                             </div>
 
-                            <Button variant="primary" @click="getQr" :disabled="loadingQr">
-                                <span v-if="loadingQr" class="mr-2 animate-spin">
+                            <Button
+                                variant="primary"
+                                @click="getQr"
+                                :disabled="loadingQr"
+                            >
+                                <span
+                                    v-if="loadingQr"
+                                    class="mr-2 animate-spin"
+                                >
                                     <Loader2Icon class="h-4 w-4" />
                                 </span>
-                                {{ qrCode ? 'Refresh QR Code' : 'Tampilkan QR Code' }}
+                                {{
+                                    qrCode
+                                        ? 'Refresh QR Code'
+                                        : 'Tampilkan QR Code'
+                                }}
                             </Button>
                         </div>
                     </div>
                 </ComponentCard>
 
                 <!-- Initial Setup Form -->
-                <ComponentCard v-else title="Konfigurasi Token"
-                    desc="Masukkan token Fonnte untuk menghubungkan WhatsApp">
+                <ComponentCard
+                    v-else
+                    title="Konfigurasi Token"
+                    desc="Masukkan token Fonnte untuk menghubungkan WhatsApp"
+                >
                     <form @submit.prevent="saveConfig" class="space-y-4">
                         <div>
-                            <label for="token" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">
+                            <label
+                                for="token"
+                                class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                            >
                                 Token Fonnte
                             </label>
-                            <input id="token" v-model="form.token" type="password"
-                                class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-                                placeholder="Masukkan token Fonnte Anda" required />
-                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            <input
+                                id="token"
+                                v-model="form.token"
+                                type="password"
+                                class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                                placeholder="Masukkan token Fonnte Anda"
+                                required
+                            />
+                            <p
+                                class="mt-1 text-xs text-gray-500 dark:text-gray-400"
+                            >
                                 Dapatkan token dari dashboard Fonnte.
                             </p>
                         </div>
 
                         <div class="flex justify-end pt-4">
                             <Button variant="primary" :disabled="processing">
-                                <span v-if="processing" class="mr-2 animate-spin">
+                                <span
+                                    v-if="processing"
+                                    class="mr-2 animate-spin"
+                                >
                                     <Loader2Icon class="h-4 w-4" />
                                 </span>
                                 Simpan Konfigurasi
@@ -112,21 +217,43 @@
         </div>
 
         <!-- Test Message Drawer -->
-        <Drawer :is-open="isTestDrawerOpen" title="Test Koneksi WhatsApp" @close="isTestDrawerOpen = false">
+        <Drawer
+            :is-open="isTestDrawerOpen"
+            title="Test Koneksi WhatsApp"
+            @close="isTestDrawerOpen = false"
+        >
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Nomor Tujuan</label>
-                    <input v-model="testForm.target" type="text" placeholder="e.g. 08123456789"
-                        class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-brand-500 dark:bg-gray-800 dark:border-gray-700" />
-                    <p class="text-xs text-gray-500 mt-1">Gunakan format 08... atau 62...</p>
+                    <label
+                        class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                        >Nomor Tujuan</label
+                    >
+                    <input
+                        v-model="testForm.target"
+                        type="text"
+                        placeholder="e.g. 08123456789"
+                        class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800"
+                    />
+                    <p class="mt-1 text-xs text-gray-500">
+                        Gunakan format 08... atau 62...
+                    </p>
                 </div>
             </div>
 
             <template #footer>
                 <div class="flex justify-end gap-2">
-                    <Button variant="outline" @click="isTestDrawerOpen = false">Batal</Button>
-                    <Button variant="primary" @click="sendTestMessage" :disabled="testForm.processing">
-                        <span v-if="testForm.processing" class="mr-2 animate-spin">
+                    <Button variant="outline" @click="isTestDrawerOpen = false"
+                        >Batal</Button
+                    >
+                    <Button
+                        variant="primary"
+                        @click="sendTestMessage"
+                        :disabled="testForm.processing"
+                    >
+                        <span
+                            v-if="testForm.processing"
+                            class="mr-2 animate-spin"
+                        >
                             <Loader2Icon class="h-4 w-4" />
                         </span>
                         Kirim Pesan
@@ -145,7 +272,7 @@ import {
     Unplug as UnplugIcon,
     Loader2 as Loader2Icon,
     Trash as TrashIcon,
-    RefreshCw as RefreshCwIcon
+    RefreshCw as RefreshCwIcon,
 } from 'lucide-vue-next';
 import { ref, onMounted, reactive, onUnmounted, computed } from 'vue';
 import ComponentCard from '@/components/common/ComponentCard.vue';
@@ -178,13 +305,15 @@ const connectionDetails = computed(() => {
             label: 'Token',
             value: configState.value.token
                 ? `${configState.value.token.substring(0, 10)}...${configState.value.token.substring(configState.value.token.length - 5)}`
-                : '-'
+                : '-',
         },
         {
             label: 'Terhubung Sejak',
             value: configState.value.connected_at
-                ? new Date(configState.value.connected_at).toLocaleString('id-ID')
-                : '-'
+                ? new Date(configState.value.connected_at).toLocaleString(
+                      'id-ID',
+                  )
+                : '-',
         },
     ];
 
@@ -201,14 +330,14 @@ const connectionDetails = computed(() => {
 
 // Form State
 const form = reactive({
-    token: ''
+    token: '',
 });
 
 // Test Drawer State
 const isTestDrawerOpen = ref(false);
 const testForm = reactive({
     target: '',
-    processing: false
+    processing: false,
 });
 
 // Fetch Config
@@ -294,7 +423,12 @@ const saveConfig = async () => {
 };
 
 const resetConfig = async () => {
-    if (!confirm('Apakah Anda yakin ingin menghapus konfigurasi ini? Token akan dihapus permanen.')) return;
+    if (
+        !confirm(
+            'Apakah Anda yakin ingin menghapus konfigurasi ini? Token akan dihapus permanen.',
+        )
+    )
+        return;
 
     // Stop checking interval
     if (checkInterval) {
@@ -358,7 +492,7 @@ const sendTestMessage = async () => {
     try {
         const response = await axios.post('/api/whatsapp-config/test', {
             target: testForm.target,
-            message: 'Pesan test dari sistem'
+            message: 'Pesan test dari sistem',
         });
 
         if (response.data.success) {

@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreMembershipTransactionRequest extends FormRequest
+class PrintMembershipCardRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -15,8 +15,6 @@ class StoreMembershipTransactionRequest extends FormRequest
     {
         return [
             'customer_id' => ['required', 'uuid', 'exists:customers,id'],
-            'package_id' => ['required', 'uuid', 'exists:membership_packages,id'],
-            'status' => ['nullable', 'string', 'max:50'],
         ];
     }
 }

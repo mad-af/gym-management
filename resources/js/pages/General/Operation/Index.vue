@@ -3,21 +3,48 @@
         <PageBreadcrumb :pageTitle="currentPageTitle" />
         <div class="space-y-6">
             <Stats2 :items="statsItems" />
-            <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
-                <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+            <div
+                class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900"
+            >
+                <div
+                    class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between"
+                >
                     <div>
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Input Data Utama</h2>
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Akses cepat untuk fitur operasional
-                            harian.</p>
+                        <h2
+                            class="text-lg font-semibold text-gray-900 dark:text-white"
+                        >
+                            Input Data Utama
+                        </h2>
+                        <p
+                            class="mt-1 text-sm text-gray-500 dark:text-gray-400"
+                        >
+                            Akses cepat untuk fitur operasional harian.
+                        </p>
                     </div>
                 </div>
-                <div class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                    <VisitsOperation v-if="canView(VISIT_PERMISSIONS.VIEW)" @submitted="fetchOpsStats" />
-                    <SalesOperation v-if="canView(SALE_PERMISSIONS.VIEW)" @submitted="fetchOpsStats" />
-                    <MembershipOperation v-if="canView(MEMBERSHIP_TRANSACTION_PERMISSIONS.VIEW)"
-                        @submitted="fetchOpsStats" />
-                    <StockMovementOperation v-if="canView(STOCK_MOVEMENT_PERMISSIONS.VIEW)"
-                        @submitted="fetchOpsStats" />
+                <div
+                    class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5"
+                >
+                    <VisitsOperation
+                        v-if="canView(VISIT_PERMISSIONS.VIEW)"
+                        @submitted="fetchOpsStats"
+                    />
+                    <SalesOperation
+                        v-if="canView(SALE_PERMISSIONS.VIEW)"
+                        @submitted="fetchOpsStats"
+                    />
+                    <MembershipOperation
+                        v-if="canView(MEMBERSHIP_TRANSACTION_PERMISSIONS.VIEW)"
+                        @submitted="fetchOpsStats"
+                    />
+                    <MembershipCardOperation
+                        v-if="canView(MEMBERSHIP_TRANSACTION_PERMISSIONS.VIEW)"
+                        @submitted="fetchOpsStats"
+                    />
+                    <StockMovementOperation
+                        v-if="canView(STOCK_MOVEMENT_PERMISSIONS.VIEW)"
+                        @submitted="fetchOpsStats"
+                    />
                 </div>
             </div>
         </div>
@@ -38,6 +65,7 @@ import {
     VISIT_PERMISSIONS,
 } from '@/directives/permissions';
 import { CalenderIcon } from '@/icons';
+import MembershipCardOperation from './components/MembershipCardOperation.vue';
 import MembershipOperation from './components/MembershipOperation.vue';
 import SalesOperation from './components/SalesOperation.vue';
 import StockMovementOperation from './components/StockMovementOperation.vue';
@@ -58,12 +86,13 @@ const dateText = computed(() =>
     }),
 );
 
-const timeText = computed(() =>
-    `${now.value.toLocaleTimeString('id-ID', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-    })} WIB`,
+const timeText = computed(
+    () =>
+        `${now.value.toLocaleTimeString('id-ID', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+        })} WIB`,
 );
 
 const opsStats = ref({
@@ -139,7 +168,8 @@ const canView = (permission?: string | string[]) => {
     if (!permission) return true;
     const permissions = userPermissions.value;
     if (!permissions || permissions.length === 0) return false;
-    if (Array.isArray(permission)) return permission.some((p) => permissions.includes(p));
+    if (Array.isArray(permission))
+        return permission.some((p) => permissions.includes(p));
     return permissions.includes(permission);
 };
 

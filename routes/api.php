@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AppSettingController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\MembershipCardController;
 use App\Http\Controllers\Api\MembershipPackageController;
 use App\Http\Controllers\Api\MembershipPackageItemController;
 use App\Http\Controllers\Api\MembershipTransactionController;
@@ -19,14 +20,20 @@ Route::middleware(['auth:web'])->group(function () {
     Route::delete('media/{media}', [MediaController::class, 'destroy'])->name('api.media.destroy');
 
     Route::get('permissions', [\App\Http\Controllers\Api\RoleController::class, 'permissions']);
-    Route::get('app-settings', [AppSettingController::class, 'index'])->name('api.app-settings.index');
-    Route::put('app-settings', [AppSettingController::class, 'update'])->name('api.app-settings.update');
+    Route::get('app-settings', [AppSettingController::class, 'index'])
+        ->middleware('permission:view_app_settings')
+        ->name('api.app-settings.index');
+    Route::put('app-settings', [AppSettingController::class, 'update'])
+        ->middleware('permission:manage_app_settings')
+        ->name('api.app-settings.update');
     Route::get('whatsapp-config', [WhatsappConfigController::class, 'index'])->name('api.whatsapp-config.index');
     Route::post('whatsapp-config', [WhatsappConfigController::class, 'update'])->name('api.whatsapp-config.update');
     Route::delete('whatsapp-config', [WhatsappConfigController::class, 'destroy'])->name('api.whatsapp-config.destroy');
     Route::post('whatsapp-config/test', [WhatsappConfigController::class, 'test'])->name('api.whatsapp-config.test');
     Route::get('whatsapp-config/qr', [WhatsappConfigController::class, 'getQr'])->name('api.whatsapp-config.qr');
     Route::get('whatsapp-config/check', [WhatsappConfigController::class, 'check'])->name('api.whatsapp-config.check');
+    Route::get('membership-cards/print', [MembershipCardController::class, 'print'])->name('api.membership-cards.print');
+    Route::post('membership-cards/send-whatsapp', [MembershipCardController::class, 'sendWhatsapp'])->name('api.membership-cards.send-whatsapp');
 
     // Custom activation routes
     Route::put('users/{user}/activate', [\App\Http\Controllers\Api\UserController::class, 'activate']);

@@ -3,12 +3,25 @@
         <PageBreadcrumb :pageTitle="currentPageTitle" />
         <Stats2 :items="statsItems" />
 
-        <DynamicTable :columns="columns" :data="tableData" :items-per-page="perPage" :total-items="totalItems"
-            :current-page="currentPage" :is-server-side="true" @update:page="handlePageChange"
-            @update:search="handleSearch" @update:perPage="handlePerPageChange">
+        <DynamicTable
+            :columns="columns"
+            :data="tableData"
+            :items-per-page="perPage"
+            :total-items="totalItems"
+            :current-page="currentPage"
+            :is-server-side="true"
+            @update:page="handlePageChange"
+            @update:search="handleSearch"
+            @update:perPage="handlePerPageChange"
+        >
             <template #header-actions>
-                <Button size="sm" variant="outline" :onClick="() => isFilterDrawerOpen = true"
-                    className="w-full sm:w-auto" :startIcon="FilterIcon">
+                <Button
+                    size="sm"
+                    variant="outline"
+                    :onClick="() => (isFilterDrawerOpen = true)"
+                    className="w-full sm:w-auto"
+                    :startIcon="FilterIcon"
+                >
                     Filter
                 </Button>
             </template>
@@ -18,7 +31,9 @@
                 </Badge>
             </template>
             <template #cell-quantity="{ row }">
-                <span class="text-theme-sm font-medium text-gray-800 dark:text-white/90">
+                <span
+                    class="text-theme-sm font-medium text-gray-800 dark:text-white/90"
+                >
                     {{ formatQuantity(row.quantity, row.type) }}
                 </span>
             </template>
@@ -29,23 +44,35 @@
             </template>
         </DynamicTable>
 
-        <Drawer :isOpen="isFilterDrawerOpen" @close="isFilterDrawerOpen = false" title="Filter Pergerakan Stok">
+        <Drawer
+            :isOpen="isFilterDrawerOpen"
+            @close="isFilterDrawerOpen = false"
+            title="Filter Pergerakan Stok"
+        >
             <div class="space-y-6">
                 <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Jenis</label>
-                    <select v-model="filters.type"
-                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                    <label
+                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                        >Jenis</label
+                    >
+                    <select
+                        v-model="filters.type"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                    >
                         <option value="">Semua</option>
                         <option value="in">IN</option>
                         <option value="adjustment">ADJUSTMENT</option>
-                        <option value="out">OUT</option>
                     </select>
                 </div>
             </div>
             <template #footer>
                 <div class="flex w-full justify-end gap-3">
-                    <Button variant="outline" :onClick="resetFilter">Reset</Button>
-                    <Button variant="primary" :onClick="handleFilter">Terapkan Filter</Button>
+                    <Button variant="outline" :onClick="resetFilter"
+                        >Reset</Button
+                    >
+                    <Button variant="primary" :onClick="handleFilter"
+                        >Terapkan Filter</Button
+                    >
                 </div>
             </template>
         </Drawer>
@@ -116,8 +143,18 @@ const tableData = computed(() =>
 const columns = ref<Column[]>([
     { key: 'product_name', label: 'Produk', class: 'min-w-[200px]' },
     { key: 'type', label: 'Jenis', type: 'custom', class: 'min-w-[120px]' },
-    { key: 'quantity', label: 'Jumlah', type: 'custom', class: 'min-w-[120px]' },
-    { key: 'created_at', label: 'Tanggal', type: 'custom', class: 'min-w-[160px]' },
+    {
+        key: 'quantity',
+        label: 'Jumlah',
+        type: 'custom',
+        class: 'min-w-[120px]',
+    },
+    {
+        key: 'created_at',
+        label: 'Tanggal',
+        type: 'custom',
+        class: 'min-w-[160px]',
+    },
     { key: 'created_by', label: 'Petugas', class: 'min-w-[180px]' },
 ]);
 
@@ -154,7 +191,9 @@ const getMovementTypeBadgeColor = (value: unknown) => {
 
 const formatQuantity = (value: unknown, type: unknown): string => {
     const n = typeof value === 'number' ? value : Number(value);
-    const text = Number.isNaN(n) ? String(value ?? '-') : n.toLocaleString('id-ID');
+    const text = Number.isNaN(n)
+        ? String(value ?? '-')
+        : n.toLocaleString('id-ID');
     const t = String(type || '').toLowerCase();
     if (t === 'in') return `+${text}`;
     if (t === 'out') return `-${text}`;

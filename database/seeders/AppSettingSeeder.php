@@ -15,7 +15,7 @@ class AppSettingSeeder extends Seeder
 
             $defaults = [
                 AppSettingService::TYPE_APP_NAME => [
-                    'value' => config('app.name'),
+                    'value' => 'Gym Management',
                 ],
                 AppSettingService::TYPE_APP_DESCRIPTION => [
                     'value' => 'Kelola operasional gym Anda dengan lebih efisien.',

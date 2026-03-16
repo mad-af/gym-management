@@ -51,6 +51,7 @@
         "clsx": "^2.1.1",
         "dropzone": "^6.0.0-beta.2",
         "flatpickr": "^4.6.13",
+        "jsqr": "^1.4.0",
         "jsvectormap": "^1.7.0",
         "laravel-vite-plugin": "^2.0.0",
         "lucide-vue-next": "^0.468.0",

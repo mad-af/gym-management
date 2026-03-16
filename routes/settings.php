@@ -28,6 +28,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('appearance.edit');
 
     Route::get('settings/application', [ApplicationSettingController::class, 'edit'])
+        ->middleware('permission:view_app_settings')
         ->name('application-settings.edit');
 
     Route::get('settings/whatsapp-config', function () {
