@@ -57,10 +57,6 @@ Route::middleware(['auth:web'])->group(function () {
 
     Route::prefix('dashboard')->group(function () {
         Route::get('stats', [DashboardController::class, 'stats']);
-        Route::get('category-budget', [DashboardController::class, 'categoryBudget']);
-        Route::get('asset-condition', [DashboardController::class, 'assetCondition']);
-        Route::get('proposals', [DashboardController::class, 'proposals']);
-        Route::get('maintenances', [DashboardController::class, 'maintenances']);
     });
     Route::get('operations/stats-today', [DashboardController::class, 'operationsToday']);
 
