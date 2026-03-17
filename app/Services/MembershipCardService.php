@@ -2,22 +2,39 @@
 
 namespace App\Services;
 
+use App\Helpers\QrCodeHelper;
 use App\Models\Customer;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Mpdf\Mpdf;
+use Mpdf\Output\Destination;
 
 class MembershipCardService
 {
+    private const CARD_WIDTH_MM = 85.6;
+
+    private const CARD_HEIGHT_MM = 54;
+
     public function __construct(private readonly WhatsappConfigService $whatsappConfigService) {}
 
     public function generatePdfBinary(Customer $customer): string
     {
         $payload = $this->buildPayload($customer);
+        $html = view('pdf.membership_card', $payload)->render();
 
-        return Pdf::loadView('pdf.membership-card', $payload)
-            ->setPaper('a6', 'landscape')
-            ->output();
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => $this->getCardPaperSizeMm(),
+            'margin_left' => 0,
+            'margin_right' => 0,
+            'margin_top' => 0,
+            'margin_bottom' => 0,
+            'margin_header' => 0,
+            'margin_footer' => 0,
+        ]);
+
+        $mpdf->WriteHTML($html);
+
+        return $mpdf->Output('', Destination::STRING_RETURN);
     }
 
     public function createPublicPdf(Customer $customer): array
@@ -70,31 +87,23 @@ class MembershipCardService
 
     private function buildPayload(Customer $customer): array
     {
-        $customer->loadMissing('membershipTransactions.package');
-
-        $activeTransaction = $customer->membershipTransactions
-            ->filter(function ($transaction) {
-                if (! $transaction->start_date || ! $transaction->end_date) {
-                    return false;
-                }
-
-                $today = Carbon::today();
-
-                return $transaction->start_date->startOfDay() <= $today
-                    && $transaction->end_date->startOfDay() >= $today;
-            })
-            ->sortByDesc('end_date')
-            ->first();
+        $memberCode = trim((string) ($customer->code ?: $customer->qr_code ?: ''));
+        $qrImage = $memberCode !== ''
+            ? QrCodeHelper::generateBase64Svg($memberCode, 256)
+            : null;
 
         return [
             'customer_name' => $customer->name,
-            'member_code' => $customer->code ?: $customer->qr_code,
+            'member_code' => $memberCode !== '' ? $memberCode : '-',
             'phone' => $customer->phone,
-            'package_name' => $activeTransaction?->package?->name,
-            'active_until' => $activeTransaction?->end_date?->format('d M Y'),
-            'generated_at' => now()->format('d M Y H:i'),
+            'qr_image' => $qrImage,
             'app_name' => config('app.name'),
         ];
+    }
+
+    private function getCardPaperSizeMm(): array
+    {
+        return [self::CARD_WIDTH_MM, self::CARD_HEIGHT_MM];
     }
 
     private function normalizePhone(?string $phone): ?string
