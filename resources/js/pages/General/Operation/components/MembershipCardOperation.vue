@@ -153,7 +153,7 @@
 
 <script setup lang="ts">
 import axios from 'axios';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import Button from '@/components/ui/Button.vue';
 import Combobox from '@/components/ui/Combobox.vue';
 import Drawer from '@/components/ui/Drawer.vue';
@@ -201,6 +201,7 @@ const fetchCustomerOptions = async (reset = false) => {
                 per_page: 20,
                 page: customerPage.value,
                 search: customerSearch.value || undefined,
+                is_member: true,
             },
         });
 
@@ -355,15 +356,21 @@ const closeDrawer = () => {
     activeTab.value = 'print';
     selectedCustomerId.value = null;
     selectedCustomer.value = null;
+    customerSearch.value = '';
     targetPhone.value = '';
     successMessage.value = '';
     sending.value = false;
     errors.value = {};
 };
 
-const emit = defineEmits<{ (e: 'submitted'): void }>();
+watch(isOpen, (open) => {
+    if (!open) {
+        return;
+    }
 
-onMounted(() => {
+    customerSearch.value = '';
     fetchCustomerOptions(true);
 });
+
+const emit = defineEmits<{ (e: 'submitted'): void }>();
 </script>

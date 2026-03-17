@@ -39,10 +39,13 @@ class CustomerController extends Controller
 
     public function selection(Request $request)
     {
+        $isMember = $request->has('is_member') ? $request->boolean('is_member') : null;
+
         $items = $this->service->getSelection(
             $request->input('per_page', 20),
             $request->input('search'),
             $request->input('page', 1),
+            $isMember,
         );
 
         return ApiResponse::success('Customers selection retrieved successfully.', $items);

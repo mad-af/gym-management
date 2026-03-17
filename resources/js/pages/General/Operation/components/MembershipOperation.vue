@@ -466,7 +466,7 @@
 
 <script setup lang="ts">
 import axios from 'axios';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import AppImage from '@/components/common/AppImage.vue';
 import Button from '@/components/ui/Button.vue';
 import Combobox from '@/components/ui/Combobox.vue';
@@ -550,6 +550,7 @@ const fetchCustomerOptions = async (reset = false) => {
                 per_page: 20,
                 page: customerPage.value,
                 search: customerSearch.value || undefined,
+                is_member: false,
             },
         });
 
@@ -739,10 +740,21 @@ const closeDrawer = () => {
     form.value = { customer_id: '', package_id: '' };
     selectedCustomerId.value = null;
     selectedCustomer.value = null;
+    customerSearch.value = '';
     errors.value = {};
     processing.value = false;
     isCreateCustomerOpen.value = false;
 };
+
+watch(isOpen, (open) => {
+    if (!open) {
+        return;
+    }
+
+    customerSearch.value = '';
+    fetchCustomerOptions(true);
+    fetchPackages();
+});
 
 const submitDisabled = computed(() => {
     if (processing.value) {
@@ -834,9 +846,4 @@ const submit = async () => {
 };
 
 const emit = defineEmits<{ (e: 'submitted'): void }>();
-
-onMounted(() => {
-    fetchCustomerOptions(true);
-    fetchPackages();
-});
 </script>

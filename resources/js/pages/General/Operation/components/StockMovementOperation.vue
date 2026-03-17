@@ -24,8 +24,6 @@
                         placeholder="Pilih produk..."
                         :loading="productLoading"
                         remote
-                        actionText="Tambah produk"
-                        @action="openCreateProductModal"
                         @search="onProductSearch"
                         @load-more="onProductLoadMore"
                     />
@@ -140,133 +138,6 @@
                 </div>
             </template>
         </Drawer>
-
-        <Teleport to="body">
-            <Modal
-                v-if="isCreateProductOpen"
-                :fullScreenBackdrop="true"
-                @close="closeCreateProductModal"
-            >
-                <template #body>
-                    <div
-                        class="relative w-full max-w-[600px] rounded-3xl bg-white p-6 lg:p-10 dark:bg-gray-900"
-                    >
-                        <h4
-                            class="mb-7 text-title-sm font-semibold text-gray-800 dark:text-white/90"
-                        >
-                            Tambah Produk
-                        </h4>
-                        <button
-                            type="button"
-                            @click="closeCreateProductModal"
-                            class="absolute top-3 right-3 z-999 flex h-9.5 w-9.5 items-center justify-center rounded-full bg-gray-100 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-700 sm:top-6 sm:right-6 sm:h-11 sm:w-11 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
-                        >
-                            <svg
-                                class="h-6 w-6"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12"
-                                />
-                            </svg>
-                        </button>
-
-                        <div class="space-y-6">
-                            <div>
-                                <label
-                                    class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
-                                >
-                                    Nama Produk
-                                    <span class="text-error-500">*</span>
-                                </label>
-                                <input
-                                    v-model="createProductForm.name"
-                                    type="text"
-                                    class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-                                    placeholder="Nama produk"
-                                />
-                                <p
-                                    v-if="createProductErrors.name"
-                                    class="mt-1 text-sm text-error-500"
-                                >
-                                    {{ createProductErrors.name }}
-                                </p>
-                            </div>
-
-                            <div>
-                                <label
-                                    class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
-                                >
-                                    Harga Jual
-                                    <span class="text-error-500">*</span>
-                                </label>
-                                <input
-                                    v-model.number="createProductForm.price"
-                                    type="number"
-                                    min="0"
-                                    class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-                                    placeholder="Harga jual"
-                                />
-                                <p
-                                    v-if="createProductErrors.price"
-                                    class="mt-1 text-sm text-error-500"
-                                >
-                                    {{ createProductErrors.price }}
-                                </p>
-                            </div>
-
-                            <div>
-                                <label
-                                    class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
-                                    >Stok Awal</label
-                                >
-                                <input
-                                    v-model.number="createProductForm.stock"
-                                    type="number"
-                                    min="0"
-                                    class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-                                    placeholder="0"
-                                />
-                                <p
-                                    v-if="createProductErrors.stock"
-                                    class="mt-1 text-sm text-error-500"
-                                >
-                                    {{ createProductErrors.stock }}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div
-                            class="mt-8 flex w-full items-center justify-end gap-3"
-                        >
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                :onClick="closeCreateProductModal"
-                                >Batal</Button
-                            >
-                            <Button
-                                size="sm"
-                                variant="primary"
-                                :onClick="submitCreateProduct"
-                                :disabled="createProductProcessing"
-                            >
-                                {{
-                                    createProductProcessing
-                                        ? 'Menyimpan...'
-                                        : 'Simpan'
-                                }}
-                            </Button>
-                        </div>
-                    </div>
-                </template>
-            </Modal>
-        </Teleport>
     </div>
 </template>
 
@@ -276,7 +147,6 @@ import { computed, onMounted, ref, watch } from 'vue';
 import Button from '@/components/ui/Button.vue';
 import Combobox from '@/components/ui/Combobox.vue';
 import Drawer from '@/components/ui/Drawer.vue';
-import Modal from '@/components/ui/Modal.vue';
 import OperationActionButton from '@/components/ui/OperationActionButton.vue';
 import { PackageIcon } from '@/icons';
 
@@ -304,15 +174,6 @@ const productLoading = ref(false);
 const productSearch = ref('');
 const productPage = ref(1);
 const productHasMore = ref(true);
-
-const isCreateProductOpen = ref(false);
-const createProductProcessing = ref(false);
-const createProductForm = ref({
-    name: '',
-    price: null as number | null,
-    stock: null as number | null,
-});
-const createProductErrors = ref<Record<string, string>>({});
 
 const typeOptions = [
     { value: 'IN' as const, label: 'Masuk' },
@@ -408,70 +269,6 @@ const onProductLoadMore = () => {
     fetchProductOptions(false);
 };
 
-const openCreateProductModal = () => {
-    isCreateProductOpen.value = true;
-    createProductForm.value = { name: '', price: null, stock: null };
-    createProductErrors.value = {};
-    createProductProcessing.value = false;
-};
-
-const closeCreateProductModal = () => {
-    isCreateProductOpen.value = false;
-};
-
-const submitCreateProduct = async () => {
-    createProductProcessing.value = true;
-    createProductErrors.value = {};
-    try {
-        const { data } = await axios.post('/api/products', {
-            name: createProductForm.value.name,
-            price: createProductForm.value.price,
-            stock: createProductForm.value.stock ?? undefined,
-        });
-
-        const product = data?.data ?? data;
-        const mapped: ProductOption = {
-            id: String(product?.id ?? ''),
-            name: String(product?.name ?? '-'),
-            stock: Number(product?.stock ?? 0),
-            price: Number(product?.price ?? 0),
-        };
-
-        productOptions.value = [
-            mapped,
-            ...productOptions.value.filter((item) => item.id !== mapped.id),
-        ];
-        selectedProductId.value = mapped.id;
-        selectedProduct.value = mapped;
-        form.value.product_id = mapped.id;
-        closeCreateProductModal();
-    } catch (e: unknown) {
-        const error = e as {
-            response?: {
-                status?: number;
-                data?: { errors?: Record<string, string[] | string> };
-            };
-        };
-
-        if (error.response?.status === 422 && error.response.data?.errors) {
-            const validationErrors = error.response.data.errors;
-            createProductErrors.value = Object.keys(validationErrors).reduce(
-                (acc, key) => {
-                    acc[key] = Array.isArray(validationErrors[key])
-                        ? (validationErrors[key] as string[])[0]
-                        : String(validationErrors[key]);
-                    return acc;
-                },
-                {} as Record<string, string>,
-            );
-        } else {
-            alert('Gagal membuat produk.');
-        }
-    } finally {
-        createProductProcessing.value = false;
-    }
-};
-
 const closeDrawer = () => {
     isOpen.value = false;
     form.value = { product_id: '', type: 'IN', quantity: 0, description: '' };
@@ -479,7 +276,6 @@ const closeDrawer = () => {
     selectedProduct.value = null;
     errors.value = {};
     processing.value = false;
-    isCreateProductOpen.value = false;
 };
 
 const submitDisabled = computed(() => {

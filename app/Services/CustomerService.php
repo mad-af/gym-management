@@ -76,9 +76,30 @@ class CustomerService
     public function getSelection(
         int $perPage = 20,
         ?string $search = null,
-        int $page = 1
+        int $page = 1,
+        ?bool $isMember = null
     ): LengthAwarePaginator {
+        $now = Carbon::now()->startOfDay();
         $query = Customer::query()->latest('created_at');
+
+        $activeMembershipConstraint = function ($membershipQuery) use ($now) {
+            $membershipQuery
+                ->where(function ($statusQuery) {
+                    $statusQuery
+                        ->where('status', 'active')
+                        ->orWhere('status', 'ACTIVE');
+                })
+                ->whereDate('start_date', '<=', $now)
+                ->whereDate('end_date', '>=', $now);
+        };
+
+        if ($isMember === true) {
+            $query->whereHas('membershipTransactions', $activeMembershipConstraint);
+        }
+
+        if ($isMember === false) {
+            $query->whereDoesntHave('membershipTransactions', $activeMembershipConstraint);
+        }
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -88,7 +109,7 @@ class CustomerService
             });
         }
 
-        return $query->select(['id', 'name'])->paginate($perPage, ['*'], 'page', $page);
+        return $query->select(['id', 'name', 'code', 'qr_code', 'phone'])->paginate($perPage, ['*'], 'page', $page);
     }
 
     public function create(array $data): Customer
