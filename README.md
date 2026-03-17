@@ -1,138 +1,130 @@
-# SIMA — Sistem Informasi Manajemen Aset Daerah
+# Gym Management
 
-Aplikasi manajemen aset berbasis Laravel + Inertia (Vue 3). Frontend dibangun dengan Vite. Untuk production direkomendasikan menggunakan Laravel Octane dengan FrankenPHP atau Swoole.
+Gym Management adalah aplikasi manajemen operasional gym berbasis Laravel 12 + Inertia (Vue 3 + TypeScript).
+Fitur utamanya mencakup manajemen member, membership, kunjungan (visit), penjualan produk, pergerakan stok, kartu member PDF + QR, serta notifikasi WhatsApp.
 
-## Teknologi
+## Tech Stack
 
 - Backend: Laravel 12, PHP 8.2+
-- Frontend: Vue 3 (Inertia.js), Vite, Tailwind CSS
-- Runtime production: Laravel Octane (FrankenPHP / Swoole)
-- Testing & lint:
-    - PHP: Laravel Pint (`composer run lint`), Pest (`composer test`)
-    - JS/TS: ESLint (`npm run lint`)
+- Frontend: Inertia.js, Vue 3, TypeScript, Vite, Tailwind CSS
+- Auth & permission: Laravel Fortify, Spatie Permission
+- PDF & QR: mPDF, helper QR internal
+- Runtime production: Laravel Octane + FrankenPHP
+
+## Fitur Utama
+
+- Master data: customer/member, membership package, product, role/user
+- Transaksi: visits, membership transactions, sales, stock movements
+- Export CSV untuk halaman transaksi
+- Membership card PDF ukuran kartu (8.56 cm x 5.4 cm) + QR
+- Kirim kartu member dan notifikasi via WhatsApp (Fonnte)
+- Scheduled reminder membership expiry (H-3 dan H-day)
 
 ## Prasyarat
 
 - PHP 8.2+
 - Composer
 - Node.js + npm
-- Database: SQLite (default) atau MySQL/PostgreSQL (sesuaikan `.env`)
+- Database: MySQL/PostgreSQL/SQLite (sesuaikan `.env`)
 
-## Setup Awal
+## Setup Lokal
 
-1. Install dependensi backend:
+### Opsi cepat
+
+```bash
+composer setup
+```
+
+### Opsi manual
 
 ```bash
 composer install
-```
-
-2. Siapkan environment:
-
-```bash
 cp .env.example .env
 php artisan key:generate
-```
-
-3. Atur konfigurasi database di `.env`, lalu jalankan migrasi:
-
-```bash
 php artisan migrate
-```
-
-4. Install dependensi frontend:
-
-```bash
+php artisan storage:link
 npm install
 ```
 
-Alternatif cepat (sekali jalan) tersedia:
+`php artisan storage:link` wajib dijalankan agar file di `storage/app/public` bisa diakses publik lewat `public/storage`.
+
+## Menjalankan Development
 
 ```bash
-composer run setup
+composer dev
 ```
 
-## Menjalankan Mode Develop
+Perintah di atas menjalankan server app, queue listener, log viewer, dan Vite secara bersamaan.
 
-Cara yang paling praktis adalah menggunakan script `dev` (akan menjalankan server, queue listener, log viewer, dan Vite sekaligus):
+Jika butuh SSR:
 
 ```bash
-composer run dev
+composer dev:ssr
 ```
 
-Jika membutuhkan SSR Inertia:
+## Deploy Production (FrankenPHP)
 
-```bash
-composer run dev:ssr
-```
+Panduan ini menggunakan Laravel Octane dengan FrankenPHP.
 
-## Menjalankan Mode Production (Rekomendasi: Octane + FrankenPHP / Swoole)
-
-### 1) Build & Optimasi
-
-Pastikan environment production sudah benar (contoh nilai yang umum):
-
-- `APP_ENV=production`
-- `APP_DEBUG=false`
-- `APP_URL=https://domain-anda.tld`
-- `OCTANE_SERVER=frankenphp`
-
-Lalu jalankan:
+### 1) Build dan optimasi
 
 ```bash
 composer install --no-dev --optimize-autoloader
 npm ci
 npm run build
 php artisan migrate --force
+php artisan storage:link
 php artisan optimize
 ```
 
-Catatan:
+### 2) Konfigurasi `.env` production minimum
 
-- Project ini menggunakan `SESSION_DRIVER=database`, `QUEUE_CONNECTION=database`, dan `CACHE_STORE=database` (lihat `.env.example`). Pastikan migrasi terkait sudah ada dan database siap.
-- Jangan pernah menyimpan token/secret ke repository. Isi variabel seperti `FONNTE_TOKEN` melalui `.env` di server.
+```env
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://domain-anda.tld
+OCTANE_SERVER=frankenphp
 
-### 2) Menjalankan Octane dengan FrankenPHP (Direkomendasikan)
+SESSION_DRIVER=database
+QUEUE_CONNECTION=database
+CACHE_STORE=database
+```
 
-Jalankan Octane FrankenPHP:
+Jika memakai WhatsApp/Fonnte, set juga variabel terkait di `.env` server (contoh: `FONNTE_TOKEN`).
+
+### 3) Jalankan Octane + FrankenPHP
 
 ```bash
 php artisan octane:frankenphp --host=0.0.0.0 --port=8000
 ```
 
-Jika ingin auto-reload saat file berubah (biasanya untuk staging / non-production):
+Gunakan process manager (systemd/supervisor) untuk menjaga service tetap hidup.
 
-```bash
-php artisan octane:frankenphp --host=0.0.0.0 --port=8000 --watch
-```
-
-Untuk production, jalankan proses ini melalui process manager (systemd/supervisor) dan letakkan di belakang reverse proxy (Nginx/Caddy) sesuai kebutuhan.
-
-### 3) Menjalankan Octane dengan Swoole (Alternatif)
-
-Pastikan ekstensi Swoole sudah terpasang di PHP server Anda, set:
-
-- `OCTANE_SERVER=swoole`
-
-Lalu jalankan:
-
-```bash
-php artisan octane:start --server=swoole --host=0.0.0.0 --port=8000
-```
-
-### 4) Menjalankan Queue Worker (Production)
-
-Karena queue menggunakan `database`, jalankan worker terpisah:
+### 4) Jalankan queue worker
 
 ```bash
 php artisan queue:work --sleep=1 --tries=3 --timeout=90
 ```
 
-Jalankan juga via process manager (systemd/supervisor).
+Worker ini wajib aktif karena ada proses queue untuk notifikasi/reminder.
+
+### 5) Jalankan scheduler
+
+Gunakan salah satu:
+
+- Cron + `php artisan schedule:run` tiap menit, atau
+- Proses long-running:
+
+```bash
+php artisan schedule:work
+```
 
 ## Perintah Berguna
 
 ```bash
-composer run lint
+composer lint
+composer test:lint
 composer test
 npm run lint
+npm run build
 ```
