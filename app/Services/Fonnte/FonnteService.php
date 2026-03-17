@@ -102,9 +102,56 @@ class FonnteService
             'message' => $message,
         ], $options);
 
-        return Http::asForm()->withHeaders([
+        $filePath = $payload['file_path'] ?? null;
+        unset($payload['file_path']);
+
+        $request = Http::withHeaders([
             'Authorization' => $deviceToken ?? $this->token,
-        ])->post("{$this->baseUrl}/send", $payload);
+        ]);
+
+        if (is_string($filePath) && $filePath !== '') {
+            if (! is_file($filePath) || ! is_readable($filePath)) {
+                throw new \RuntimeException('Unable to read WhatsApp attachment file.');
+            }
+
+            unset($payload['url']);
+
+            $stream = fopen($filePath, 'rb');
+            if ($stream === false) {
+                throw new \RuntimeException('Unable to open WhatsApp attachment file.');
+            }
+
+            $uploadName = is_string($payload['filename'] ?? null) && ($payload['filename'] ?? '') !== ''
+                ? (string) $payload['filename']
+                : basename($filePath);
+
+            $mimeType = $this->detectMimeType($filePath);
+
+            try {
+                return $request
+                    ->attach('file', $stream, $uploadName, ['Content-Type' => $mimeType])
+                    ->post("{$this->baseUrl}/send", $payload);
+            } finally {
+                fclose($stream);
+            }
+        }
+
+        return $request->asForm()->post("{$this->baseUrl}/send", $payload);
+    }
+
+    private function detectMimeType(string $filePath): string
+    {
+        $extension = strtolower((string) pathinfo($filePath, PATHINFO_EXTENSION));
+
+        return match ($extension) {
+            'pdf' => 'application/pdf',
+            'jpg', 'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'webp' => 'image/webp',
+            'mp4' => 'video/mp4',
+            'mp3' => 'audio/mpeg',
+            default => 'application/octet-stream',
+        };
     }
 
     /**

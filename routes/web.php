@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PublicMembershipCardController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Models\Customer;
@@ -10,6 +11,7 @@ use Inertia\Inertia;
 Route::redirect('/', '/login')->name('home');
 
 Route::get('/q/{type}/{qr_id}', [\App\Http\Controllers\QrRedirectController::class, 'redirect'])->name('qr.redirect');
+Route::get('/public/membership-cards/{customer}', [PublicMembershipCardController::class, 'show'])->name('public.membership-cards.show');
 
 // General
 Route::middleware(['auth', 'verified'])->group(function () {

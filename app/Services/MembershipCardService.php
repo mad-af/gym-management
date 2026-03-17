@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Helpers\QrCodeHelper;
 use App\Models\Customer;
-use Illuminate\Support\Facades\Storage;
 use Mpdf\Mpdf;
 use Mpdf\Output\Destination;
 
@@ -37,23 +36,15 @@ class MembershipCardService
         return $mpdf->Output('', Destination::STRING_RETURN);
     }
 
-    public function createPublicPdf(Customer $customer): array
+    public function getPublicCardLink(Customer $customer): array
     {
-        $binary = $this->generatePdfBinary($customer);
-        $timestamp = now();
-        $fileName = sprintf(
-            'membership-card-%s-%s.pdf',
-            $customer->id,
-            $timestamp->format('YmdHis')
-        );
-        $path = sprintf('membership-cards/%s/%s', $timestamp->format('Ymd'), $fileName);
-
-        Storage::disk('public')->put($path, $binary);
+        $fileName = sprintf('membership-card-%s.pdf', $customer->id);
+        $url = $this->buildPublicCardUrl($customer);
+        $this->assertPublicHttpUrl($url);
 
         return [
-            'path' => $path,
             'file_name' => $fileName,
-            'url' => asset('storage/'.$path),
+            'url' => $url,
         ];
     }
 
@@ -64,19 +55,17 @@ class MembershipCardService
             throw new \RuntimeException('Nomor WhatsApp customer belum tersedia.');
         }
 
-        $file = $this->createPublicPdf($customer);
+        $file = $this->getPublicCardLink($customer);
         $payload = $this->buildPayload($customer);
 
         $message = sprintf(
-            'Halo %s, berikut kartu membership Anda dari %s.',
+            "Halo %s, berikut kartu membership Anda dari %s.\n%s",
             $payload['customer_name'],
-            config('app.name')
+            config('app.name'),
+            $file['url']
         );
 
-        $result = $this->whatsappConfigService->sendMessage($destination, $message, [
-            'url' => $file['url'],
-            'filename' => $file['file_name'],
-        ]);
+        $result = $this->whatsappConfigService->sendMessage($destination, $message);
 
         return [
             'target' => $destination,
@@ -126,5 +115,92 @@ class MembershipCardService
         }
 
         return $digits;
+    }
+
+    private function buildPublicCardUrl(Customer $customer): string
+    {
+        $routePath = ltrim((string) route('public.membership-cards.show', ['customer' => $customer->id], false), '/');
+        $baseUrl = trim((string) config('services.fonnte.public_file_base_url', ''));
+
+        if ($baseUrl !== '') {
+            return $this->combineBaseUrlAndPath($baseUrl, $routePath);
+        }
+
+        $candidates = [];
+
+        $forwardedHostRaw = trim((string) request()->headers->get('x-forwarded-host', ''));
+        if ($forwardedHostRaw !== '') {
+            $forwardedHost = trim(explode(',', $forwardedHostRaw)[0]);
+            $forwardedProtoRaw = trim((string) request()->headers->get('x-forwarded-proto', ''));
+            $forwardedProto = trim(explode(',', $forwardedProtoRaw !== '' ? $forwardedProtoRaw : request()->getScheme())[0]);
+
+            if ($forwardedHost !== '') {
+                $candidates[] = sprintf('%s://%s', $forwardedProto !== '' ? $forwardedProto : 'https', $forwardedHost);
+            }
+        }
+
+        $requestRoot = trim((string) request()->getSchemeAndHttpHost());
+        if ($requestRoot !== '') {
+            $candidates[] = $requestRoot;
+        }
+
+        $appUrl = trim((string) config('app.url', ''));
+        if ($appUrl !== '') {
+            $candidates[] = $appUrl;
+        }
+
+        foreach ($candidates as $candidate) {
+            if ($this->isHttpUrlWithPublicHost($candidate)) {
+                return $this->combineBaseUrlAndPath($candidate, $routePath);
+            }
+        }
+
+        foreach ($candidates as $candidate) {
+            if ($this->isHttpUrl($candidate)) {
+                return $this->combineBaseUrlAndPath($candidate, $routePath);
+            }
+        }
+
+        return route('public.membership-cards.show', ['customer' => $customer->id]);
+    }
+
+    private function assertPublicHttpUrl(string $url): void
+    {
+        if (! $this->isHttpUrl($url)) {
+            throw new \RuntimeException('URL kartu membership tidak valid untuk pengiriman WhatsApp.');
+        }
+    }
+
+    private function combineBaseUrlAndPath(string $baseUrl, string $path): string
+    {
+        return rtrim($baseUrl, '/').'/'.ltrim($path, '/');
+    }
+
+    private function isHttpUrl(string $url): bool
+    {
+        $parts = parse_url($url);
+        $scheme = strtolower((string) ($parts['scheme'] ?? ''));
+        $host = strtolower((string) ($parts['host'] ?? ''));
+
+        return in_array($scheme, ['http', 'https'], true) && $host !== '';
+    }
+
+    private function isHttpUrlWithPublicHost(string $url): bool
+    {
+        if (! $this->isHttpUrl($url)) {
+            return false;
+        }
+
+        $host = strtolower((string) (parse_url($url, PHP_URL_HOST) ?? ''));
+
+        if ($host === 'localhost' || str_ends_with($host, '.local')) {
+            return false;
+        }
+
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            return (bool) filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
+        }
+
+        return true;
     }
 }

@@ -38,6 +38,7 @@ return [
     'fonnte' => [
         'base_url' => env('FONNTE_BASE_URL', 'https://api.fonnte.com'),
         'token' => env('FONNTE_TOKEN'),
+        'public_file_base_url' => env('FONNTE_PUBLIC_FILE_BASE_URL'),
     ],
 
 ];
