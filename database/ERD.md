@@ -23,7 +23,7 @@ customers {
     string name
     string phone
     string email
-    string qr_code
+    string code
     timestamp created_at
 }
 

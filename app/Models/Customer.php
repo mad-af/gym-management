@@ -19,7 +19,6 @@ class Customer extends Model
         'name',
         'phone',
         'email',
-        'qr_code',
         'code',
         'created_at',
     ];

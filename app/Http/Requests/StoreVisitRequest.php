@@ -15,8 +15,8 @@ class StoreVisitRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'customer_id' => ['required_without:qr_code', 'nullable', 'uuid', 'exists:customers,id'],
-            'qr_code' => ['required_without:customer_id', 'nullable', 'string', 'max:255'],
+            'customer_id' => ['required_without:code', 'nullable', 'uuid', 'exists:customers,id'],
+            'code' => ['required_without:customer_id', 'nullable', 'string', 'max:255'],
             'membership_transaction_id' => ['nullable', 'uuid', 'exists:membership_transactions,id'],
             'visit_type' => ['required', Rule::in(['MEMBERSHIP', 'DAILY'])],
             'price' => ['nullable', 'numeric', 'min:0'],

@@ -108,7 +108,7 @@ class WhatsappConfigService
 
         if (isset($data['status']) && ! $data['status']) {
             $reason = strtolower($data['reason'] ?? '');
-            if (str_contains($reason, 'connected')) {
+            if (str_contains($reason, 'already') && str_contains($reason, 'connect')) {
                 $this->checkConnection();
 
                 return [

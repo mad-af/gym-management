@@ -17,7 +17,6 @@ class StoreCustomerRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],
             'email' => ['nullable', 'email', 'max:255'],
-            'qr_code' => ['nullable', 'string', 'max:255', 'unique:customers,qr_code'],
             'code' => ['nullable', 'string', 'max:50', 'regex:/^\d+$/', 'unique:customers,code'],
             'avatar' => ['nullable', 'file', 'image', 'mimes:jpeg,png,webp,svg', 'max:10240'],
         ];

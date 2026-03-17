@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::table('customers', function (Blueprint $table) {
             if (! Schema::hasColumn('customers', 'code')) {
-                $table->string('code')->nullable()->unique()->after('qr_code');
+                $table->string('code')->nullable()->unique()->after('email');
             }
         });
     }

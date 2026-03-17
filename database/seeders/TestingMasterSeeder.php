@@ -150,7 +150,7 @@ class TestingMasterSeeder extends Seeder
                 'name' => 'Budi Santoso',
                 'phone' => '081234567890',
                 'email' => 'member1@example.com',
-                'qr_code' => 'MEMBER-001',
+                'code' => 'MEMBER-001',
                 'created_at' => now(),
             ]);
         }
@@ -162,7 +162,7 @@ class TestingMasterSeeder extends Seeder
                 'name' => 'Siti Aminah',
                 'phone' => '081234567891',
                 'email' => 'member2@example.com',
-                'qr_code' => 'MEMBER-002',
+                'code' => 'MEMBER-002',
                 'created_at' => now(),
             ]);
         }

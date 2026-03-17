@@ -93,15 +93,15 @@
                         >
                         <input
                             type="text"
-                            v-model="form.qr_code"
+                            v-model="form.code"
                             class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                             placeholder="Masukkan kode member"
                         />
                         <p
-                            v-if="errors.qr_code"
+                            v-if="errors.code"
                             class="mt-1 text-sm text-error-500"
                         >
-                            {{ errors.qr_code }}
+                            {{ errors.code }}
                         </p>
                     </div>
                 </div>
@@ -172,17 +172,13 @@
                         <p
                             class="truncate text-xs text-gray-500 dark:text-gray-400"
                         >
-                            {{
-                                foundCustomer.code ||
-                                foundCustomer.qr_code ||
-                                '-'
-                            }}
+                            {{ foundCustomer.code || '-' }}
                         </p>
                     </div>
                 </div>
                 <div
                     v-else-if="
-                        activeTab === 'member' && form.qr_code && !lookupLoading
+                        activeTab === 'member' && form.code && !lookupLoading
                     "
                     class="rounded-lg border border-error-200 bg-error-50 p-3 text-sm text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-500"
                 >
@@ -434,7 +430,7 @@ const form = ref({
     customer_id: '' as string | null | '',
     visit_type: '' as string | null | '',
     price: null as number | null,
-    qr_code: '' as string,
+    code: '' as string,
 });
 const errors = ref<Record<string, string>>({});
 const page = usePage<OperationPageProps>();
@@ -471,7 +467,7 @@ const lookupLoading = ref(false);
 let lookupTimer: any = null;
 
 const lookupCustomerByCode = async () => {
-    const code = form.value.qr_code?.trim();
+    const code = form.value.code?.trim();
     if (!code) {
         foundCustomer.value = null;
         return;
@@ -487,7 +483,7 @@ const lookupCustomerByCode = async () => {
             foundCustomer.value = {
                 id: c.id,
                 name: c.name,
-                code: c.code || c.qr_code || '',
+                code: c.code || '',
                 avatar: c.avatar ?? null,
             };
             form.value.customer_id = c.id;
@@ -502,7 +498,7 @@ const lookupCustomerByCode = async () => {
 };
 
 watch(
-    () => form.value.qr_code,
+    () => form.value.code,
     () => {
         if (activeTab.value !== 'member') return;
         if (lookupTimer) clearTimeout(lookupTimer);
@@ -576,8 +572,7 @@ const submitCreateCustomer = async () => {
         foundCustomer.value = {
             id: c.id,
             name: c.name,
-            code: c.code || c.qr_code || '',
-            qr_code: c.qr_code || '',
+            code: c.code || '',
             avatar: c.avatar ?? null,
         };
         form.value.customer_id = c.id;
@@ -609,8 +604,7 @@ const fetchCustomerDetail = async (customerId: string) => {
         foundCustomer.value = {
             id: c.id,
             name: c.name,
-            code: c.code || c.qr_code || '',
-            qr_code: c.qr_code || '',
+            code: c.code || '',
             avatar: c.avatar ?? null,
         };
         form.value.customer_id = c.id;
@@ -702,7 +696,7 @@ const startScanner = async () => {
                         codes.length &&
                         codes[0]?.rawValue
                     ) {
-                        form.value.qr_code = String(codes[0].rawValue);
+                        form.value.code = String(codes[0].rawValue);
                         await closeScannerModal();
                         return;
                     }
@@ -736,7 +730,7 @@ const startScanner = async () => {
                         );
 
                         if (code?.data) {
-                            form.value.qr_code = String(code.data);
+                            form.value.code = String(code.data);
                             await closeScannerModal();
                             return;
                         }
@@ -813,7 +807,7 @@ const setActiveTab = (next: 'member' | 'visitor') => {
     errors.value = {};
     foundCustomer.value = null;
     form.value.customer_id = '';
-    form.value.qr_code = '';
+    form.value.code = '';
     visitorCustomerId.value = null;
     if (next === 'member') {
         form.value.visit_type = 'MEMBERSHIP';
@@ -829,7 +823,7 @@ const setActiveTab = (next: 'member' | 'visitor') => {
 
 const closeDrawer = () => {
     isOpen.value = false;
-    form.value = { customer_id: '', visit_type: '', price: null, qr_code: '' };
+    form.value = { customer_id: '', visit_type: '', price: null, code: '' };
     errors.value = {};
     processing.value = false;
     foundCustomer.value = null;
@@ -878,10 +872,7 @@ const submit = async () => {
             checkin_method: activeTab.value === 'member' ? 'QR_CODE' : 'MANUAL',
             visit_type: activeTab.value === 'member' ? 'MEMBERSHIP' : 'DAILY',
             price: activeTab.value === 'visitor' ? dailyVisitPrice.value : null,
-            qr_code:
-                activeTab.value === 'member'
-                    ? form.value.qr_code || null
-                    : null,
+            code: activeTab.value === 'member' ? form.value.code || null : null,
         };
         await axios.post('/api/visits', payload);
         closeDrawer();

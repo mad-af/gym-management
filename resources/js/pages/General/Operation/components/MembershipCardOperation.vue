@@ -73,11 +73,7 @@
                     </p>
                     <p class="text-xs text-gray-500 dark:text-gray-400">
                         Kode:
-                        {{
-                            selectedCustomer.code ||
-                            selectedCustomer.qr_code ||
-                            '-'
-                        }}
+                        {{ selectedCustomer.code || '-' }}
                     </p>
                     <p class="text-xs text-gray-500 dark:text-gray-400">
                         Nomor: {{ selectedCustomer.phone || '-' }}
@@ -164,7 +160,6 @@ interface CustomerOption {
     id: string;
     name: string;
     code?: string | null;
-    qr_code?: string | null;
     phone?: string | null;
 }
 
@@ -216,7 +211,6 @@ const fetchCustomerOptions = async (reset = false) => {
             id: String(item.id ?? ''),
             name: String(item.name ?? '-'),
             code: typeof item.code === 'string' ? item.code : null,
-            qr_code: typeof item.qr_code === 'string' ? item.qr_code : null,
             phone: typeof item.phone === 'string' ? item.phone : null,
         }));
 
@@ -247,8 +241,6 @@ const fetchCustomerDetail = async (customerId: string) => {
             id: String(customer?.id ?? customerId),
             name: String(customer?.name ?? '-'),
             code: typeof customer?.code === 'string' ? customer.code : null,
-            qr_code:
-                typeof customer?.qr_code === 'string' ? customer.qr_code : null,
             phone: typeof customer?.phone === 'string' ? customer.phone : null,
         };
         if (!targetPhone.value) {

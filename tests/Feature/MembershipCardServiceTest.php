@@ -15,7 +15,6 @@ test('membership card service generates pdf binary', function () {
     $customer = new Customer([
         'name' => 'Budi Santoso',
         'code' => 'GYM-0001',
-        'qr_code' => null,
         'phone' => '081234567890',
     ]);
 

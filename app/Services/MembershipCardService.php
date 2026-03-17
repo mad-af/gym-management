@@ -87,7 +87,7 @@ class MembershipCardService
 
     private function buildPayload(Customer $customer): array
     {
-        $memberCode = trim((string) ($customer->code ?: $customer->qr_code ?: ''));
+        $memberCode = trim((string) ($customer->code ?: ''));
         $qrImage = $memberCode !== ''
             ? QrCodeHelper::generateBase64Svg($memberCode, 256)
             : null;

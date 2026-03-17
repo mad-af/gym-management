@@ -65,11 +65,7 @@
                         <p
                             class="truncate text-xs text-gray-500 dark:text-gray-400"
                         >
-                            {{
-                                selectedCustomer.code ||
-                                selectedCustomer.qr_code ||
-                                '-'
-                            }}
+                            {{ selectedCustomer.code || '-' }}
                         </p>
                     </div>
                 </div>
@@ -484,7 +480,6 @@ interface CustomerOption {
     id: string;
     name: string;
     code?: string | null;
-    qr_code?: string | null;
     avatar?: MediaItem | null;
 }
 
@@ -565,7 +560,6 @@ const fetchCustomerOptions = async (reset = false) => {
             id: String(item.id ?? ''),
             name: String(item.name ?? '-'),
             code: typeof item.code === 'string' ? item.code : null,
-            qr_code: typeof item.qr_code === 'string' ? item.qr_code : null,
             avatar: (item.avatar as MediaItem | null | undefined) ?? null,
         }));
 
@@ -605,8 +599,6 @@ const fetchCustomerDetail = async (customerId: string) => {
             id: String(customer?.id ?? customerId),
             name: String(customer?.name ?? '-'),
             code: typeof customer?.code === 'string' ? customer.code : null,
-            qr_code:
-                typeof customer?.qr_code === 'string' ? customer.qr_code : null,
             avatar: (customer?.avatar as MediaItem | null | undefined) ?? null,
         };
         form.value.customer_id = selectedCustomer.value.id;
@@ -695,8 +687,6 @@ const submitCreateCustomer = async () => {
             id: String(customer?.id ?? ''),
             name: String(customer?.name ?? '-'),
             code: typeof customer?.code === 'string' ? customer.code : null,
-            qr_code:
-                typeof customer?.qr_code === 'string' ? customer.qr_code : null,
             avatar: (customer?.avatar as MediaItem | null | undefined) ?? null,
         };
 

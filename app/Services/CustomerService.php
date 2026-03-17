@@ -65,8 +65,7 @@ class CustomerService
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('phone', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('code', 'like', "%{$search}%")
-                    ->orWhere('qr_code', 'like', "%{$search}%");
+                    ->orWhere('code', 'like', "%{$search}%");
             });
         }
 
@@ -104,12 +103,11 @@ class CustomerService
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('code', 'like', "%{$search}%")
-                    ->orWhere('qr_code', 'like', "%{$search}%");
+                    ->orWhere('code', 'like', "%{$search}%");
             });
         }
 
-        return $query->select(['id', 'name', 'code', 'qr_code', 'phone'])->paginate($perPage, ['*'], 'page', $page);
+        return $query->select(['id', 'name', 'code', 'phone'])->paginate($perPage, ['*'], 'page', $page);
     }
 
     public function create(array $data): Customer

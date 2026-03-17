@@ -72,21 +72,21 @@ class VisitService
     {
         $payload = $data;
 
-        if (empty($payload['customer_id']) && ! empty($payload['qr_code'])) {
+        if (empty($payload['customer_id']) && ! empty($payload['code'])) {
             $customer = Customer::query()
-                ->where('qr_code', $payload['qr_code'])
+                ->where('code', $payload['code'])
                 ->first();
 
             if (! $customer) {
                 throw ValidationException::withMessages([
-                    'qr_code' => 'QR code tidak ditemukan.',
+                    'code' => 'Kode member tidak ditemukan.',
                 ]);
             }
 
             $payload['customer_id'] = $customer->id;
         }
 
-        unset($payload['qr_code']);
+        unset($payload['code']);
 
         if (($payload['visit_type'] ?? null) === 'DAILY') {
             $payload['price'] = $this->appSettingService->getDailyVisitPrice();
