@@ -7,6 +7,7 @@ use App\Models\MembershipTransaction;
 use App\Models\Visit;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\ValidationException;
 
 class VisitService
@@ -134,5 +135,15 @@ class VisitService
     public function delete(Visit $visit): bool
     {
         return (bool) $visit->delete();
+    }
+
+    public function getExportData(string $startDate, string $endDate): Collection
+    {
+        return Visit::query()
+            ->with(['customer', 'creator'])
+            ->whereDate('checkin_time', '>=', $startDate)
+            ->whereDate('checkin_time', '<=', $endDate)
+            ->orderBy('checkin_time')
+            ->get();
     }
 }

@@ -8,6 +8,7 @@ use App\Models\SaleItem;
 use App\Models\StockMovement;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 
@@ -122,5 +123,15 @@ class SaleService
     public function delete(Sale $sale): bool
     {
         return (bool) $sale->delete();
+    }
+
+    public function getExportData(string $startDate, string $endDate): Collection
+    {
+        return Sale::query()
+            ->with(['customer', 'creator', 'items.product'])
+            ->whereDate('created_at', '>=', $startDate)
+            ->whereDate('created_at', '<=', $endDate)
+            ->orderBy('created_at')
+            ->get();
     }
 }

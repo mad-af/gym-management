@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\Permission;
 use App\Helpers\ApiResponse;
+use App\Http\Requests\ExportDateRangeRequest;
 use App\Http\Requests\StoreSaleRequest;
 use App\Models\Sale;
 use App\Services\SaleService;
@@ -15,7 +16,7 @@ class SaleController extends Controller
     public function __construct(protected SaleService $service)
     {
         $this->middleware(['auth:web']);
-        $this->middleware('permission:'.Permission::VIEW_SALES->value)->only(['index', 'show', 'stats']);
+        $this->middleware('permission:'.Permission::VIEW_SALES->value)->only(['index', 'show', 'stats', 'export']);
         $this->middleware('permission:'.Permission::CREATE_SALES->value)->only(['store']);
         $this->middleware('permission:'.Permission::DELETE_SALES->value)->only(['destroy']);
     }
@@ -56,5 +57,61 @@ class SaleController extends Controller
         $this->service->delete($sale);
 
         return ApiResponse::success('Sale deleted successfully.');
+    }
+
+    public function export(ExportDateRangeRequest $request)
+    {
+        $validated = $request->validated();
+        $startDate = $validated['start_date'];
+        $endDate = $validated['end_date'];
+        $rows = $this->service->getExportData($startDate, $endDate);
+        $filename = sprintf('sales_%s_to_%s.csv', $startDate, $endDate);
+
+        return response()->streamDownload(function () use ($rows): void {
+            $output = fopen('php://output', 'w');
+            if ($output === false) {
+                return;
+            }
+
+            fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+            fputcsv($output, ['Tanggal', 'Pelanggan', 'Produk', 'Qty', 'Harga', 'Subtotal', 'Total Penjualan', 'Petugas']);
+
+            foreach ($rows as $sale) {
+                $items = $sale->items;
+
+                if ($items->isEmpty()) {
+                    fputcsv($output, [
+                        optional($sale->created_at)->format('Y-m-d H:i:s') ?? '-',
+                        $sale->customer?->name ?? '-',
+                        '-',
+                        '-',
+                        '-',
+                        '-',
+                        $sale->total_amount ?? 0,
+                        $sale->creator?->name ?? '-',
+                    ]);
+
+                    continue;
+                }
+
+                foreach ($items as $item) {
+                    fputcsv($output, [
+                        optional($sale->created_at)->format('Y-m-d H:i:s') ?? '-',
+                        $sale->customer?->name ?? '-',
+                        $item->product?->name ?? '-',
+                        $item->quantity ?? 0,
+                        $item->price ?? 0,
+                        $item->subtotal ?? 0,
+                        $sale->total_amount ?? 0,
+                        $sale->creator?->name ?? '-',
+                    ]);
+                }
+            }
+
+            fclose($output);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Cache-Control' => 'no-store, no-cache',
+        ]);
     }
 }

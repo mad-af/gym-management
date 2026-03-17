@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\Permission;
 use App\Helpers\ApiResponse;
+use App\Http\Requests\ExportDateRangeRequest;
 use App\Http\Requests\StoreMembershipTransactionRequest;
 use App\Http\Requests\UpdateMembershipTransactionRequest;
 use App\Models\MembershipTransaction;
@@ -16,7 +17,7 @@ class MembershipTransactionController extends Controller
     public function __construct(protected MembershipTransactionService $service)
     {
         $this->middleware(['auth:web']);
-        $this->middleware('permission:'.Permission::VIEW_MEMBERSHIP_TRANSACTIONS->value)->only(['index', 'show', 'stats']);
+        $this->middleware('permission:'.Permission::VIEW_MEMBERSHIP_TRANSACTIONS->value)->only(['index', 'show', 'stats', 'export']);
         $this->middleware('permission:'.Permission::CREATE_MEMBERSHIP_TRANSACTIONS->value)->only(['store']);
         $this->middleware('permission:'.Permission::EDIT_MEMBERSHIP_TRANSACTIONS->value)->only(['update']);
         $this->middleware('permission:'.Permission::DELETE_MEMBERSHIP_TRANSACTIONS->value)->only(['destroy']);
@@ -66,5 +67,42 @@ class MembershipTransactionController extends Controller
         $this->service->delete($membershipTransaction);
 
         return ApiResponse::success('Membership transaction deleted successfully.');
+    }
+
+    public function export(ExportDateRangeRequest $request)
+    {
+        $validated = $request->validated();
+        $startDate = $validated['start_date'];
+        $endDate = $validated['end_date'];
+        $rows = $this->service->getExportData($startDate, $endDate);
+        $filename = sprintf('membership_transactions_%s_to_%s.csv', $startDate, $endDate);
+
+        return response()->streamDownload(function () use ($rows): void {
+            $output = fopen('php://output', 'w');
+            if ($output === false) {
+                return;
+            }
+
+            fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+            fputcsv($output, ['Tanggal Transaksi', 'Pelanggan', 'Paket', 'Harga', 'Mulai', 'Selesai', 'Status', 'Petugas']);
+
+            foreach ($rows as $transaction) {
+                fputcsv($output, [
+                    optional($transaction->created_at)->format('Y-m-d H:i:s') ?? '-',
+                    $transaction->customer?->name ?? '-',
+                    $transaction->package?->name ?? '-',
+                    $transaction->price ?? 0,
+                    optional($transaction->start_date)->format('Y-m-d') ?? '-',
+                    optional($transaction->end_date)->format('Y-m-d') ?? '-',
+                    $transaction->status ?? '-',
+                    $transaction->creator?->name ?? '-',
+                ]);
+            }
+
+            fclose($output);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Cache-Control' => 'no-store, no-cache',
+        ]);
     }
 }

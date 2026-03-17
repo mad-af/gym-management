@@ -6,6 +6,7 @@ use App\Models\MembershipPackage;
 use App\Models\MembershipTransaction;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 
 class MembershipTransactionService
 {
@@ -100,5 +101,15 @@ class MembershipTransactionService
     public function delete(MembershipTransaction $transaction): bool
     {
         return (bool) $transaction->delete();
+    }
+
+    public function getExportData(string $startDate, string $endDate): Collection
+    {
+        return MembershipTransaction::query()
+            ->with(['customer', 'package', 'creator'])
+            ->whereDate('created_at', '>=', $startDate)
+            ->whereDate('created_at', '<=', $endDate)
+            ->orderBy('created_at')
+            ->get();
     }
 }

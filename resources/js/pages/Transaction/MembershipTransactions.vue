@@ -3,17 +3,41 @@
         <PageBreadcrumb :pageTitle="currentPageTitle" />
         <Stats2 :items="statsItems" />
 
-        <DynamicTable :columns="columns" :data="tableData" :items-per-page="perPage" :total-items="totalItems"
-            :current-page="currentPage" :is-server-side="true" @update:page="handlePageChange"
-            @update:search="handleSearch" @update:perPage="handlePerPageChange">
+        <DynamicTable
+            :columns="columns"
+            :data="tableData"
+            :items-per-page="perPage"
+            :total-items="totalItems"
+            :current-page="currentPage"
+            :is-server-side="true"
+            @update:page="handlePageChange"
+            @update:search="handleSearch"
+            @update:perPage="handlePerPageChange"
+        >
             <template #header-actions>
-                <Button size="sm" variant="outline" :onClick="() => isFilterDrawerOpen = true"
-                    className="w-full sm:w-auto" :startIcon="FilterIcon">
+                <Button
+                    size="sm"
+                    variant="outline"
+                    :onClick="() => (isFilterDrawerOpen = true)"
+                    className="w-full sm:w-auto"
+                    :startIcon="FilterIcon"
+                >
                     Filter
+                </Button>
+                <Button
+                    size="sm"
+                    variant="outline"
+                    :onClick="() => (isExportDrawerOpen = true)"
+                    className="w-full sm:w-auto"
+                    :startIcon="FileTextIcon"
+                >
+                    Export CSV
                 </Button>
             </template>
             <template #cell-price="{ row }">
-                <span class="text-theme-sm font-medium text-gray-800 dark:text-white/90">
+                <span
+                    class="text-theme-sm font-medium text-gray-800 dark:text-white/90"
+                >
                     {{ formatCurrencyId(row.price) }}
                 </span>
             </template>
@@ -34,12 +58,21 @@
             </template>
         </DynamicTable>
 
-        <Drawer :isOpen="isFilterDrawerOpen" @close="isFilterDrawerOpen = false" title="Filter Membership">
+        <Drawer
+            :isOpen="isFilterDrawerOpen"
+            @close="isFilterDrawerOpen = false"
+            title="Filter Membership"
+        >
             <div class="space-y-6">
                 <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Status</label>
-                    <select v-model="filters.status"
-                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                    <label
+                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                        >Status</label
+                    >
+                    <select
+                        v-model="filters.status"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                    >
                         <option value="">Semua</option>
                         <option value="active">Aktif</option>
                         <option value="expired">Expired</option>
@@ -48,8 +81,69 @@
             </div>
             <template #footer>
                 <div class="flex w-full justify-end gap-3">
-                    <Button variant="outline" :onClick="resetFilter">Reset</Button>
-                    <Button variant="primary" :onClick="handleFilter">Terapkan Filter</Button>
+                    <Button variant="outline" :onClick="resetFilter"
+                        >Reset</Button
+                    >
+                    <Button variant="primary" :onClick="handleFilter"
+                        >Terapkan Filter</Button
+                    >
+                </div>
+            </template>
+        </Drawer>
+
+        <Drawer
+            :isOpen="isExportDrawerOpen"
+            @close="isExportDrawerOpen = false"
+            title="Export Membership (CSV)"
+        >
+            <div class="space-y-6">
+                <div>
+                    <label
+                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                        >Tanggal Mulai</label
+                    >
+                    <input
+                        v-model="exportForm.start_date"
+                        type="date"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                    />
+                    <p
+                        v-if="exportErrors.start_date"
+                        class="mt-1 text-sm text-error-500"
+                    >
+                        {{ exportErrors.start_date }}
+                    </p>
+                </div>
+                <div>
+                    <label
+                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                        >Tanggal Sampai</label
+                    >
+                    <input
+                        v-model="exportForm.end_date"
+                        type="date"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                    />
+                    <p
+                        v-if="exportErrors.end_date"
+                        class="mt-1 text-sm text-error-500"
+                    >
+                        {{ exportErrors.end_date }}
+                    </p>
+                </div>
+            </div>
+            <template #footer>
+                <div class="flex w-full justify-end gap-3">
+                    <Button variant="outline" :onClick="resetExport"
+                        >Reset</Button
+                    >
+                    <Button
+                        variant="primary"
+                        :onClick="exportCsv"
+                        :disabled="exportProcessing"
+                    >
+                        {{ exportProcessing ? 'Memproses...' : 'Download CSV' }}
+                    </Button>
                 </div>
             </template>
         </Drawer>
@@ -67,11 +161,21 @@ import Badge from '@/components/ui/Badge.vue';
 import Button from '@/components/ui/Button.vue';
 import Drawer from '@/components/ui/Drawer.vue';
 import Stats2 from '@/components/ui/Stats2.vue';
-import { BanknoteIcon, CalenderIcon, FilterIcon, ShieldCheckIcon } from '@/icons';
+import {
+    BanknoteIcon,
+    CalenderIcon,
+    FileTextIcon,
+    FilterIcon,
+    ShieldCheckIcon,
+} from '@/icons';
 
 const currentPageTitle = ref('Membership Transactions');
 const isFilterDrawerOpen = ref(false);
+const isExportDrawerOpen = ref(false);
 const filters = ref({ status: '' });
+const exportForm = ref({ start_date: '', end_date: '' });
+const exportErrors = ref<{ start_date?: string; end_date?: string }>({});
+const exportProcessing = ref(false);
 
 const stats = ref({
     activeMembers: 0,
@@ -122,9 +226,24 @@ const tableData = computed(() =>
 const columns = ref<Column[]>([
     { key: 'customer_name', label: 'Pelanggan', class: 'min-w-[200px]' },
     { key: 'package_name', label: 'Paket', class: 'min-w-[200px]' },
-    { key: 'price', label: 'Harga', type: 'custom', class: 'min-w-[140px] text-right' },
-    { key: 'start_date', label: 'Mulai', type: 'custom', class: 'min-w-[140px]' },
-    { key: 'end_date', label: 'Selesai', type: 'custom', class: 'min-w-[140px]' },
+    {
+        key: 'price',
+        label: 'Harga',
+        type: 'custom',
+        class: 'min-w-[140px] text-right',
+    },
+    {
+        key: 'start_date',
+        label: 'Mulai',
+        type: 'custom',
+        class: 'min-w-[140px]',
+    },
+    {
+        key: 'end_date',
+        label: 'Selesai',
+        type: 'custom',
+        class: 'min-w-[140px]',
+    },
     { key: 'status', label: 'Status', type: 'custom', class: 'min-w-[120px]' },
     { key: 'staff_name', label: 'Petugas', class: 'min-w-[180px]' },
 ]);
@@ -271,6 +390,58 @@ const handleFilter = () => {
     currentPage.value = 1;
     fetchItems();
     isFilterDrawerOpen.value = false;
+};
+
+const resetExport = () => {
+    exportForm.value = { start_date: '', end_date: '' };
+    exportErrors.value = {};
+};
+
+const exportCsv = async () => {
+    exportErrors.value = {};
+
+    if (!exportForm.value.start_date) {
+        exportErrors.value.start_date = 'Tanggal mulai wajib diisi.';
+    }
+
+    if (!exportForm.value.end_date) {
+        exportErrors.value.end_date = 'Tanggal sampai wajib diisi.';
+    }
+
+    if (Object.keys(exportErrors.value).length > 0) {
+        return;
+    }
+
+    exportProcessing.value = true;
+    try {
+        const response = await axios.get(
+            '/api/membership-transactions/export',
+            {
+                params: exportForm.value,
+                responseType: 'blob',
+            },
+        );
+
+        const blob = new Blob([response.data], {
+            type: 'text/csv;charset=utf-8;',
+        });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute(
+            'download',
+            `membership_transactions_${exportForm.value.start_date}_to_${exportForm.value.end_date}.csv`,
+        );
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        isExportDrawerOpen.value = false;
+    } catch (e) {
+        console.error('Error exporting membership csv', e);
+    } finally {
+        exportProcessing.value = false;
+    }
 };
 
 onMounted(() => {

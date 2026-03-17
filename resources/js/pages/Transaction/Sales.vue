@@ -3,17 +3,41 @@
         <PageBreadcrumb :pageTitle="currentPageTitle" />
         <Stats2 :items="statsItems" />
 
-        <DynamicTable :columns="columns" :data="tableData" :items-per-page="perPage" :total-items="totalItems"
-            :current-page="currentPage" :is-server-side="true" @update:page="handlePageChange"
-            @update:search="handleSearch" @update:perPage="handlePerPageChange">
+        <DynamicTable
+            :columns="columns"
+            :data="tableData"
+            :items-per-page="perPage"
+            :total-items="totalItems"
+            :current-page="currentPage"
+            :is-server-side="true"
+            @update:page="handlePageChange"
+            @update:search="handleSearch"
+            @update:perPage="handlePerPageChange"
+        >
             <template #header-actions>
-                <Button size="sm" variant="outline" :onClick="() => isFilterDrawerOpen = true"
-                    className="w-full sm:w-auto" :startIcon="FilterIcon">
+                <Button
+                    size="sm"
+                    variant="outline"
+                    :onClick="() => (isFilterDrawerOpen = true)"
+                    className="w-full sm:w-auto"
+                    :startIcon="FilterIcon"
+                >
                     Filter
+                </Button>
+                <Button
+                    size="sm"
+                    variant="outline"
+                    :onClick="() => (isExportDrawerOpen = true)"
+                    className="w-full sm:w-auto"
+                    :startIcon="FileTextIcon"
+                >
+                    Export CSV
                 </Button>
             </template>
             <template #cell-total_amount="{ row }">
-                <span class="text-theme-sm font-medium text-gray-800 dark:text-white/90">
+                <span
+                    class="text-theme-sm font-medium text-gray-800 dark:text-white/90"
+                >
                     {{ formatCurrencyId(row.total_amount) }}
                 </span>
             </template>
@@ -23,7 +47,9 @@
                 </span>
             </template>
             <template #cell-item_quantity="{ row }">
-                <span class="text-theme-sm font-medium text-gray-800 dark:text-white/90">
+                <span
+                    class="text-theme-sm font-medium text-gray-800 dark:text-white/90"
+                >
                     {{ formatNumberId(row.item_quantity) }}
                 </span>
             </template>
@@ -33,24 +59,97 @@
                 </span>
             </template>
             <template #cell-item_subtotal="{ row }">
-                <span class="text-theme-sm font-medium text-gray-800 dark:text-white/90">
+                <span
+                    class="text-theme-sm font-medium text-gray-800 dark:text-white/90"
+                >
                     {{ formatCurrencyId(row.item_subtotal) }}
                 </span>
             </template>
         </DynamicTable>
 
-        <Drawer :isOpen="isFilterDrawerOpen" @close="isFilterDrawerOpen = false" title="Filter Penjualan">
+        <Drawer
+            :isOpen="isFilterDrawerOpen"
+            @close="isFilterDrawerOpen = false"
+            title="Filter Penjualan"
+        >
             <div class="space-y-6">
                 <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Pelanggan</label>
-                    <input type="text" v-model="filters.customer_id"
-                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200" />
+                    <label
+                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                        >Pelanggan</label
+                    >
+                    <input
+                        type="text"
+                        v-model="filters.customer_id"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                    />
                 </div>
             </div>
             <template #footer>
                 <div class="flex w-full justify-end gap-3">
-                    <Button variant="outline" :onClick="resetFilter">Reset</Button>
-                    <Button variant="primary" :onClick="handleFilter">Terapkan Filter</Button>
+                    <Button variant="outline" :onClick="resetFilter"
+                        >Reset</Button
+                    >
+                    <Button variant="primary" :onClick="handleFilter"
+                        >Terapkan Filter</Button
+                    >
+                </div>
+            </template>
+        </Drawer>
+
+        <Drawer
+            :isOpen="isExportDrawerOpen"
+            @close="isExportDrawerOpen = false"
+            title="Export Penjualan (CSV)"
+        >
+            <div class="space-y-6">
+                <div>
+                    <label
+                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                        >Tanggal Mulai</label
+                    >
+                    <input
+                        v-model="exportForm.start_date"
+                        type="date"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                    />
+                    <p
+                        v-if="exportErrors.start_date"
+                        class="mt-1 text-sm text-error-500"
+                    >
+                        {{ exportErrors.start_date }}
+                    </p>
+                </div>
+                <div>
+                    <label
+                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                        >Tanggal Sampai</label
+                    >
+                    <input
+                        v-model="exportForm.end_date"
+                        type="date"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                    />
+                    <p
+                        v-if="exportErrors.end_date"
+                        class="mt-1 text-sm text-error-500"
+                    >
+                        {{ exportErrors.end_date }}
+                    </p>
+                </div>
+            </div>
+            <template #footer>
+                <div class="flex w-full justify-end gap-3">
+                    <Button variant="outline" :onClick="resetExport"
+                        >Reset</Button
+                    >
+                    <Button
+                        variant="primary"
+                        :onClick="exportCsv"
+                        :disabled="exportProcessing"
+                    >
+                        {{ exportProcessing ? 'Memproses...' : 'Download CSV' }}
+                    </Button>
                 </div>
             </template>
         </Drawer>
@@ -67,11 +166,21 @@ import type { Column } from '@/components/tables/data-tables/DynamicTable.vue';
 import Button from '@/components/ui/Button.vue';
 import Drawer from '@/components/ui/Drawer.vue';
 import Stats2 from '@/components/ui/Stats2.vue';
-import { BanknoteIcon, BarChartIcon, ClipboardCheckIcon, FilterIcon } from '@/icons';
+import {
+    BanknoteIcon,
+    BarChartIcon,
+    ClipboardCheckIcon,
+    FileTextIcon,
+    FilterIcon,
+} from '@/icons';
 
 const currentPageTitle = ref('Sales');
 const isFilterDrawerOpen = ref(false);
+const isExportDrawerOpen = ref(false);
 const filters = ref({ customer_id: '' });
+const exportForm = ref({ start_date: '', end_date: '' });
+const exportErrors = ref<{ start_date?: string; end_date?: string }>({});
+const exportProcessing = ref(false);
 
 const stats = ref({
     totalSales: 0,
@@ -144,17 +253,42 @@ const tableData = computed(() =>
 
             return row;
         });
-    })
+    }),
 );
 
 const columns: Column[] = [
     { key: 'customer_name', label: 'Pelanggan', class: 'min-w-[200px]' },
-    { key: 'created_at', label: 'Tanggal', type: 'custom', class: 'min-w-[170px]' },
+    {
+        key: 'created_at',
+        label: 'Tanggal',
+        type: 'custom',
+        class: 'min-w-[170px]',
+    },
     { key: 'item_product_name', label: 'Item', class: 'min-w-[260px]' },
-    { key: 'item_quantity', label: 'Qty', type: 'custom', class: 'min-w-[80px] text-right' },
-    { key: 'item_price', label: 'Harga', type: 'custom', class: 'min-w-[130px] text-right' },
-    { key: 'item_subtotal', label: 'Subtotal', type: 'custom', class: 'min-w-[130px] text-right' },
-    { key: 'total_amount', label: 'Total', type: 'custom', class: 'min-w-[140px] text-right' },
+    {
+        key: 'item_quantity',
+        label: 'Qty',
+        type: 'custom',
+        class: 'min-w-[80px] text-right',
+    },
+    {
+        key: 'item_price',
+        label: 'Harga',
+        type: 'custom',
+        class: 'min-w-[130px] text-right',
+    },
+    {
+        key: 'item_subtotal',
+        label: 'Subtotal',
+        type: 'custom',
+        class: 'min-w-[130px] text-right',
+    },
+    {
+        key: 'total_amount',
+        label: 'Total',
+        type: 'custom',
+        class: 'min-w-[140px] text-right',
+    },
     { key: 'staff_name', label: 'Petugas', class: 'min-w-[180px]' },
 ];
 
@@ -299,6 +433,55 @@ const handleFilter = () => {
 const resetFilter = () => {
     filters.value.customer_id = '';
     handleFilter();
+};
+
+const resetExport = () => {
+    exportForm.value = { start_date: '', end_date: '' };
+    exportErrors.value = {};
+};
+
+const exportCsv = async () => {
+    exportErrors.value = {};
+
+    if (!exportForm.value.start_date) {
+        exportErrors.value.start_date = 'Tanggal mulai wajib diisi.';
+    }
+
+    if (!exportForm.value.end_date) {
+        exportErrors.value.end_date = 'Tanggal sampai wajib diisi.';
+    }
+
+    if (Object.keys(exportErrors.value).length > 0) {
+        return;
+    }
+
+    exportProcessing.value = true;
+    try {
+        const response = await axios.get('/api/sales/export', {
+            params: exportForm.value,
+            responseType: 'blob',
+        });
+
+        const blob = new Blob([response.data], {
+            type: 'text/csv;charset=utf-8;',
+        });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute(
+            'download',
+            `sales_${exportForm.value.start_date}_to_${exportForm.value.end_date}.csv`,
+        );
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        isExportDrawerOpen.value = false;
+    } catch (e) {
+        console.error('Error exporting sales csv', e);
+    } finally {
+        exportProcessing.value = false;
+    }
 };
 
 onMounted(() => {

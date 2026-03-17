@@ -8,4 +8,4 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::command('maintenance:send-notifications')->dailyAt('08:00');
+Schedule::command('membership:check-expiry-reminders')->dailyAt('08:00');

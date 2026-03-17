@@ -49,11 +49,15 @@ Route::middleware(['auth:web'])->group(function () {
     Route::get('membership-packages/selection', [MembershipPackageController::class, 'selection']);
     Route::get('membership-packages/stats', [MembershipPackageController::class, 'stats']);
     Route::get('membership-transactions/stats', [MembershipTransactionController::class, 'stats']);
+    Route::get('membership-transactions/export', [MembershipTransactionController::class, 'export'])->name('api.membership-transactions.export');
     Route::get('products/selection', [ProductController::class, 'selection']);
     Route::get('products/stats', [ProductController::class, 'stats']);
     Route::get('sales/stats', [SaleController::class, 'stats']);
+    Route::get('sales/export', [SaleController::class, 'export'])->name('api.sales.export');
     Route::get('stock-movements/stats', [StockMovementController::class, 'stats']);
+    Route::get('stock-movements/export', [StockMovementController::class, 'export'])->name('api.stock-movements.export');
     Route::get('visits/stats', [VisitController::class, 'stats']);
+    Route::get('visits/export', [VisitController::class, 'export'])->name('api.visits.export');
 
     Route::prefix('dashboard')->group(function () {
         Route::get('stats', [DashboardController::class, 'stats']);

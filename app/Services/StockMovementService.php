@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\StockMovement;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -104,5 +105,15 @@ class StockMovementService
     public function delete(StockMovement $movement): bool
     {
         return (bool) $movement->delete();
+    }
+
+    public function getExportData(string $startDate, string $endDate): Collection
+    {
+        return StockMovement::query()
+            ->with(['product', 'creator'])
+            ->whereDate('created_at', '>=', $startDate)
+            ->whereDate('created_at', '<=', $endDate)
+            ->orderBy('created_at')
+            ->get();
     }
 }
