@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Permission;
 use App\Http\Controllers\PublicMembershipCardController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
@@ -17,11 +18,11 @@ Route::get('/public/membership-cards/{customer}', [PublicMembershipCardControlle
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('General/Dashboard');
-    })->name('dashboard');
+    })->middleware('permission:'.Permission::VIEW_DASHBOARD->value)->name('dashboard');
 
     Route::get('operations', function () {
         return Inertia::render('General/Operation/Index');
-    })->name('general.operations');
+    })->middleware('permission:'.Permission::VIEW_OPERATIONS->value)->name('general.operations');
 
     // Gym Management
     Route::get('customers', function () {

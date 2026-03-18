@@ -4,6 +4,9 @@ namespace App\Enums;
 
 enum Permission: string
 {
+    case VIEW_DASHBOARD = 'view_dashboard';
+    case VIEW_OPERATIONS = 'view_operations';
+
     // User Management
     case VIEW_USERS = 'view_users';
     case CREATE_USERS = 'create_users';
@@ -17,18 +20,6 @@ enum Permission: string
     case EDIT_ROLES = 'edit_roles';
     case DELETE_ROLES = 'delete_roles';
     case ACTIVATE_ROLES = 'activate_roles';
-
-    // Asset Management (Restored for Dashboard)
-    case VIEW_ASSETS = 'view_assets';
-    case CREATE_ASSETS = 'create_assets';
-    case EDIT_ASSETS = 'edit_assets';
-    case DELETE_ASSETS = 'delete_assets';
-
-    // Asset Proposals (Restored for Dashboard)
-    case VIEW_ASSET_PROPOSALS = 'view_asset_proposals';
-
-    // Asset Maintenances (Restored for Dashboard)
-    case VIEW_ASSET_MAINTENANCES = 'view_asset_maintenances';
 
     // Gym: Customers
     case VIEW_CUSTOMERS = 'view_customers';
@@ -90,6 +81,10 @@ enum Permission: string
     public static function grouped(): array
     {
         $groups = [
+            'Halaman Umum' => [
+                self::VIEW_DASHBOARD,
+                self::VIEW_OPERATIONS,
+            ],
             'Manajemen Pengguna' => [
                 self::VIEW_USERS,
                 self::CREATE_USERS,
@@ -103,18 +98,6 @@ enum Permission: string
                 self::EDIT_ROLES,
                 self::DELETE_ROLES,
                 self::ACTIVATE_ROLES,
-            ],
-            'Manajemen Aset (Dashboard)' => [
-                self::VIEW_ASSETS,
-                self::CREATE_ASSETS,
-                self::EDIT_ASSETS,
-                self::DELETE_ASSETS,
-            ],
-            'Manajemen Proposal Aset' => [
-                self::VIEW_ASSET_PROPOSALS,
-            ],
-            'Manajemen Pemeliharaan Aset' => [
-                self::VIEW_ASSET_MAINTENANCES,
             ],
             'Manajemen Pelanggan' => [
                 self::VIEW_CUSTOMERS,
@@ -189,6 +172,9 @@ enum Permission: string
     public function label(): string
     {
         return match ($this) {
+            self::VIEW_DASHBOARD => 'Lihat Dashboard',
+            self::VIEW_OPERATIONS => 'Lihat Operasional',
+
             self::VIEW_USERS => 'Lihat Pengguna',
             self::CREATE_USERS => 'Tambah Pengguna',
             self::EDIT_USERS => 'Edit Pengguna',
@@ -200,15 +186,6 @@ enum Permission: string
             self::EDIT_ROLES => 'Edit Role',
             self::DELETE_ROLES => 'Hapus Role',
             self::ACTIVATE_ROLES => 'Aktivasi Role',
-
-            self::VIEW_ASSETS => 'Lihat Aset',
-            self::CREATE_ASSETS => 'Tambah Aset',
-            self::EDIT_ASSETS => 'Edit Aset',
-            self::DELETE_ASSETS => 'Hapus Aset',
-
-            self::VIEW_ASSET_PROPOSALS => 'Lihat Proposal Aset',
-
-            self::VIEW_ASSET_MAINTENANCES => 'Lihat Pemeliharaan Aset',
 
             self::VIEW_CUSTOMERS => 'Lihat Pelanggan',
             self::CREATE_CUSTOMERS => 'Tambah Pelanggan',

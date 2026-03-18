@@ -26,23 +26,27 @@
                     class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-2"
                 >
                     <VisitsOperation
-                        v-if="canView(VISIT_PERMISSIONS.VIEW)"
+                        v-if="canView(VISIT_PERMISSIONS.CREATE)"
                         @submitted="fetchOpsStats"
                     />
                     <SalesOperation
-                        v-if="canView(SALE_PERMISSIONS.VIEW)"
+                        v-if="canView(SALE_PERMISSIONS.CREATE)"
                         @submitted="fetchOpsStats"
                     />
                     <MembershipOperation
-                        v-if="canView(MEMBERSHIP_TRANSACTION_PERMISSIONS.VIEW)"
+                        v-if="
+                            canView(MEMBERSHIP_TRANSACTION_PERMISSIONS.CREATE)
+                        "
                         @submitted="fetchOpsStats"
                     />
                     <MembershipCardOperation
-                        v-if="canView(MEMBERSHIP_TRANSACTION_PERMISSIONS.VIEW)"
+                        v-if="
+                            canView(MEMBERSHIP_TRANSACTION_PERMISSIONS.CREATE)
+                        "
                         @submitted="fetchOpsStats"
                     />
                     <StockMovementOperation
-                        v-if="canView(STOCK_MOVEMENT_PERMISSIONS.VIEW)"
+                        v-if="canView(STOCK_MOVEMENT_PERMISSIONS.CREATE)"
                         @submitted="fetchOpsStats"
                     />
                 </div>

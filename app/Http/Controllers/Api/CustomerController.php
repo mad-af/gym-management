@@ -17,7 +17,12 @@ class CustomerController extends Controller
     public function __construct(protected CustomerService $service, protected MediaService $mediaService)
     {
         $this->middleware(['auth:web']);
-        $this->middleware('permission:'.Permission::VIEW_CUSTOMERS->value)->only(['index', 'show', 'selection']);
+        $this->middleware('permission:'
+            .Permission::VIEW_CUSTOMERS->value
+            .'|'.Permission::CREATE_VISITS->value
+            .'|'.Permission::CREATE_MEMBERSHIP_TRANSACTIONS->value
+            .'|'.Permission::CREATE_SALES->value
+        )->only(['index', 'show', 'selection']);
         $this->middleware('permission:'.Permission::CREATE_CUSTOMERS->value)->only(['store']);
         $this->middleware('permission:'.Permission::EDIT_CUSTOMERS->value)->only(['update']);
         $this->middleware('permission:'.Permission::DELETE_CUSTOMERS->value)->only(['destroy']);

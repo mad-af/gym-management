@@ -21,7 +21,7 @@
                     : 'justify-start',
             ]"
         >
-            <Link href="/dashboard">
+            <Link :href="homePath">
                 <ApplicationLogo
                     :collapsed="!isExpanded && !isHovered && !isMobileOpen"
                 />
@@ -245,6 +245,8 @@ import { ref, computed } from 'vue';
 import ApplicationLogo from '@/components/common/ApplicationLogo.vue';
 import { useSidebar } from '@/composables/useSidebar';
 import {
+    DASHBOARD_PERMISSIONS,
+    OPERATION_PERMISSIONS,
     USER_PERMISSIONS,
     ROLE_PERMISSIONS,
     CUSTOMER_PERMISSIONS,
@@ -308,11 +310,13 @@ const menuGroups = ref<MenuGroup[]>([
                 icon: LayoutDashboardIcon,
                 name: 'Dashboard',
                 path: '/dashboard',
+                permission: DASHBOARD_PERMISSIONS.VIEW,
             },
             {
                 icon: BuildingIcon,
                 name: 'Operasional',
                 path: '/operations',
+                permission: OPERATION_PERMISSIONS.VIEW,
             },
         ],
     },
@@ -397,6 +401,20 @@ const menuGroups = ref<MenuGroup[]>([
 const userPermissions = computed<string[]>(() => {
     const props: any = page.props;
     return props?.auth?.permissions ?? [];
+});
+
+const homePath = computed(() => {
+    const permissions = userPermissions.value;
+
+    if (permissions.includes(DASHBOARD_PERMISSIONS.VIEW)) {
+        return '/dashboard';
+    }
+
+    if (permissions.includes(OPERATION_PERMISSIONS.VIEW)) {
+        return '/operations';
+    }
+
+    return '/';
 });
 
 const canViewItem = (item: MenuItem): boolean => {

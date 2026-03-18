@@ -1,3 +1,11 @@
+export const DASHBOARD_PERMISSIONS = {
+    VIEW: 'view_dashboard',
+} as const;
+
+export const OPERATION_PERMISSIONS = {
+    VIEW: 'view_operations',
+} as const;
+
 export const USER_PERMISSIONS = {
     VIEW: 'view_users',
     CREATE: 'create_users',

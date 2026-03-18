@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\Permission;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PrintMembershipCardRequest;
@@ -13,8 +14,11 @@ class MembershipCardController extends Controller
 {
     public function __construct(private readonly MembershipCardService $membershipCardService)
     {
-        $this->middleware('permission:view_membership_transactions')->only(['print']);
-        $this->middleware('permission:create_membership_transactions')->only(['sendWhatsapp']);
+        $this->middleware('permission:'
+            .Permission::VIEW_MEMBERSHIP_TRANSACTIONS->value
+            .'|'.Permission::CREATE_MEMBERSHIP_TRANSACTIONS->value
+        )->only(['print']);
+        $this->middleware('permission:'.Permission::CREATE_MEMBERSHIP_TRANSACTIONS->value)->only(['sendWhatsapp']);
     }
 
     public function print(PrintMembershipCardRequest $request)

@@ -28,5 +28,18 @@ class RolePermissionSeeder extends Seeder
         // Admin (Static System Role) - Gets all permissions
         $adminRole = SpatieRole::firstOrCreate(['name' => Role::ADMIN->value]);
         $adminRole->syncPermissions(Permission::values());
+
+        $staffPermissions = [
+            Permission::VIEW_DASHBOARD->value,
+            Permission::VIEW_OPERATIONS->value,
+            Permission::CREATE_CUSTOMERS->value,
+            Permission::CREATE_MEMBERSHIP_TRANSACTIONS->value,
+            Permission::CREATE_VISITS->value,
+            Permission::CREATE_STOCK_MOVEMENTS->value,
+            Permission::CREATE_SALES->value,
+        ];
+
+        $staffRole = SpatieRole::firstOrCreate(['name' => Role::STAFF->value]);
+        $staffRole->syncPermissions($staffPermissions);
     }
 }
