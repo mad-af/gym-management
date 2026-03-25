@@ -100,24 +100,86 @@ php artisan octane:frankenphp --host=0.0.0.0 --port=8000
 
 Gunakan process manager (systemd/supervisor) untuk menjaga service tetap hidup.
 
-### 4) Jalankan queue worker
+### 4) Jalankan scheduler
+
+Tambahkan cron job berikut ke server (jalankan `crontab -e`):
 
 ```bash
-php artisan queue:work --sleep=1 --tries=3 --timeout=90
+* * * * * cd /path-ke-project && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-Worker ini wajib aktif karena ada proses queue untuk notifikasi/reminder.
+Ganti `/path-ke-project` dengan path absolut ke project ini (misal `/var/www/gym-management`).
 
-### 5) Jalankan scheduler
+**Keterangan:**
 
-Gunakan salah satu:
+- Cron job ini menjalankan `schedule:run` setiap 1 menit
+- Laravel otomatis cek apakah ada scheduled command yang perlu jalan pada menit tersebut
+- Cron job TIDAK perlu di-set ulang setelah server reboot (tersimpan permanen di crontab)
+- Pastikan cron daemon aktif: `sudo systemctl enable cron`
 
-- Cron + `php artisan schedule:run` tiap menit, atau
-- Proses long-running:
+**Verifikasi cron job sudah aktif:**
 
 ```bash
-php artisan schedule:work
+crontab -l
 ```
+
+### 5) Jalankan queue worker
+
+Queue worker wajib aktif untuk memproses notifikasi WhatsApp (reminder membership).
+
+#### Opsi A: Supervisor (Production Recommended)
+
+Buat file `/etc/supervisor/conf.d/laravel-worker.conf`:
+
+```ini
+[program:laravel-worker]
+process_name=%(program_name)s_%(process_num)02d
+command=php /path-ke-project/artisan queue:work --sleep=3 --tries=3 --timeout=90
+autostart=true
+autorestart=true
+numprocs=2
+redirect_stderr=true
+stdout_logfile=/path-ke-project/storage/logs/worker.log
+```
+
+```bash
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl start laravel-worker
+```
+
+#### Opsi B: Systemd (Alternative Production)
+
+Buat file `/etc/systemd/system/laravel-worker.service`:
+
+```ini
+[Unit]
+Description=Laravel Queue Worker
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/php /path-ke-project/artisan queue:work --sleep=3 --tries=3 --timeout=90
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable laravel-worker
+sudo systemctl start laravel-worker
+```
+
+#### Opsi C: Manual (Development / Sementara)
+
+```bash
+php artisan queue:work --sleep=3 --tries=3 --timeout=90
+```
+
+**Catatan:** Opsi C tidak survive server reboot, hanya untuk development atau testing sementara.
 
 ## Perintah Berguna
 
