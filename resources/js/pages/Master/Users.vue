@@ -2,98 +2,177 @@
     <AdminLayout>
         <PageBreadcrumb :pageTitle="currentPageTitle" />
 
-        <DynamicTable :columns="columns" :data="tableData" :items-per-page="perPage" :total-items="totalItems"
-            :current-page="currentPage" :is-server-side="true" :selectable="false" @update:page="handlePageChange"
-            @update:search="handleSearch" @update:perPage="handlePerPageChange" @download="handleExportData">
+        <DynamicTable
+            :columns="columns"
+            :data="tableData"
+            :items-per-page="perPage"
+            :total-items="totalItems"
+            :current-page="currentPage"
+            :is-server-side="true"
+            :selectable="false"
+            @update:page="handlePageChange"
+            @update:search="handleSearch"
+            @update:perPage="handlePerPageChange"
+            @download="handleExportData"
+        >
             <template #header-actions>
-                <Button size="sm" variant="outline" :onClick="() => isFilterDrawerOpen = true"
-                    className="w-full sm:w-auto" :startIcon="FilterIcon">
+                <Button
+                    size="sm"
+                    variant="outline"
+                    :onClick="() => (isFilterDrawerOpen = true)"
+                    className="w-full sm:w-auto"
+                    :startIcon="FilterIcon"
+                >
                     Filter
                 </Button>
-                <Button v-can="USER_PERMISSIONS.CREATE" size="sm" variant="primary" :onClick="handleAddUser"
-                    className="w-full sm:w-auto" :endIcon="PlusIcon">
+                <Button
+                    v-can="USER_PERMISSIONS.CREATE"
+                    size="sm"
+                    variant="primary"
+                    :onClick="handleAddUser"
+                    className="w-full sm:w-auto"
+                    :endIcon="PlusIcon"
+                >
                     Tambah Pengguna
                 </Button>
             </template>
             <template #actions="{ row }">
                 <div class="flex items-center gap-2">
-                    <button v-can="USER_PERMISSIONS.EDIT" @click="editItem(row)"
+                    <button
+                        v-can="USER_PERMISSIONS.EDIT"
+                        @click="editItem(row)"
                         class="text-gray-500 hover:text-brand-500 dark:text-gray-400 dark:hover:text-brand-500"
-                        title="Edit">
-                        <PencilIcon class="w-4.5 h-4.5" />
+                        title="Edit"
+                    >
+                        <PencilIcon class="h-4.5 w-4.5" />
                     </button>
 
-                    <button v-can="USER_PERMISSIONS.DELETE" v-if="row.is_active" @click="deactivateUser(row)"
+                    <button
+                        v-can="USER_PERMISSIONS.DELETE"
+                        v-if="row.is_active"
+                        @click="deactivateUser(row)"
                         class="text-gray-500 hover:text-error-500 dark:text-gray-400 dark:hover:text-error-500"
-                        title="Nonaktifkan">
-                        <TrashIcon class="w-4.5 h-4.5" />
+                        title="Nonaktifkan"
+                    >
+                        <TrashIcon class="h-4.5 w-4.5" />
                     </button>
 
-                    <button v-can="USER_PERMISSIONS.ACTIVATE" v-else @click="activateUser(row)"
+                    <button
+                        v-can="USER_PERMISSIONS.ACTIVATE"
+                        v-else
+                        @click="activateUser(row)"
                         class="text-gray-500 hover:text-success-500 dark:text-gray-400 dark:hover:text-success-500"
-                        title="Aktifkan">
-                        <CheckCircleIcon class="w-4.5 h-4.5" />
+                        title="Aktifkan"
+                    >
+                        <CheckCircleIcon class="h-4.5 w-4.5" />
                     </button>
                 </div>
             </template>
         </DynamicTable>
 
         <!-- Add User Drawer -->
-        <Drawer :isOpen="isDrawerOpen" @close="closeDrawer" :title="form.id ? 'Edit Pengguna' : 'Tambah Pengguna Baru'">
+        <Drawer
+            :isOpen="isDrawerOpen"
+            @close="closeDrawer"
+            :title="form.id ? 'Edit Pengguna' : 'Tambah Pengguna Baru'"
+        >
             <div class="space-y-6">
                 <div class="flex justify-start">
-                    <AvatarInput v-model="avatarFile" :src="currentAvatarSrc" :placeholder="currentAvatarPlaceholder"
-                        size="large" />
+                    <AvatarInput
+                        v-model="avatarFile"
+                        :src="currentAvatarSrc"
+                        :placeholder="currentAvatarPlaceholder"
+                        size="large"
+                    />
                 </div>
                 <div>
-                    <label for="name" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">
+                    <label
+                        for="name"
+                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                    >
                         Nama Lengkap <span class="text-error-500">*</span>
                     </label>
-                    <input type="text" id="name" v-model="form.name"
-                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-                        placeholder="Masukkan nama lengkap" />
-                    <p v-if="form.errors.name" class="mt-1 text-sm text-error-500">{{ form.errors.name }}</p>
+                    <input
+                        type="text"
+                        id="name"
+                        v-model="form.name"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                        placeholder="Masukkan nama lengkap"
+                    />
+                    <p
+                        v-if="form.errors.name"
+                        class="mt-1 text-sm text-error-500"
+                    >
+                        {{ form.errors.name }}
+                    </p>
                 </div>
 
                 <div>
-                    <label for="email" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">
+                    <label
+                        for="email"
+                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                    >
                         Email <span class="text-error-500">*</span>
                     </label>
-                    <input type="email" id="email" v-model="form.email"
-                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-                        placeholder="Masukkan email" />
-                    <p v-if="form.errors.email" class="mt-1 text-sm text-error-500">{{ form.errors.email }}</p>
+                    <input
+                        type="email"
+                        id="email"
+                        v-model="form.email"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                        placeholder="Masukkan email"
+                    />
+                    <p
+                        v-if="form.errors.email"
+                        class="mt-1 text-sm text-error-500"
+                    >
+                        {{ form.errors.email }}
+                    </p>
                 </div>
 
                 <div>
-                    <label for="phone" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">
+                    <label
+                        for="phone"
+                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                    >
                         No. Telepon (WhatsApp)
                     </label>
-                    <input type="text" id="phone" v-model="form.phone"
-                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-                        placeholder="Masukkan nomor telepon" />
-                    <p v-if="form.errors.phone" class="mt-1 text-sm text-error-500">{{ form.errors.phone }}</p>
+                    <input
+                        type="text"
+                        id="phone"
+                        v-model="form.phone"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                        placeholder="Masukkan nomor telepon"
+                    />
+                    <p
+                        v-if="form.errors.phone"
+                        class="mt-1 text-sm text-error-500"
+                    >
+                        {{ form.errors.phone }}
+                    </p>
                 </div>
 
                 <div class="space-y-2">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                    <label
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-200"
+                    >
                         Role Pengguna <span class="text-error-500">*</span>
                     </label>
-                    <Combobox v-model="form.roles" :options="roleOptions" labelKey="name" valueKey="name"
-                        placeholder="Pilih role..." :loading="roleLoading" remote @search="onRoleSearch"
-                        @load-more="onRoleLoadMore" />
-                    <p v-if="form.errors.roles" class="mt-1 text-sm text-error-500">{{ form.errors.roles }}</p>
-                </div>
-
-                <div class="space-y-2">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                        Hubungkan Pegawai
-                    </label>
-                    <Combobox v-model="form.employee_id" :options="employeeOptions" labelKey="name" valueKey="id"
-                        placeholder="Pilih pegawai..." :loading="employeeLoading" :disabled="isEmployeeLocked" remote
-                        @search="onEmployeeSearch" @load-more="onEmployeeLoadMore" />
-                    <p v-if="form.errors.employee_id" class="mt-1 text-sm text-error-500">
-                        {{ form.errors.employee_id }}
+                    <Combobox
+                        v-model="form.roles"
+                        :options="roleOptions"
+                        labelKey="name"
+                        valueKey="name"
+                        placeholder="Pilih role..."
+                        :loading="roleLoading"
+                        remote
+                        @search="onRoleSearch"
+                        @load-more="onRoleLoadMore"
+                    />
+                    <p
+                        v-if="form.errors.roles"
+                        class="mt-1 text-sm text-error-500"
+                    >
+                        {{ form.errors.roles }}
                     </p>
                 </div>
             </div>
@@ -103,7 +182,11 @@
                     <Button variant="outline" :onClick="closeDrawer">
                         Batal
                     </Button>
-                    <Button variant="primary" :onClick="saveUser" :disabled="form.processing">
+                    <Button
+                        variant="primary"
+                        :onClick="saveUser"
+                        :disabled="form.processing"
+                    >
                         {{ form.processing ? 'Menyimpan...' : 'Simpan' }}
                     </Button>
                 </div>
@@ -111,22 +194,40 @@
         </Drawer>
 
         <!-- Filter Drawer -->
-        <Drawer :isOpen="isFilterDrawerOpen" @close="isFilterDrawerOpen = false" title="Filter Pengguna">
+        <Drawer
+            :isOpen="isFilterDrawerOpen"
+            @close="isFilterDrawerOpen = false"
+            title="Filter Pengguna"
+        >
             <div class="space-y-6">
                 <!-- Role Filter -->
                 <div class="space-y-2">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                    <label
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-200"
+                    >
                         Role
                     </label>
-                    <Combobox v-model="filters.role_name" :options="roleOptions" labelKey="name" valueKey="name"
-                        placeholder="Pilih role..." :loading="roleLoading" remote @search="onRoleSearch"
-                        @load-more="onRoleLoadMore" />
+                    <Combobox
+                        v-model="filters.role_name"
+                        :options="roleOptions"
+                        labelKey="name"
+                        valueKey="name"
+                        placeholder="Pilih role..."
+                        :loading="roleLoading"
+                        remote
+                        @search="onRoleSearch"
+                        @load-more="onRoleLoadMore"
+                    />
                 </div>
 
                 <!-- Status Filter -->
                 <div>
-                    <SelectInput v-model="filters.is_active" :options="statusOptions" label="Status"
-                        placeholder="Semua Status" />
+                    <SelectInput
+                        v-model="filters.is_active"
+                        :options="statusOptions"
+                        label="Status"
+                        placeholder="Semua Status"
+                    />
                 </div>
             </div>
             <template #footer>
@@ -158,7 +259,13 @@ import Button from '@/components/ui/Button.vue';
 import Combobox from '@/components/ui/Combobox.vue';
 import Drawer from '@/components/ui/Drawer.vue';
 import { USER_PERMISSIONS } from '@/directives/permissions';
-import { PlusIcon, TrashIcon, CheckCircleIcon, PencilIcon, FilterIcon } from '@/icons';
+import {
+    PlusIcon,
+    TrashIcon,
+    CheckCircleIcon,
+    PencilIcon,
+    FilterIcon,
+} from '@/icons';
 
 defineProps({});
 
@@ -170,7 +277,7 @@ const isFilterDrawerOpen = ref(false);
 const users = ref<any[]>([]);
 const filters = ref({
     role_name: '',
-    is_active: '' as string | number
+    is_active: '' as string | number,
 });
 const totalItems = ref(0);
 const currentPage = ref(1);
@@ -183,12 +290,6 @@ const roleLoading = ref(false);
 const roleSearch = ref('');
 const rolePage = ref(1);
 const roleHasMore = ref(true);
-
-const employeeOptions = ref<any[]>([]);
-const employeeLoading = ref(false);
-const employeeSearch = ref('');
-const employeePage = ref(1);
-const employeeHasMore = ref(true);
 
 const statusOptions = [
     { value: 1, label: 'Active' },
@@ -221,10 +322,7 @@ const form = useForm({
     email: '',
     phone: '',
     roles: '',
-    employee_id: null as number | null,
 });
-
-const isEmployeeLocked = computed(() => !!form.id && !!form.employee_id);
 
 const resetForm = () => {
     form.reset();
@@ -234,7 +332,6 @@ const resetForm = () => {
     form.email = '';
     form.phone = '';
     form.roles = '';
-    form.employee_id = null;
     avatarFile.value = null;
     currentAvatar.value = null;
 };
@@ -248,8 +345,8 @@ const fetchUsers = async () => {
                 per_page: perPage.value,
                 search: searchFilter.value,
                 role_name: filters.value.role_name,
-                is_active: filters.value.is_active
-            }
+                is_active: filters.value.is_active,
+            },
         });
 
         const data = response.data.data;
@@ -257,7 +354,6 @@ const fetchUsers = async () => {
         totalItems.value = data.total;
         currentPage.value = data.current_page;
         perPage.value = data.per_page;
-
     } catch (error) {
         console.error('Error fetching users:', error);
     }
@@ -278,8 +374,8 @@ const fetchRoleOptions = async (reset = false) => {
             params: {
                 page: rolePage.value,
                 per_page: 20,
-                search: roleSearch.value
-            }
+                search: roleSearch.value,
+            },
         });
         const data = response.data.data;
         if (reset) {
@@ -305,56 +401,9 @@ const onRoleLoadMore = () => {
     fetchRoleOptions(false);
 };
 
-const fetchEmployeeOptions = async (reset = false) => {
-    if (reset) {
-        employeePage.value = 1;
-        employeeOptions.value = [];
-        employeeHasMore.value = true;
-    }
-
-    if (!employeeHasMore.value && !reset) return;
-
-    employeeLoading.value = true;
-    try {
-        const response = await axios.get('/api/employees/selection', {
-            params: {
-                page: employeePage.value,
-                per_page: 20,
-                search: employeeSearch.value,
-                only_without_user: true,
-            }
-        });
-        const data = response.data.data;
-        if (reset) {
-            employeeOptions.value = data.data;
-        } else {
-            employeeOptions.value = [...employeeOptions.value, ...data.data];
-        }
-        employeeHasMore.value = !!data.next_page_url;
-        employeePage.value++;
-    } catch (error) {
-        console.error('Error fetching employees:', error);
-    } finally {
-        employeeLoading.value = false;
-    }
-};
-
-const onEmployeeSearch = (query: string) => {
-    employeeSearch.value = query;
-    fetchEmployeeOptions(true);
-};
-
-const onEmployeeLoadMore = () => {
-    fetchEmployeeOptions(false);
-};
-
 watch(isDrawerOpen, (newValue) => {
     if (newValue) {
         fetchRoleOptions(true);
-
-        if (!isEmployeeLocked.value) {
-            fetchEmployeeOptions(true);
-        }
     }
 });
 
@@ -396,7 +445,7 @@ const tableData = computed(() => {
         avatar: user.avatar,
         role: user.roles && user.roles.length > 0 ? user.roles[0].name : '-',
         status: user.is_active ? 'Active' : 'Inactive',
-        ...user // Keep original data
+        ...user, // Keep original data
     }));
 });
 
@@ -408,34 +457,35 @@ const columns = ref<Column[]>([
         avatarField: 'avatar',
         labelField: 'name',
         subLabelField: 'email',
-        class: 'min-w-[250px]'
+        class: 'min-w-[250px]',
     },
     {
         key: 'phone',
         label: 'No. Telepon',
-        class: 'min-w-[150px]'
+        class: 'min-w-[150px]',
     },
     {
         key: 'role',
         label: 'Role',
-        class: 'min-w-[150px]'
+        class: 'min-w-[150px]',
     },
     {
         key: 'status',
         label: 'Status',
         type: 'status',
         statusMap: {
-            'Active': 'bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-500',
-            'Inactive': 'bg-error-50 text-error-700 dark:bg-error-500/15 dark:text-error-500'
+            Active: 'bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-500',
+            Inactive:
+                'bg-error-50 text-error-700 dark:bg-error-500/15 dark:text-error-500',
         },
-        class: 'min-w-[120px]'
+        class: 'min-w-[120px]',
     },
     {
         key: 'actions',
         label: 'Aksi',
         type: 'action',
-        class: 'w-[100px]'
-    }
+        class: 'w-[100px]',
+    },
 ]);
 
 const handlePageChange = (page: number) => {
@@ -467,7 +517,6 @@ const editItem = (item: any) => {
     form.email = item.email;
     form.phone = item.phone || '';
     form.roles = item.roles && item.roles.length > 0 ? item.roles[0].name : '';
-    form.employee_id = item.employee_id;
 
     currentAvatar.value = item.avatar || null;
     avatarFile.value = null;
@@ -475,14 +524,8 @@ const editItem = (item: any) => {
     // Pre-fill options to ensure current value is displayed
     if (item.roles && item.roles.length > 0) {
         const role = item.roles[0];
-        if (!roleOptions.value.find(r => r.name === role.name)) {
+        if (!roleOptions.value.find((r) => r.name === role.name)) {
             roleOptions.value.push(role);
-        }
-    }
-
-    if (item.employee) {
-        if (!employeeOptions.value.find(e => e.id === item.employee.id)) {
-            employeeOptions.value.push(item.employee);
         }
     }
 
@@ -524,12 +567,10 @@ const saveUser = async () => {
 
     // Transform data manually
     const roleName = getValue(form.roles, 'name');
-    const employeeId = getValue(form.employee_id, 'id');
 
     const dataToSubmit: Record<string, any> = {
         ...form.data(),
         roles: roleName ? [roleName] : [],
-        employee_id: employeeId,
     };
 
     const formData = new FormData();
@@ -569,7 +610,11 @@ const saveUser = async () => {
         closeDrawer();
         fetchUsers(); // Refresh data
     } catch (error: any) {
-        if (error.response && error.response.data && error.response.data.errors) {
+        if (
+            error.response &&
+            error.response.data &&
+            error.response.data.errors
+        ) {
             form.errors = error.response.data.errors;
         } else {
             console.error('Error saving user:', error);
