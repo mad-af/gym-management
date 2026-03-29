@@ -57,17 +57,19 @@
                         Harga Visit Harian
                     </label>
                     <input
+                        type="text"
                         id="daily_visit_price"
-                        v-model.number="form.daily_visit_price"
-                        type="number"
-                        min="0"
-                        step="1000"
+                        v-model="priceText"
+                        inputmode="numeric"
+                        @focus="handlePriceFocus"
+                        @input="handlePriceInput"
+                        @blur="handlePriceBlur"
                         class="h-11 w-full rounded-lg border border-gray-300 px-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
                         placeholder="Masukkan harga visit harian"
                     />
                     <p
                         v-if="errors.daily_visit_price"
-                        class="mt-2 text-sm text-red-500"
+                        class="mt-2 text-sm text-error-500"
                     >
                         {{ errors.daily_visit_price }}
                     </p>
@@ -158,6 +160,32 @@ const logoFile = ref<File | null>(null);
 const errors = ref<ValidationErrors>({});
 const processing = ref(false);
 const currentSetting = ref<AppSettingData>(props.settings);
+
+const formatRupiah = (value: number): string => {
+    const numberValue = typeof value === 'number' ? value : Number(value);
+    if (Number.isNaN(numberValue)) {
+        return 'Rp 0';
+    }
+    return `Rp ${Math.trunc(numberValue).toLocaleString('id-ID')}`;
+};
+
+const priceText = ref(formatRupiah(form.value.daily_visit_price));
+
+const handlePriceFocus = () => {
+    priceText.value = form.value.daily_visit_price
+        ? String(form.value.daily_visit_price)
+        : '';
+};
+
+const handlePriceInput = () => {
+    const digits = (priceText.value || '').replace(/\D/g, '');
+    priceText.value = digits;
+    form.value.daily_visit_price = digits ? Number(digits) : 0;
+};
+
+const handlePriceBlur = () => {
+    priceText.value = formatRupiah(form.value.daily_visit_price);
+};
 
 const currentLogoSrc = computed(() => currentSetting.value.logo?.url ?? null);
 const currentLogoPlaceholder = computed(
