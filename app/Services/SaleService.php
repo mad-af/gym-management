@@ -45,7 +45,7 @@ class SaleService
         ?string $customerId = null
     ): LengthAwarePaginator {
         $query = Sale::query()
-            ->with(['customer', 'creator', 'items.product'])
+            ->with(['customer.membershipTransactions', 'creator', 'items.product'])
             ->latest('created_at');
 
         if ($customerId) {
@@ -128,7 +128,7 @@ class SaleService
     public function getExportData(string $startDate, string $endDate): Collection
     {
         return Sale::query()
-            ->with(['customer', 'creator', 'items.product'])
+            ->with(['customer.membershipTransactions', 'creator', 'items.product'])
             ->whereDate('created_at', '>=', $startDate)
             ->whereDate('created_at', '<=', $endDate)
             ->orderBy('created_at')

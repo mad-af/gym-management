@@ -74,7 +74,7 @@ class SaleController extends Controller
             }
 
             fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
-            fputcsv($output, ['Tanggal', 'Pelanggan', 'Produk', 'Qty', 'Harga', 'Subtotal', 'Total Penjualan', 'Petugas']);
+            fputcsv($output, ['Tanggal', 'Pelanggan', 'Status Member', 'Produk', 'Qty', 'Harga', 'Subtotal', 'Total Penjualan', 'Petugas']);
 
             foreach ($rows as $sale) {
                 $items = $sale->items;
@@ -83,6 +83,7 @@ class SaleController extends Controller
                     fputcsv($output, [
                         optional($sale->created_at)->format('Y-m-d H:i:s') ?? '-',
                         $sale->customer?->name ?? '-',
+                        $sale->customer?->is_active_member ? 'Ya' : 'Tidak',
                         '-',
                         '-',
                         '-',
@@ -98,6 +99,7 @@ class SaleController extends Controller
                     fputcsv($output, [
                         optional($sale->created_at)->format('Y-m-d H:i:s') ?? '-',
                         $sale->customer?->name ?? '-',
+                        $sale->customer?->is_active_member ? 'Ya' : 'Tidak',
                         $item->product?->name ?? '-',
                         $item->quantity ?? 0,
                         $item->price ?? 0,

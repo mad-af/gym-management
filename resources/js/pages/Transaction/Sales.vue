@@ -53,6 +53,20 @@
                     {{ formatNumberId(row.item_quantity) }}
                 </span>
             </template>
+            <template #cell-customer_name="{ row }">
+                <div class="flex flex-col gap-1">
+                    <span
+                        class="font-medium text-gray-800 dark:text-white/90"
+                        >{{ row.customer_name }}</span
+                    >
+                    <span
+                        v-if="row.customer_is_member"
+                        class="w-fit rounded-full bg-success-50 px-2 py-0.5 text-xs font-medium text-success-700 dark:bg-success-500/15 dark:text-success-500"
+                    >
+                        Member
+                    </span>
+                </div>
+            </template>
             <template #cell-item_price="{ row }">
                 <span class="text-theme-sm text-gray-700 dark:text-gray-400">
                     {{ formatCurrencyId(row.item_price) }}
@@ -226,6 +240,7 @@ const tableData = computed(() =>
                 _key: `${s.id}-${idx}`,
                 id: s.id,
                 customer_name: s.customer?.name || '-',
+                customer_is_member: s.customer?.is_active_member ?? false,
                 staff_name: s.creator?.name || '-',
                 total_amount: s.total_amount,
                 created_at: s.created_at,
@@ -257,7 +272,12 @@ const tableData = computed(() =>
 );
 
 const columns: Column[] = [
-    { key: 'customer_name', label: 'Pelanggan', class: 'min-w-[200px]' },
+    {
+        key: 'customer_name',
+        label: 'Pelanggan',
+        type: 'custom',
+        class: 'min-w-[200px]',
+    },
     {
         key: 'created_at',
         label: 'Tanggal',
