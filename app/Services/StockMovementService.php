@@ -47,7 +47,10 @@ class StockMovementService
         ?string $search = null,
         int $page = 1,
         ?string $productId = null,
-        ?string $type = null
+        ?string $type = null,
+        ?string $createdBy = null,
+        ?string $startDate = null,
+        ?string $endDate = null
     ): LengthAwarePaginator {
         $query = StockMovement::query()
             ->with(['product', 'creator'])
@@ -59,6 +62,18 @@ class StockMovementService
 
         if ($type) {
             $query->where('type', strtoupper($type));
+        }
+
+        if ($createdBy) {
+            $query->where('created_by', $createdBy);
+        }
+
+        if ($startDate) {
+            $query->whereDate('created_at', '>=', $startDate);
+        }
+
+        if ($endDate) {
+            $query->whereDate('created_at', '<=', $endDate);
         }
 
         if ($search) {

@@ -54,10 +54,14 @@ Route::middleware(['auth:web'])->group(function () {
     Route::get('products/stats', [ProductController::class, 'stats']);
     Route::get('sales/stats', [SaleController::class, 'stats']);
     Route::get('sales/export', [SaleController::class, 'export'])->name('api.sales.export');
+    Route::get('sales/export/pdf', [SaleController::class, 'exportPdf'])->name('api.sales.export-pdf');
     Route::get('stock-movements/stats', [StockMovementController::class, 'stats']);
     Route::get('stock-movements/export', [StockMovementController::class, 'export'])->name('api.stock-movements.export');
+    Route::get('stock-movements/export/pdf', [StockMovementController::class, 'exportPdf'])->name('api.stock-movements.export-pdf');
     Route::get('visits/stats', [VisitController::class, 'stats']);
     Route::get('visits/export', [VisitController::class, 'export'])->name('api.visits.export');
+    Route::get('visits/export/pdf', [VisitController::class, 'exportPdf'])->name('api.visits.export-pdf');
+    Route::get('membership-transactions/export/pdf', [MembershipTransactionController::class, 'exportPdf'])->name('api.membership-transactions.export-pdf');
 
     Route::prefix('dashboard')->group(function () {
         Route::get('stats', [DashboardController::class, 'stats']);

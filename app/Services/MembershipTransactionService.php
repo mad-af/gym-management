@@ -45,7 +45,10 @@ class MembershipTransactionService
         ?string $search = null,
         int $page = 1,
         ?string $customerId = null,
-        ?string $status = null
+        ?string $status = null,
+        ?string $createdBy = null,
+        ?string $startDate = null,
+        ?string $endDate = null
     ): LengthAwarePaginator {
         $query = MembershipTransaction::query()
             ->with(['customer', 'package', 'creator'])
@@ -57,6 +60,18 @@ class MembershipTransactionService
 
         if ($status) {
             $query->where('status', $status);
+        }
+
+        if ($createdBy) {
+            $query->where('created_by', $createdBy);
+        }
+
+        if ($startDate) {
+            $query->whereDate('created_at', '>=', $startDate);
+        }
+
+        if ($endDate) {
+            $query->whereDate('created_at', '<=', $endDate);
         }
 
         if ($search) {

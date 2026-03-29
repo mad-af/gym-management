@@ -44,7 +44,10 @@ class VisitService
         ?string $search = null,
         int $page = 1,
         ?string $customerId = null,
-        ?string $visitType = null
+        ?string $visitType = null,
+        ?string $createdBy = null,
+        ?string $startDate = null,
+        ?string $endDate = null
     ): LengthAwarePaginator {
         $query = Visit::query()
             ->with(['customer', 'membershipTransaction', 'creator'])
@@ -56,6 +59,18 @@ class VisitService
 
         if ($visitType) {
             $query->where('visit_type', $visitType);
+        }
+
+        if ($createdBy) {
+            $query->where('created_by', $createdBy);
+        }
+
+        if ($startDate) {
+            $query->whereDate('created_at', '>=', $startDate);
+        }
+
+        if ($endDate) {
+            $query->whereDate('created_at', '<=', $endDate);
         }
 
         if ($search) {

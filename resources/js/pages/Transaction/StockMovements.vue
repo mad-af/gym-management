@@ -31,7 +31,7 @@
                     className="w-full sm:w-auto"
                     :startIcon="FileTextIcon"
                 >
-                    Export CSV
+                    Export
                 </Button>
             </template>
             <template #cell-type="{ row }">
@@ -62,6 +62,23 @@
                 <div>
                     <label
                         class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                        >Produk</label
+                    >
+                    <Combobox
+                        v-model="filters.product_id"
+                        :options="productOptions"
+                        labelKey="name"
+                        valueKey="id"
+                        placeholder="Pilih produk..."
+                        :loading="productLoading"
+                        remote
+                        @search="onProductSearch"
+                        @load-more="onProductLoadMore"
+                    />
+                </div>
+                <div>
+                    <label
+                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
                         >Jenis</label
                     >
                     <select
@@ -70,8 +87,48 @@
                     >
                         <option value="">Semua</option>
                         <option value="in">IN</option>
+                        <option value="out">OUT</option>
                         <option value="adjustment">ADJUSTMENT</option>
                     </select>
+                </div>
+                <div>
+                    <label
+                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                        >Petugas</label
+                    >
+                    <Combobox
+                        v-model="filters.created_by"
+                        :options="staffOptions"
+                        labelKey="name"
+                        valueKey="id"
+                        placeholder="Pilih petugas..."
+                        :loading="staffLoading"
+                        remote
+                        @search="onStaffSearch"
+                        @load-more="onStaffLoadMore"
+                    />
+                </div>
+                <div>
+                    <label
+                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                        >Tanggal Mulai</label
+                    >
+                    <input
+                        v-model="filters.start_date"
+                        type="date"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                    />
+                </div>
+                <div>
+                    <label
+                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                        >Tanggal Sampai</label
+                    >
+                    <input
+                        v-model="filters.end_date"
+                        type="date"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                    />
                 </div>
             </div>
             <template #footer>
@@ -89,7 +146,7 @@
         <Drawer
             :isOpen="isExportDrawerOpen"
             @close="isExportDrawerOpen = false"
-            title="Export Pergerakan Stok (CSV)"
+            title="Export Pergerakan Stok"
         >
             <div class="space-y-6">
                 <div>
@@ -133,6 +190,13 @@
                         >Reset</Button
                     >
                     <Button
+                        variant="outline"
+                        :onClick="exportPdf"
+                        :disabled="exportProcessing"
+                    >
+                        {{ exportProcessing ? 'Memproses...' : 'Download PDF' }}
+                    </Button>
+                    <Button
                         variant="primary"
                         :onClick="exportCsv"
                         :disabled="exportProcessing"
@@ -147,13 +211,14 @@
 
 <script setup lang="ts">
 import axios from 'axios';
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue';
 import AdminLayout from '@/components/layout/AdminLayout.vue';
 import DynamicTable from '@/components/tables/data-tables/DynamicTable.vue';
 import type { Column } from '@/components/tables/data-tables/DynamicTable.vue';
 import Badge from '@/components/ui/Badge.vue';
 import Button from '@/components/ui/Button.vue';
+import Combobox from '@/components/ui/Combobox.vue';
 import Drawer from '@/components/ui/Drawer.vue';
 import Stats2 from '@/components/ui/Stats2.vue';
 import {
@@ -167,10 +232,28 @@ import {
 const currentPageTitle = ref('Stock Movements');
 const isFilterDrawerOpen = ref(false);
 const isExportDrawerOpen = ref(false);
-const filters = ref({ type: '' });
+const filters = ref({
+    product_id: '',
+    type: '',
+    created_by: '',
+    start_date: '',
+    end_date: '',
+});
 const exportForm = ref({ start_date: '', end_date: '' });
 const exportErrors = ref<{ start_date?: string; end_date?: string }>({});
 const exportProcessing = ref(false);
+
+const productOptions = ref<any[]>([]);
+const productLoading = ref(false);
+const productPage = ref(1);
+const productHasMore = ref(true);
+const productSearchQuery = ref('');
+
+const staffOptions = ref<any[]>([]);
+const staffLoading = ref(false);
+const staffPage = ref(1);
+const staffHasMore = ref(true);
+const staffSearchQuery = ref('');
 
 const stats = ref({
     movementsThisMonth: 0,
@@ -296,7 +379,11 @@ const fetchItems = async () => {
             per_page: perPage.value,
             page: currentPage.value,
             search: searchFilter.value || undefined,
+            product_id: filters.value.product_id || undefined,
             type: filters.value.type || undefined,
+            created_by: filters.value.created_by || undefined,
+            start_date: filters.value.start_date || undefined,
+            end_date: filters.value.end_date || undefined,
         },
     });
     items.value = data.data?.data || data.data || [];
@@ -319,7 +406,22 @@ const handlePerPageChange = (n: number) => {
     fetchItems();
 };
 
-const resetFilter = () => (filters.value = { type: '' });
+const resetFilter = () => {
+    filters.value = {
+        product_id: '',
+        type: '',
+        created_by: '',
+        start_date: '',
+        end_date: '',
+    };
+    productOptions.value = [];
+    productPage.value = 1;
+    productHasMore.value = true;
+    staffOptions.value = [];
+    staffPage.value = 1;
+    staffHasMore.value = true;
+    handleFilter();
+};
 const handleFilter = () => {
     currentPage.value = 1;
     fetchItems();
@@ -375,5 +477,153 @@ const exportCsv = async () => {
     }
 };
 
+const exportPdf = async () => {
+    exportErrors.value = {};
+
+    if (!exportForm.value.start_date) {
+        exportErrors.value.start_date = 'Tanggal mulai wajib diisi.';
+    }
+
+    if (!exportForm.value.end_date) {
+        exportErrors.value.end_date = 'Tanggal sampai wajib diisi.';
+    }
+
+    if (Object.keys(exportErrors.value).length > 0) {
+        return;
+    }
+
+    exportProcessing.value = true;
+    try {
+        const response = await axios.get('/api/stock-movements/export/pdf', {
+            params: exportForm.value,
+            responseType: 'blob',
+        });
+
+        const blob = new Blob([response.data], {
+            type: 'application/pdf',
+        });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute(
+            'download',
+            `stock_movements_${exportForm.value.start_date}_to_${exportForm.value.end_date}.pdf`,
+        );
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        isExportDrawerOpen.value = false;
+    } catch (e) {
+        console.error('Error exporting stock movements pdf', e);
+    } finally {
+        exportProcessing.value = false;
+    }
+};
+
 onMounted(fetchItems);
+
+watch(isFilterDrawerOpen, (open) => {
+    if (!open) return;
+    productSearchQuery.value = '';
+    staffSearchQuery.value = '';
+    fetchProductOptions(true);
+    fetchStaffOptions(true);
+});
+
+const fetchProductOptions = async (reset = false) => {
+    if (reset) {
+        productPage.value = 1;
+        productOptions.value = [];
+        productHasMore.value = true;
+    }
+    if (!productHasMore.value && !reset) return;
+
+    productLoading.value = true;
+    try {
+        const { data } = await axios.get('/api/products/selection', {
+            params: {
+                search: productSearchQuery.value || undefined,
+                page: productPage.value,
+            },
+        });
+        const newOptions = data.data?.data || [];
+        productOptions.value = reset
+            ? newOptions
+            : [
+                  ...productOptions.value,
+                  ...newOptions.filter(
+                      (item: any) =>
+                          !productOptions.value.some(
+                              (existing) => existing.id === item.id,
+                          ),
+                  ),
+              ];
+        productHasMore.value =
+            data.data?.current_page < data.data?.last_page ?? false;
+        productPage.value += 1;
+    } catch (e) {
+        console.error(e);
+    } finally {
+        productLoading.value = false;
+    }
+};
+
+const onProductSearch = (search: string) => {
+    productSearchQuery.value = search;
+    fetchProductOptions(true);
+};
+
+const onProductLoadMore = () => {
+    if (productLoading.value || !productHasMore.value) return;
+    fetchProductOptions(false);
+};
+
+const fetchStaffOptions = async (reset = false) => {
+    if (reset) {
+        staffPage.value = 1;
+        staffOptions.value = [];
+        staffHasMore.value = true;
+    }
+    if (!staffHasMore.value && !reset) return;
+
+    staffLoading.value = true;
+    try {
+        const { data } = await axios.get('/api/users/selection', {
+            params: {
+                search: staffSearchQuery.value || undefined,
+                page: staffPage.value,
+            },
+        });
+        const newOptions = data.data?.data || [];
+        staffOptions.value = reset
+            ? newOptions
+            : [
+                  ...staffOptions.value,
+                  ...newOptions.filter(
+                      (item: any) =>
+                          !staffOptions.value.some(
+                              (existing) => existing.id === item.id,
+                          ),
+                  ),
+              ];
+        staffHasMore.value =
+            data.data?.current_page < data.data?.last_page ?? false;
+        staffPage.value += 1;
+    } catch (e) {
+        console.error(e);
+    } finally {
+        staffLoading.value = false;
+    }
+};
+
+const onStaffSearch = (search: string) => {
+    staffSearchQuery.value = search;
+    fetchStaffOptions(true);
+};
+
+const onStaffLoadMore = () => {
+    if (staffLoading.value || !staffHasMore.value) return;
+    fetchStaffOptions(false);
+};
 </script>

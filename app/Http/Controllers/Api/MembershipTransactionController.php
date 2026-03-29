@@ -11,6 +11,8 @@ use App\Models\MembershipTransaction;
 use App\Services\MembershipTransactionService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Mpdf\Mpdf;
+use Mpdf\Output\Destination;
 
 class MembershipTransactionController extends Controller
 {
@@ -31,6 +33,9 @@ class MembershipTransactionController extends Controller
             $request->input('page', 1),
             $request->input('customer_id'),
             $request->input('status'),
+            $request->input('created_by'),
+            $request->input('start_date'),
+            $request->input('end_date'),
         );
 
         return ApiResponse::success('Membership transactions retrieved successfully.', $transactions);
@@ -104,5 +109,43 @@ class MembershipTransactionController extends Controller
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Cache-Control' => 'no-store, no-cache',
         ]);
+    }
+
+    public function exportPdf(ExportDateRangeRequest $request)
+    {
+        $validated = $request->validated();
+        $startDate = $validated['start_date'];
+        $endDate = $validated['end_date'];
+        $rows = $this->service->getExportData($startDate, $endDate);
+
+        $totalRecords = $rows->count();
+        $totalPendapatan = $rows->sum('price');
+
+        $html = view('pdf.membership_transactions', [
+            'rows' => $rows,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'total_records' => $totalRecords,
+            'total_pendapatan' => $totalPendapatan,
+        ])->render();
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'margin_top' => 15,
+            'margin_bottom' => 15,
+            'margin_left' => 10,
+            'margin_right' => 10,
+        ]);
+
+        $mpdf->WriteHTML($html);
+
+        $filename = sprintf('membership_transactions_%s_to_%s.pdf', $startDate, $endDate);
+
+        return response()->streamDownload(
+            fn () => print ($mpdf->Output('', Destination::STRING_RETURN)),
+            $filename,
+            ['Content-Type' => 'application/pdf']
+        );
     }
 }

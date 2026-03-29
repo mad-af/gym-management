@@ -10,6 +10,8 @@ use App\Models\StockMovement;
 use App\Services\StockMovementService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Mpdf\Mpdf;
+use Mpdf\Output\Destination;
 
 class StockMovementController extends Controller
 {
@@ -29,6 +31,9 @@ class StockMovementController extends Controller
             $request->input('page', 1),
             $request->input('product_id'),
             $request->input('type'),
+            $request->input('created_by'),
+            $request->input('start_date'),
+            $request->input('end_date'),
         );
 
         return ApiResponse::success('Stock movements retrieved successfully.', $movements);
@@ -92,5 +97,43 @@ class StockMovementController extends Controller
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Cache-Control' => 'no-store, no-cache',
         ]);
+    }
+
+    public function exportPdf(ExportDateRangeRequest $request)
+    {
+        $validated = $request->validated();
+        $startDate = $validated['start_date'];
+        $endDate = $validated['end_date'];
+        $rows = $this->service->getExportData($startDate, $endDate);
+
+        $totalIn = $rows->where('type', 'in')->sum('quantity');
+        $totalOut = $rows->where('type', 'out')->sum('quantity');
+
+        $html = view('pdf.stock_movements', [
+            'rows' => $rows,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'total_in' => $totalIn,
+            'total_out' => $totalOut,
+        ])->render();
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'margin_top' => 15,
+            'margin_bottom' => 15,
+            'margin_left' => 10,
+            'margin_right' => 10,
+        ]);
+
+        $mpdf->WriteHTML($html);
+
+        $filename = sprintf('stock_movements_%s_to_%s.pdf', $startDate, $endDate);
+
+        return response()->streamDownload(
+            fn () => print ($mpdf->Output('', Destination::STRING_RETURN)),
+            $filename,
+            ['Content-Type' => 'application/pdf']
+        );
     }
 }

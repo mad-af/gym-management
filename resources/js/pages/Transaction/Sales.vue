@@ -31,7 +31,7 @@
                     className="w-full sm:w-auto"
                     :startIcon="FileTextIcon"
                 >
-                    Export CSV
+                    Export
                 </Button>
             </template>
             <template #cell-total_amount="{ row }">
@@ -92,9 +92,54 @@
                         class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
                         >Pelanggan</label
                     >
-                    <input
-                        type="text"
+                    <Combobox
                         v-model="filters.customer_id"
+                        :options="customerOptions"
+                        labelKey="name"
+                        valueKey="id"
+                        placeholder="Pilih pelanggan..."
+                        :loading="customerLoading"
+                        remote
+                        @search="onCustomerSearch"
+                        @load-more="onCustomerLoadMore"
+                    />
+                </div>
+                <div>
+                    <label
+                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                        >Petugas</label
+                    >
+                    <Combobox
+                        v-model="filters.created_by"
+                        :options="staffOptions"
+                        labelKey="name"
+                        valueKey="id"
+                        placeholder="Pilih petugas..."
+                        :loading="staffLoading"
+                        remote
+                        @search="onStaffSearch"
+                        @load-more="onStaffLoadMore"
+                    />
+                </div>
+                <div>
+                    <label
+                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                        >Tanggal Mulai</label
+                    >
+                    <input
+                        v-model="filters.start_date"
+                        type="date"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                    />
+                </div>
+                <div>
+                    <label
+                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                        >Tanggal Sampai</label
+                    >
+                    <input
+                        v-model="filters.end_date"
+                        type="date"
                         class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                     />
                 </div>
@@ -114,7 +159,7 @@
         <Drawer
             :isOpen="isExportDrawerOpen"
             @close="isExportDrawerOpen = false"
-            title="Export Penjualan (CSV)"
+            title="Export Penjualan"
         >
             <div class="space-y-6">
                 <div>
@@ -158,6 +203,13 @@
                         >Reset</Button
                     >
                     <Button
+                        variant="outline"
+                        :onClick="exportPdf"
+                        :disabled="exportProcessing"
+                    >
+                        {{ exportProcessing ? 'Memproses...' : 'Download PDF' }}
+                    </Button>
+                    <Button
                         variant="primary"
                         :onClick="exportCsv"
                         :disabled="exportProcessing"
@@ -172,12 +224,13 @@
 
 <script setup lang="ts">
 import axios from 'axios';
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue';
 import AdminLayout from '@/components/layout/AdminLayout.vue';
 import DynamicTable from '@/components/tables/data-tables/DynamicTable.vue';
 import type { Column } from '@/components/tables/data-tables/DynamicTable.vue';
 import Button from '@/components/ui/Button.vue';
+import Combobox from '@/components/ui/Combobox.vue';
 import Drawer from '@/components/ui/Drawer.vue';
 import Stats2 from '@/components/ui/Stats2.vue';
 import {
@@ -191,10 +244,27 @@ import {
 const currentPageTitle = ref('Sales');
 const isFilterDrawerOpen = ref(false);
 const isExportDrawerOpen = ref(false);
-const filters = ref({ customer_id: '' });
+const filters = ref({
+    customer_id: '',
+    created_by: '',
+    start_date: '',
+    end_date: '',
+});
 const exportForm = ref({ start_date: '', end_date: '' });
 const exportErrors = ref<{ start_date?: string; end_date?: string }>({});
 const exportProcessing = ref(false);
+
+const customerOptions = ref<any[]>([]);
+const customerLoading = ref(false);
+const customerPage = ref(1);
+const customerHasMore = ref(true);
+const customerSearchQuery = ref('');
+
+const staffOptions = ref<any[]>([]);
+const staffLoading = ref(false);
+const staffPage = ref(1);
+const staffHasMore = ref(true);
+const staffSearchQuery = ref('');
 
 const stats = ref({
     totalSales: 0,
@@ -416,7 +486,10 @@ const fetchItems = async () => {
                 page: currentPage.value,
                 per_page: perPage.value,
                 search: searchFilter.value,
-                customer_id: filters.value.customer_id,
+                customer_id: filters.value.customer_id || undefined,
+                created_by: filters.value.created_by || undefined,
+                start_date: filters.value.start_date || undefined,
+                end_date: filters.value.end_date || undefined,
             },
         });
         items.value = data.data?.data || [];
@@ -451,7 +524,18 @@ const handleFilter = () => {
 };
 
 const resetFilter = () => {
-    filters.value.customer_id = '';
+    filters.value = {
+        customer_id: '',
+        created_by: '',
+        start_date: '',
+        end_date: '',
+    };
+    customerOptions.value = [];
+    customerPage.value = 1;
+    customerHasMore.value = true;
+    staffOptions.value = [];
+    staffPage.value = 1;
+    staffHasMore.value = true;
     handleFilter();
 };
 
@@ -504,7 +588,153 @@ const exportCsv = async () => {
     }
 };
 
+const exportPdf = async () => {
+    exportErrors.value = {};
+
+    if (!exportForm.value.start_date) {
+        exportErrors.value.start_date = 'Tanggal mulai wajib diisi.';
+    }
+
+    if (!exportForm.value.end_date) {
+        exportErrors.value.end_date = 'Tanggal sampai wajib diisi.';
+    }
+
+    if (Object.keys(exportErrors.value).length > 0) {
+        return;
+    }
+
+    exportProcessing.value = true;
+    try {
+        const response = await axios.get('/api/sales/export/pdf', {
+            params: exportForm.value,
+            responseType: 'blob',
+        });
+
+        const blob = new Blob([response.data], {
+            type: 'application/pdf',
+        });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute(
+            'download',
+            `sales_${exportForm.value.start_date}_to_${exportForm.value.end_date}.pdf`,
+        );
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        isExportDrawerOpen.value = false;
+    } catch (e) {
+        console.error('Error exporting sales pdf', e);
+    } finally {
+        exportProcessing.value = false;
+    }
+};
+
 onMounted(() => {
     fetchItems();
 });
+
+watch(isFilterDrawerOpen, (open) => {
+    if (!open) return;
+    customerSearchQuery.value = '';
+    staffSearchQuery.value = '';
+    fetchCustomerOptions(true);
+    fetchStaffOptions(true);
+});
+
+const fetchCustomerOptions = async (reset = false) => {
+    if (reset) {
+        customerPage.value = 1;
+        customerOptions.value = [];
+        customerHasMore.value = true;
+    }
+    if (!customerHasMore.value && !reset) return;
+
+    customerLoading.value = true;
+    try {
+        const { data } = await axios.get('/api/customers/selection', {
+            params: {
+                search: customerSearchQuery.value || undefined,
+                page: customerPage.value,
+            },
+        });
+        const newOptions = data.data?.data || [];
+        customerOptions.value = reset
+            ? newOptions
+            : [
+                  ...customerOptions.value,
+                  ...newOptions.filter(
+                      (item: any) =>
+                          !customerOptions.value.some(
+                              (existing) => existing.id === item.id,
+                          ),
+                  ),
+              ];
+        customerHasMore.value =
+            data.data?.current_page < data.data?.last_page ?? false;
+        customerPage.value += 1;
+    } catch (e) {
+        console.error(e);
+    } finally {
+        customerLoading.value = false;
+    }
+};
+
+const onCustomerSearch = (search: string) => {
+    customerSearchQuery.value = search;
+    fetchCustomerOptions(true);
+};
+
+const onCustomerLoadMore = () => {
+    fetchCustomerOptions(false);
+};
+
+const fetchStaffOptions = async (reset = false) => {
+    if (reset) {
+        staffPage.value = 1;
+        staffOptions.value = [];
+        staffHasMore.value = true;
+    }
+    if (!staffHasMore.value && !reset) return;
+
+    staffLoading.value = true;
+    try {
+        const { data } = await axios.get('/api/users/selection', {
+            params: {
+                search: staffSearchQuery.value || undefined,
+                page: staffPage.value,
+            },
+        });
+        const newOptions = data.data?.data || [];
+        staffOptions.value = reset
+            ? newOptions
+            : [
+                  ...staffOptions.value,
+                  ...newOptions.filter(
+                      (item: any) =>
+                          !staffOptions.value.some(
+                              (existing) => existing.id === item.id,
+                          ),
+                  ),
+              ];
+        staffHasMore.value =
+            data.data?.current_page < data.data?.last_page ?? false;
+        staffPage.value += 1;
+    } catch (e) {
+        console.error(e);
+    } finally {
+        staffLoading.value = false;
+    }
+};
+
+const onStaffSearch = (search: string) => {
+    staffSearchQuery.value = search;
+    fetchStaffOptions(true);
+};
+
+const onStaffLoadMore = () => {
+    fetchStaffOptions(false);
+};
 </script>

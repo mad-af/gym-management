@@ -42,7 +42,10 @@ class SaleService
         int $perPage = 10,
         ?string $search = null,
         int $page = 1,
-        ?string $customerId = null
+        ?string $customerId = null,
+        ?string $createdBy = null,
+        ?string $startDate = null,
+        ?string $endDate = null
     ): LengthAwarePaginator {
         $query = Sale::query()
             ->with(['customer.membershipTransactions', 'creator', 'items.product'])
@@ -50,6 +53,18 @@ class SaleService
 
         if ($customerId) {
             $query->where('customer_id', $customerId);
+        }
+
+        if ($createdBy) {
+            $query->where('created_by', $createdBy);
+        }
+
+        if ($startDate) {
+            $query->whereDate('created_at', '>=', $startDate);
+        }
+
+        if ($endDate) {
+            $query->whereDate('created_at', '<=', $endDate);
         }
 
         if ($search) {
