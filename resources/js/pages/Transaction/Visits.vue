@@ -297,6 +297,7 @@ const statsItems = computed(() => [
         value: formatCurrencyCompactId(stats.value.dailyRevenueToday),
         icon: BanknoteIcon,
         iconBgClass: 'bg-blue-50 text-blue-500 dark:bg-blue-500/10',
+        detail: formatCurrencyId(stats.value.dailyRevenueToday),
     },
 ]);
 

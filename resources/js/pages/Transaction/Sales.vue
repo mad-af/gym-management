@@ -290,12 +290,14 @@ const statsItems = computed(() => [
         value: formatCurrencyCompactId(stats.value.revenueThisMonth),
         icon: BanknoteIcon,
         iconBgClass: 'bg-success-50 text-success-600 dark:bg-success-500/10',
+        detail: formatCurrencyId(stats.value.revenueThisMonth),
     },
     {
         label: 'Omzet Hari Ini',
         value: formatCurrencyCompactId(stats.value.revenueToday),
         icon: BarChartIcon,
         iconBgClass: 'bg-blue-50 text-blue-500 dark:bg-blue-500/10',
+        detail: formatCurrencyId(stats.value.revenueToday),
     },
 ]);
 

@@ -289,6 +289,7 @@ const statsItems = computed(() => [
         value: formatCurrencyCompactId(stats.value.revenueThisMonth),
         icon: BanknoteIcon,
         iconBgClass: 'bg-brand-50 text-brand-500 dark:bg-brand-500/10',
+        detail: formatCurrencyId(stats.value.revenueThisMonth),
     },
 ]);
 

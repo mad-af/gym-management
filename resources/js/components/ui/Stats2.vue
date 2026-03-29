@@ -1,11 +1,19 @@
 <template>
   <div class="custom-scrollbar mb-6 max-w-full overflow-x-auto pb-1">
     <div class="flex gap-4 md:gap-6">
-      <div v-for="(item, index) in items" :key="index" :class="[
-        cardClass,
-        'rounded-2xl border border-gray-100 bg-white p-5 dark:border-gray-800 dark:bg-white/3',
-      ]">
-        <div class="flex items-center gap-4">
+      <div
+        v-for="(item, index) in items"
+        :key="index"
+        :ref="(el) => setTriggerRef(index, el)"
+        :class="[
+          cardClass,
+          'rounded-2xl border border-gray-100 bg-white p-5 dark:border-gray-800 dark:bg-white/3',
+          'cursor-pointer'
+        ]"
+        @mouseenter="showTooltip(index)"
+        @mouseleave="hideTooltip"
+      >
+        <div class="group relative flex items-center gap-4">
           <div :class="[
             'flex h-12 w-12 items-center justify-center rounded-xl',
             item.iconBgClass || 'bg-brand-50 text-brand-500 dark:bg-brand-500/10',
@@ -25,11 +33,21 @@
       </div>
     </div>
   </div>
+
+  <Teleport to="body">
+    <div
+      v-if="activeTooltip !== null"
+      class="fixed z-[9999] bg-gray-800 p-2 text-sm text-white rounded-md pointer-events-none"
+      :style="tooltipStyle"
+    >
+      {{ tooltipContent }}
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import type { Component } from 'vue';
+import { computed, ref } from 'vue';
+import type { Component, ComponentPublicInstance } from 'vue';
 
 interface Stats2Item {
   label: string;
@@ -37,6 +55,7 @@ interface Stats2Item {
   suffix?: string;
   icon: Component;
   iconBgClass?: string;
+  detail?: string;
 }
 
 interface Stats2Props {
@@ -44,6 +63,45 @@ interface Stats2Props {
 }
 
 const props = defineProps<Stats2Props>();
+
+const activeTooltip = ref<number | null>(null);
+const triggerMap = ref<Map<number, HTMLElement>>(new Map());
+
+const setTriggerRef = (index: number, el: Element | ComponentPublicInstance | null) => {
+  if (el) {
+    const element = (el as ComponentPublicInstance).$el ?? el as HTMLElement;
+    triggerMap.value.set(index, element);
+  }
+};
+
+const tooltipStyle = computed(() => {
+  if (activeTooltip.value === null) return {};
+
+  const trigger = triggerMap.value.get(activeTooltip.value);
+  if (!trigger) return {};
+
+  const rect = trigger.getBoundingClientRect();
+
+  return {
+    left: `${rect.left + rect.width / 2}px`,
+    top: `${rect.top - 8}px`,
+    transform: 'translate(-50%, -100%)',
+  };
+});
+
+const tooltipContent = computed(() => {
+  if (activeTooltip.value === null) return '';
+  const item = props.items[activeTooltip.value];
+  return item.detail ?? item.label;
+});
+
+const showTooltip = (index: number) => {
+  activeTooltip.value = index;
+};
+
+const hideTooltip = () => {
+  activeTooltip.value = null;
+};
 
 const cardClass = computed(() => {
   const count = props.items.length;

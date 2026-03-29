@@ -130,6 +130,18 @@ const formatCurrencyCompactId = (value: unknown): string => {
     return `Rp ${formatCompactNumberId(n)}`;
 };
 
+const formatCurrencyId = (value: unknown): string => {
+    const n = typeof value === 'number' ? value : Number(value) || 0;
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    })
+        .format(n)
+        .replace('Rp', 'Rp ');
+};
+
 const statsItems = computed(() => [
     {
         label: dateText.value,
@@ -148,12 +160,14 @@ const statsItems = computed(() => [
         value: formatCurrencyCompactId(opsStats.value.sales.revenue),
         icon: CalenderIcon,
         iconBgClass: 'bg-blue-50 text-blue-600 dark:bg-blue-500/10',
+        detail: formatCurrencyId(opsStats.value.sales.revenue),
     },
     {
         label: 'Omzet Membership',
         value: formatCurrencyCompactId(opsStats.value.memberships.revenue),
         icon: CalenderIcon,
         iconBgClass: 'bg-success-50 text-success-700 dark:bg-success-500/10',
+        detail: formatCurrencyId(opsStats.value.memberships.revenue),
     },
     {
         label: 'Stok IN/OUT',

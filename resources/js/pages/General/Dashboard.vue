@@ -290,12 +290,14 @@ const statsItems = computed(() => {
             value: formatCurrencyCompactId(overview.revenue_today),
             icon: BanknoteIcon,
             iconBgClass: 'bg-violet-50 text-violet-600 dark:bg-violet-500/10',
+            detail: formatCurrencyId(overview.revenue_today),
         },
         {
             label: 'Omzet Bulan Ini',
             value: formatCurrencyCompactId(overview.revenue_this_month),
             icon: BanknoteIcon,
             iconBgClass: 'bg-amber-50 text-amber-600 dark:bg-amber-500/10',
+            detail: formatCurrencyId(overview.revenue_this_month),
         },
         {
             label: 'Produk Stok Rendah',
