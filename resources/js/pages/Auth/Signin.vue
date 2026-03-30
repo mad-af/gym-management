@@ -292,8 +292,8 @@ const appDescription = computed(
 );
 
 const form = useForm({
-    email: 'admin@asset-management.com',
-    password: 'password',
+    email: '',
+    password: '',
     remember: false,
 });
 
