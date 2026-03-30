@@ -49,6 +49,23 @@ class DashboardService
             ->whereDate('created_at', '<=', $monthEnd)
             ->sum('price');
 
+        $salesProfitToday = (float) SaleItem::query()
+            ->whereNotNull('capital_price')
+            ->whereHas('sale', function ($query) use ($today) {
+                $query->whereDate('created_at', $today);
+            })
+            ->selectRaw('COALESCE(SUM((price - capital_price) * quantity), 0) as profit')
+            ->value('profit');
+
+        $salesProfitMonth = (float) SaleItem::query()
+            ->whereNotNull('capital_price')
+            ->whereHas('sale', function ($query) use ($monthStart, $monthEnd) {
+                $query->whereDate('created_at', '>=', $monthStart)
+                    ->whereDate('created_at', '<=', $monthEnd);
+            })
+            ->selectRaw('COALESCE(SUM((price - capital_price) * quantity), 0) as profit')
+            ->value('profit');
+
         return [
             'overview' => [
                 'total_customers' => Customer::query()->count(),
@@ -71,6 +88,8 @@ class DashboardService
                     ->count(),
                 'revenue_today' => $dailyVisitRevenueToday + $salesRevenueToday + $membershipRevenueToday,
                 'revenue_this_month' => $dailyVisitRevenueMonth + $salesRevenueMonth + $membershipRevenueMonth,
+                'profit_today' => $salesProfitToday,
+                'profit_this_month' => $salesProfitMonth,
                 'low_stock_products' => Product::query()
                     ->where('stock', '<=', 5)
                     ->count(),
@@ -108,6 +127,13 @@ class DashboardService
                 'revenue' => (float) Sale::query()
                     ->whereDate('created_at', $today)
                     ->sum('total_amount'),
+                'profit' => (float) SaleItem::query()
+                    ->whereNotNull('capital_price')
+                    ->whereHas('sale', function ($query) use ($today) {
+                        $query->whereDate('created_at', $today);
+                    })
+                    ->selectRaw('COALESCE(SUM((price - capital_price) * quantity), 0) as profit')
+                    ->value('profit'),
             ],
             'memberships' => [
                 'count' => MembershipTransaction::query()

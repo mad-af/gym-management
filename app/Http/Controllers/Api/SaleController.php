@@ -79,7 +79,7 @@ class SaleController extends Controller
             }
 
             fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
-            fputcsv($output, ['Tanggal', 'Pelanggan', 'Status Member', 'Produk', 'Qty', 'Harga', 'Subtotal', 'Total Penjualan', 'Petugas']);
+            fputcsv($output, ['Tanggal', 'Pelanggan', 'Status Member', 'Produk', 'Qty', 'Harga', 'Harga Modal', 'Profit', 'Subtotal', 'Total Penjualan', 'Petugas']);
 
             foreach ($rows as $sale) {
                 $items = $sale->items;
@@ -93,6 +93,8 @@ class SaleController extends Controller
                         '-',
                         '-',
                         '-',
+                        '-',
+                        '-',
                         $sale->total_amount ?? 0,
                         $sale->creator?->name ?? '-',
                     ]);
@@ -101,6 +103,8 @@ class SaleController extends Controller
                 }
 
                 foreach ($items as $item) {
+                    $capitalPrice = $item->capital_price;
+                    $profit = $capitalPrice ? ($item->price - $capitalPrice) * $item->quantity : null;
                     fputcsv($output, [
                         optional($sale->created_at)->format('Y-m-d H:i:s') ?? '-',
                         $sale->customer?->name ?? '-',
@@ -108,6 +112,8 @@ class SaleController extends Controller
                         $item->product?->name ?? '-',
                         $item->quantity ?? 0,
                         $item->price ?? 0,
+                        $capitalPrice ?? '-',
+                        $profit ?? '-',
                         $item->subtotal ?? 0,
                         $sale->total_amount ?? 0,
                         $sale->creator?->name ?? '-',
@@ -132,12 +138,18 @@ class SaleController extends Controller
         $totalRecords = $rows->count();
         $totalOmzet = $rows->sum('total_amount');
 
+        $totalProfit = $rows->loadMissing('items')
+            ->flatMap(fn ($sale) => $sale->items)
+            ->whereNotNull('capital_price')
+            ->sum(fn ($item) => ($item->price - $item->capital_price) * $item->quantity);
+
         $html = view('pdf.sales', [
             'rows' => $rows,
             'start_date' => $startDate,
             'end_date' => $endDate,
             'total_records' => $totalRecords,
             'total_omzet' => $totalOmzet,
+            'total_profit' => $totalProfit,
         ])->render();
 
         $mpdf = new Mpdf([

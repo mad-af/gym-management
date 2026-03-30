@@ -17,6 +17,7 @@ class Product extends Model
     protected $fillable = [
         'name',
         'price',
+        'capital_price',
         'stock',
         'is_active',
         'created_at',
@@ -33,6 +34,7 @@ class Product extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'price' => 'decimal:0',
+        'capital_price' => 'decimal:0',
         'created_at' => 'datetime',
     ];
 

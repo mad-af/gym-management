@@ -111,6 +111,7 @@ class SaleService
                     'product_id' => $product->id,
                     'quantity' => $quantity,
                     'price' => $price,
+                    'capital_price' => $product->capital_price,
                     'subtotal' => $subtotal,
                 ]);
 

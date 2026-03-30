@@ -120,6 +120,10 @@
             <div class="summary-label">Total Omzet</div>
             <div class="summary-value">Rp {{ number_format($total_omzet ?? 0, 0, ',', '.') }}</div>
         </div>
+        <div class="summary-item">
+            <div class="summary-label">Total Profit</div>
+            <div class="summary-value">Rp {{ number_format($total_profit ?? 0, 0, ',', '.') }}</div>
+        </div>
     </div>
 
     <table>
@@ -131,6 +135,8 @@
                 <th>Produk</th>
                 <th class="text-right">Qty</th>
                 <th class="text-right">Harga</th>
+                <th class="text-right">Harga Modal</th>
+                <th class="text-right">Profit</th>
                 <th class="text-right">Subtotal</th>
                 <th class="text-right">Total</th>
                 <th>Petugas</th>
@@ -148,6 +154,8 @@
                         <td>{{ $item->product?->name ?? '-' }}</td>
                         <td class="text-right">{{ $item->quantity ?? 0 }}</td>
                         <td class="text-right">Rp {{ number_format($item->price ?? 0, 0, ',', '.') }}</td>
+                        <td class="text-right">{{ $item->capital_price ? 'Rp ' . number_format($item->capital_price, 0, ',', '.') : '-' }}</td>
+                        <td class="text-right">{{ $item->capital_price ? 'Rp ' . number_format(($item->price - $item->capital_price) * $item->quantity, 0, ',', '.') : '-' }}</td>
                         <td class="text-right">Rp {{ number_format($item->subtotal ?? 0, 0, ',', '.') }}</td>
                         @if($index === 0)
                             <td rowspan="{{ $sale->items->count() }}" class="text-right">Rp {{ number_format($sale->total_amount ?? 0, 0, ',', '.') }}</td>
@@ -164,13 +172,15 @@
                         <td class="text-right">-</td>
                         <td class="text-right">-</td>
                         <td class="text-right">-</td>
+                        <td class="text-right">-</td>
+                        <td class="text-right">-</td>
                         <td class="text-right">Rp {{ number_format($sale->total_amount ?? 0, 0, ',', '.') }}</td>
                         <td>{{ $sale->creator?->name ?? '-' }}</td>
                     </tr>
                 @endif
             @empty
                 <tr>
-                    <td colspan="9" class="text-center">Tidak ada data</td>
+                    <td colspan="11" class="text-center">Tidak ada data</td>
                 </tr>
             @endforelse
         </tbody>

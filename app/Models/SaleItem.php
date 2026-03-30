@@ -16,11 +16,13 @@ class SaleItem extends Model
         'product_id',
         'quantity',
         'price',
+        'capital_price',
         'subtotal',
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
+        'capital_price' => 'decimal:2',
         'subtotal' => 'decimal:2',
     ];
 
@@ -32,5 +34,14 @@ class SaleItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function getProfitAttribute(): int
+    {
+        if ($this->capital_price === null) {
+            return (int) $this->subtotal;
+        }
+
+        return (int) (($this->price - $this->capital_price) * $this->quantity);
     }
 }

@@ -67,7 +67,7 @@ class ProductService
 
         return $query
             ->where('is_active', $isActive)
-            ->select(['id', 'name', 'price', 'stock'])
+            ->select(['id', 'name', 'price', 'capital_price', 'stock'])
             ->paginate($perPage, ['*'], 'page', $page);
     }
 
