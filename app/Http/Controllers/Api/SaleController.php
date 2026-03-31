@@ -35,7 +35,6 @@ class SaleController extends Controller
             $request->input('start_date'),
             $request->input('end_date'),
             filter_var($request->input('last_24_hours', false), FILTER_VALIDATE_BOOLEAN),
-            filter_var($request->input('include_cancelled', false), FILTER_VALIDATE_BOOLEAN),
         );
 
         return ApiResponse::success('Sales retrieved successfully.', $sales);
@@ -57,6 +56,10 @@ class SaleController extends Controller
 
     public function show(Sale $sale)
     {
+        if ($sale->is_cancelled) {
+            return ApiResponse::error('Sale not found.', 404);
+        }
+
         return ApiResponse::success('Sale details retrieved successfully.', $sale->load(['customer', 'creator', 'items.product']));
     }
 

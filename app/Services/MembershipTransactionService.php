@@ -18,6 +18,7 @@ class MembershipTransactionService
         $endOfMonth = $today->copy()->endOfMonth();
 
         $activeMembers = MembershipTransaction::query()
+            ->notCancelled()
             ->where('status', 'active')
             ->whereDate('start_date', '<=', $today)
             ->whereDate('end_date', '>=', $today)
@@ -25,16 +26,19 @@ class MembershipTransactionService
             ->count('customer_id');
 
         $transactionsThisMonth = MembershipTransaction::query()
+            ->notCancelled()
             ->whereDate('created_at', '>=', $startOfMonth)
             ->whereDate('created_at', '<=', $endOfMonth)
             ->count();
 
         $revenueThisMonth = (float) MembershipTransaction::query()
+            ->notCancelled()
             ->whereDate('created_at', '>=', $startOfMonth)
             ->whereDate('created_at', '<=', $endOfMonth)
             ->sum('price');
 
         $baseExpiringQuery = MembershipTransaction::query()
+            ->notCancelled()
             ->where('status', 'active')
             ->whereDate('end_date', '>=', $today);
 
@@ -61,16 +65,12 @@ class MembershipTransactionService
         ?string $startDate = null,
         ?string $endDate = null,
         ?int $expiringWithinDays = null,
-        ?bool $last24Hours = false,
-        ?bool $includeCancelled = false
+        ?bool $last24Hours = false
     ): LengthAwarePaginator {
         $query = MembershipTransaction::query()
             ->with(['customer', 'package', 'creator', 'cancelledBy'])
+            ->notCancelled()
             ->latest('created_at');
-
-        if (! $includeCancelled) {
-            $query->whereNull('cancelled_at');
-        }
 
         if ($last24Hours) {
             $query->where('created_at', '>=', Carbon::now()->subHours(24));
@@ -119,6 +119,7 @@ class MembershipTransactionService
         $today = Carbon::today();
 
         return MembershipTransaction::query()
+            ->notCancelled()
             ->with(['customer', 'package', 'creator'])
             ->where('status', 'active')
             ->whereDate('end_date', '>=', $today)
@@ -174,6 +175,7 @@ class MembershipTransactionService
     public function getExportData(string $startDate, string $endDate): Collection
     {
         return MembershipTransaction::query()
+            ->notCancelled()
             ->with(['customer', 'package', 'creator'])
             ->whereDate('created_at', '>=', $startDate)
             ->whereDate('created_at', '<=', $endDate)

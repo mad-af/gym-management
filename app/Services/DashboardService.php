@@ -26,10 +26,12 @@ class DashboardService
             ->sum('price');
 
         $salesRevenueToday = (float) Sale::query()
+            ->notCancelled()
             ->whereDate('created_at', $today)
             ->sum('total_amount');
 
         $membershipRevenueToday = (float) MembershipTransaction::query()
+            ->notCancelled()
             ->whereDate('created_at', $today)
             ->sum('price');
 
@@ -40,11 +42,13 @@ class DashboardService
             ->sum('price');
 
         $salesRevenueMonth = (float) Sale::query()
+            ->notCancelled()
             ->whereDate('created_at', '>=', $monthStart)
             ->whereDate('created_at', '<=', $monthEnd)
             ->sum('total_amount');
 
         $membershipRevenueMonth = (float) MembershipTransaction::query()
+            ->notCancelled()
             ->whereDate('created_at', '>=', $monthStart)
             ->whereDate('created_at', '<=', $monthEnd)
             ->sum('price');
@@ -52,7 +56,7 @@ class DashboardService
         $salesProfitToday = (float) SaleItem::query()
             ->whereNotNull('capital_price')
             ->whereHas('sale', function ($query) use ($today) {
-                $query->whereDate('created_at', $today);
+                $query->notCancelled()->whereDate('created_at', $today);
             })
             ->selectRaw('COALESCE(SUM((price - capital_price) * quantity), 0) as profit')
             ->value('profit');
@@ -60,7 +64,8 @@ class DashboardService
         $salesProfitMonth = (float) SaleItem::query()
             ->whereNotNull('capital_price')
             ->whereHas('sale', function ($query) use ($monthStart, $monthEnd) {
-                $query->whereDate('created_at', '>=', $monthStart)
+                $query->notCancelled()
+                    ->whereDate('created_at', '>=', $monthStart)
                     ->whereDate('created_at', '<=', $monthEnd);
             })
             ->selectRaw('COALESCE(SUM((price - capital_price) * quantity), 0) as profit')
@@ -70,6 +75,7 @@ class DashboardService
             'overview' => [
                 'total_customers' => Customer::query()->count(),
                 'active_members' => MembershipTransaction::query()
+                    ->notCancelled()
                     ->where('status', 'active')
                     ->whereDate('start_date', '<=', $today)
                     ->whereDate('end_date', '>=', $today)
@@ -94,6 +100,7 @@ class DashboardService
                     ->where('stock', '<=', 5)
                     ->count(),
                 'expiring_memberships_7_days' => MembershipTransaction::query()
+                    ->notCancelled()
                     ->where('status', 'active')
                     ->whereDate('end_date', '>=', $today)
                     ->whereDate('end_date', '<=', $today->copy()->addDays(7))
@@ -127,24 +134,28 @@ class DashboardService
             ],
             'sales' => [
                 'count' => Sale::query()
+                    ->notCancelled()
                     ->whereDate('created_at', $today)
                     ->count(),
                 'revenue' => (float) Sale::query()
+                    ->notCancelled()
                     ->whereDate('created_at', $today)
                     ->sum('total_amount'),
                 'profit' => (float) SaleItem::query()
                     ->whereNotNull('capital_price')
                     ->whereHas('sale', function ($query) use ($today) {
-                        $query->whereDate('created_at', $today);
+                        $query->notCancelled()->whereDate('created_at', $today);
                     })
                     ->selectRaw('COALESCE(SUM((price - capital_price) * quantity), 0) as profit')
                     ->value('profit'),
             ],
             'memberships' => [
                 'count' => MembershipTransaction::query()
+                    ->notCancelled()
                     ->whereDate('created_at', $today)
                     ->count(),
                 'revenue' => (float) MembershipTransaction::query()
+                    ->notCancelled()
                     ->whereDate('created_at', $today)
                     ->sum('price'),
             ],
@@ -167,6 +178,7 @@ class DashboardService
         $startDate = $endDate->copy()->subDays(max(1, $days) - 1);
 
         $salesByDate = Sale::query()
+            ->notCancelled()
             ->selectRaw('DATE(created_at) as day, COALESCE(SUM(total_amount), 0) as total')
             ->whereDate('created_at', '>=', $startDate)
             ->whereDate('created_at', '<=', $endDate)
@@ -174,6 +186,7 @@ class DashboardService
             ->pluck('total', 'day');
 
         $membershipByDate = MembershipTransaction::query()
+            ->notCancelled()
             ->selectRaw('DATE(created_at) as day, COALESCE(SUM(price), 0) as total')
             ->whereDate('created_at', '>=', $startDate)
             ->whereDate('created_at', '<=', $endDate)
@@ -253,7 +266,7 @@ class DashboardService
             ->selectRaw('COALESCE(SUM(quantity), 0) as qty_sold')
             ->selectRaw('COALESCE(SUM(subtotal), 0) as revenue')
             ->whereHas('sale', function ($query) use ($startDate) {
-                $query->whereDate('created_at', '>=', $startDate);
+                $query->notCancelled()->whereDate('created_at', '>=', $startDate);
             })
             ->with(['product:id,name,stock'])
             ->groupBy('product_id')
@@ -278,6 +291,7 @@ class DashboardService
         $maxDate = $today->copy()->addDays(max(1, $daysAhead));
 
         return MembershipTransaction::query()
+            ->notCancelled()
             ->with(['customer:id,name', 'package:id,name'])
             ->where('status', 'active')
             ->whereDate('end_date', '>=', $today)
@@ -325,6 +339,7 @@ class DashboardService
             });
 
         $saleActivities = Sale::query()
+            ->notCancelled()
             ->with(['customer:id,name'])
             ->latest('created_at')
             ->limit($limit)
@@ -345,6 +360,7 @@ class DashboardService
             });
 
         $membershipActivities = MembershipTransaction::query()
+            ->notCancelled()
             ->with(['customer:id,name', 'package:id,name'])
             ->latest('created_at')
             ->limit($limit)

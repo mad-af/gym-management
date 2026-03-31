@@ -58,4 +58,9 @@ class Sale extends Model
     {
         return $this->cancelled_at !== null;
     }
+
+    public function scopeNotCancelled($query)
+    {
+        return $query->whereNull('cancelled_at');
+    }
 }

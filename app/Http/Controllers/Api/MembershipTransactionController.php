@@ -39,7 +39,6 @@ class MembershipTransactionController extends Controller
             $request->input('end_date'),
             $request->input('expiring_within_days') ? (int) $request->input('expiring_within_days') : null,
             filter_var($request->input('last_24_hours', false), FILTER_VALIDATE_BOOLEAN),
-            filter_var($request->input('include_cancelled', false), FILTER_VALIDATE_BOOLEAN),
         );
 
         return ApiResponse::success('Membership transactions retrieved successfully.', $transactions);
@@ -61,6 +60,10 @@ class MembershipTransactionController extends Controller
 
     public function show(MembershipTransaction $membershipTransaction)
     {
+        if ($membershipTransaction->is_cancelled) {
+            return ApiResponse::error('Membership transaction not found.', 404);
+        }
+
         return ApiResponse::success('Membership transaction details retrieved successfully.', $membershipTransaction->load(['customer', 'package', 'creator']));
     }
 

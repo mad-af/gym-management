@@ -86,4 +86,9 @@ class MembershipTransaction extends Model
 
         return $this->status === 'active' && $days !== null && $days >= 0 && $days <= 7;
     }
+
+    public function scopeNotCancelled($query)
+    {
+        return $query->whereNull('cancelled_at');
+    }
 }

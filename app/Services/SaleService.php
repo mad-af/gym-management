@@ -21,14 +21,16 @@ class SaleService
         $startOfMonth = $today->copy()->startOfMonth();
         $endOfMonth = $today->copy()->endOfMonth();
 
-        $totalSales = Sale::query()->count();
+        $totalSales = Sale::query()->notCancelled()->count();
 
         $revenueThisMonth = (float) Sale::query()
+            ->notCancelled()
             ->whereDate('created_at', '>=', $startOfMonth)
             ->whereDate('created_at', '<=', $endOfMonth)
             ->sum('total_amount');
 
         $revenueToday = (float) Sale::query()
+            ->notCancelled()
             ->whereDate('created_at', $today)
             ->sum('total_amount');
 
@@ -47,16 +49,12 @@ class SaleService
         ?string $createdBy = null,
         ?string $startDate = null,
         ?string $endDate = null,
-        ?bool $last24Hours = false,
-        ?bool $includeCancelled = false
+        ?bool $last24Hours = false
     ): LengthAwarePaginator {
         $query = Sale::query()
             ->with(['customer.membershipTransactions', 'creator', 'items.product', 'cancelledBy'])
+            ->notCancelled()
             ->latest('created_at');
-
-        if (! $includeCancelled) {
-            $query->whereNull('cancelled_at');
-        }
 
         if ($last24Hours) {
             $query->where('created_at', '>=', Carbon::now()->subHours(24));
@@ -166,6 +164,7 @@ class SaleService
     public function getExportData(string $startDate, string $endDate): Collection
     {
         return Sale::query()
+            ->notCancelled()
             ->with(['customer.membershipTransactions', 'creator', 'items.product'])
             ->whereDate('created_at', '>=', $startDate)
             ->whereDate('created_at', '<=', $endDate)
