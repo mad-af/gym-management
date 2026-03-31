@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -31,6 +32,11 @@ class MembershipTransaction extends Model
         'created_at' => 'datetime',
     ];
 
+    protected $appends = [
+        'days_remaining',
+        'is_expiring_soon',
+    ];
+
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
@@ -44,5 +50,25 @@ class MembershipTransaction extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function getDaysRemainingAttribute(): ?int
+    {
+        if (! $this->end_date) {
+            return null;
+        }
+
+        $endDate = $this->end_date instanceof Carbon
+            ? $this->end_date
+            : Carbon::parse($this->end_date);
+
+        return (int) Carbon::today()->diffInDays($endDate, false);
+    }
+
+    public function getIsExpiringSoonAttribute(): bool
+    {
+        $days = $this->days_remaining;
+
+        return $this->status === 'active' && $days !== null && $days >= 0 && $days <= 7;
     }
 }

@@ -33,6 +33,8 @@ class Customer extends Model
         'active_membership_until',
         'active_membership_package_name',
         'active_membership_package_id',
+        'days_remaining',
+        'is_expiring_soon',
     ];
 
     protected $hidden = [
@@ -136,5 +138,24 @@ class Customer extends Model
         }
 
         return $active?->package_id;
+    }
+
+    public function getDaysRemainingAttribute(): ?int
+    {
+        if (! $this->active_membership_until) {
+            return null;
+        }
+
+        $endDate = Carbon::parse($this->active_membership_until);
+        $today = Carbon::today();
+
+        return (int) $today->diffInDays($endDate, false);
+    }
+
+    public function getIsExpiringSoonAttribute(): bool
+    {
+        $days = $this->days_remaining;
+
+        return $this->is_active_member && $days !== null && $days >= 0 && $days <= 7;
     }
 }

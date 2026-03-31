@@ -93,6 +93,11 @@ class DashboardService
                 'low_stock_products' => Product::query()
                     ->where('stock', '<=', 5)
                     ->count(),
+                'expiring_memberships_7_days' => MembershipTransaction::query()
+                    ->where('status', 'active')
+                    ->whereDate('end_date', '>=', $today)
+                    ->whereDate('end_date', '<=', $today->copy()->addDays(7))
+                    ->count(),
             ],
             'revenue_trend' => $this->getRevenueTrend(),
             'visit_distribution' => $this->getVisitDistribution(),

@@ -33,10 +33,20 @@ class MembershipTransactionService
             ->whereDate('created_at', '<=', $endOfMonth)
             ->sum('price');
 
+        $baseExpiringQuery = MembershipTransaction::query()
+            ->where('status', 'active')
+            ->whereDate('end_date', '>=', $today);
+
         return [
             'activeMembers' => $activeMembers,
             'transactionsThisMonth' => $transactionsThisMonth,
             'revenueThisMonth' => $revenueThisMonth,
+            'expiringCount' => [
+                '3_days' => (int) (clone $baseExpiringQuery)->whereDate('end_date', '<=', $today->copy()->addDays(3))->count(),
+                '7_days' => (int) (clone $baseExpiringQuery)->whereDate('end_date', '<=', $today->copy()->addDays(7))->count(),
+                '14_days' => (int) (clone $baseExpiringQuery)->whereDate('end_date', '<=', $today->copy()->addDays(14))->count(),
+                '30_days' => (int) (clone $baseExpiringQuery)->whereDate('end_date', '<=', $today->copy()->addDays(30))->count(),
+            ],
         ];
     }
 
@@ -48,7 +58,8 @@ class MembershipTransactionService
         ?string $status = null,
         ?string $createdBy = null,
         ?string $startDate = null,
-        ?string $endDate = null
+        ?string $endDate = null,
+        ?int $expiringWithinDays = null
     ): LengthAwarePaginator {
         $query = MembershipTransaction::query()
             ->with(['customer', 'package', 'creator'])
@@ -82,7 +93,27 @@ class MembershipTransactionService
             });
         }
 
+        if ($expiringWithinDays !== null) {
+            $today = Carbon::today();
+            $query->where('status', 'active')
+                ->whereDate('end_date', '>=', $today)
+                ->whereDate('end_date', '<=', $today->copy()->addDays($expiringWithinDays));
+        }
+
         return $query->paginate($perPage, ['*'], 'page', $page);
+    }
+
+    public function getExpiring(int $days = 7): Collection
+    {
+        $today = Carbon::today();
+
+        return MembershipTransaction::query()
+            ->with(['customer', 'package', 'creator'])
+            ->where('status', 'active')
+            ->whereDate('end_date', '>=', $today)
+            ->whereDate('end_date', '<=', $today->copy()->addDays($days))
+            ->orderBy('end_date')
+            ->get();
     }
 
     public function create(array $data, ?string $createdBy): MembershipTransaction

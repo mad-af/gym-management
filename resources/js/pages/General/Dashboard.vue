@@ -126,7 +126,10 @@ interface DashboardOverview {
     membership_visits_today: number;
     revenue_today: number;
     revenue_this_month: number;
+    profit_today: number;
+    profit_this_month: number;
     low_stock_products: number;
+    expiring_memberships_7_days: number;
 }
 
 interface RevenueTrendSeries {
@@ -198,7 +201,10 @@ const defaultDashboardState = (): DashboardState => ({
         membership_visits_today: 0,
         revenue_today: 0,
         revenue_this_month: 0,
+        profit_today: 0,
+        profit_this_month: 0,
         low_stock_products: 0,
+        expiring_memberships_7_days: 0,
     },
     revenueTrend: {
         labels: [],
@@ -304,6 +310,12 @@ const statsItems = computed(() => {
             value: overview.low_stock_products,
             icon: WarningIcon,
             iconBgClass: 'bg-rose-50 text-rose-600 dark:bg-rose-500/10',
+        },
+        {
+            label: 'Membership Expiring (7 Hr)',
+            value: overview.expiring_memberships_7_days,
+            icon: WarningIcon,
+            iconBgClass: 'bg-yellow-50 text-yellow-600 dark:bg-yellow-500/10',
         },
     ];
 });

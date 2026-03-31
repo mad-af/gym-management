@@ -36,6 +36,7 @@ class MembershipTransactionController extends Controller
             $request->input('created_by'),
             $request->input('start_date'),
             $request->input('end_date'),
+            $request->input('expiring_within_days') ? (int) $request->input('expiring_within_days') : null,
         );
 
         return ApiResponse::success('Membership transactions retrieved successfully.', $transactions);

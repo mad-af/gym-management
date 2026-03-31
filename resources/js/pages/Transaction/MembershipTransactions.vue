@@ -52,8 +52,11 @@
                 </span>
             </template>
             <template #cell-status="{ row }">
-                <Badge size="sm" :color="getStatusBadgeColor(row.status)">
-                    {{ getStatusLabel(row.status) }}
+                <Badge
+                    size="sm"
+                    :color="getStatusBadgeColor(row.status, row.days_remaining)"
+                >
+                    {{ getStatusLabel(row.status, row.days_remaining) }}
                 </Badge>
             </template>
         </DynamicTable>
@@ -93,6 +96,22 @@
                         <option value="">Semua</option>
                         <option value="active">Aktif</option>
                         <option value="expired">Expired</option>
+                    </select>
+                </div>
+                <div>
+                    <label
+                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                        >Akan Berakhir</label
+                    >
+                    <select
+                        v-model="filters.expiring_within_days"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                    >
+                        <option value="">Semua</option>
+                        <option value="3">3 Hari</option>
+                        <option value="7">7 Hari</option>
+                        <option value="14">14 Hari</option>
+                        <option value="30">30 Hari</option>
                     </select>
                 </div>
                 <div>
@@ -231,6 +250,7 @@ import {
     FileTextIcon,
     FilterIcon,
     ShieldCheckIcon,
+    WarningIcon,
 } from '@/icons';
 
 const currentPageTitle = ref('Membership Transactions');
@@ -242,6 +262,7 @@ const filters = ref({
     created_by: '',
     start_date: '',
     end_date: '',
+    expiring_within_days: '',
 });
 const exportForm = ref({ start_date: '', end_date: '' });
 const exportErrors = ref<{ start_date?: string; end_date?: string }>({});
@@ -263,6 +284,12 @@ const stats = ref({
     activeMembers: 0,
     transactionsThisMonth: 0,
     revenueThisMonth: 0,
+    expiringCount: {
+        '3_days': 0,
+        '7_days': 0,
+        '14_days': 0,
+        '30_days': 0,
+    },
 });
 
 const items = ref<any[]>([]);
@@ -291,6 +318,12 @@ const statsItems = computed(() => [
         iconBgClass: 'bg-brand-50 text-brand-500 dark:bg-brand-500/10',
         detail: formatCurrencyId(stats.value.revenueThisMonth),
     },
+    {
+        label: 'Akan Berakhir (7 Hr)',
+        value: stats.value.expiringCount['7_days'],
+        icon: WarningIcon,
+        iconBgClass: 'bg-yellow-50 text-yellow-600 dark:bg-yellow-500/10',
+    },
 ]);
 
 const tableData = computed(() =>
@@ -303,6 +336,8 @@ const tableData = computed(() =>
         start_date: t.start_date,
         end_date: t.end_date,
         status: t.status || '-',
+        days_remaining: t.days_remaining ?? null,
+        is_expiring_soon: t.is_expiring_soon ?? false,
     })),
 );
 
@@ -394,6 +429,12 @@ const fetchStats = async () => {
             activeMembers: s.activeMembers ?? 0,
             transactionsThisMonth: s.transactionsThisMonth ?? 0,
             revenueThisMonth: s.revenueThisMonth ?? 0,
+            expiringCount: s.expiringCount ?? {
+                '3_days': 0,
+                '7_days': 0,
+                '14_days': 0,
+                '30_days': 0,
+            },
         };
     } catch (e) {
         console.error('Error fetching membership transaction stats', e);
@@ -425,15 +466,26 @@ const formatDateId = (value: unknown): string => {
     }).format(dt);
 };
 
-const getStatusLabel = (value: unknown): string => {
+const getStatusLabel = (value: unknown, daysRemaining: unknown): string => {
     const v = String(value || '').toLowerCase();
+    const days = typeof daysRemaining === 'number' ? daysRemaining : null;
+    if (v === 'active' && days !== null && days <= 7 && days >= 0) {
+        return `Aktif (Tinggal ${days} Hari)`;
+    }
     if (v === 'active') return 'Aktif';
     if (v === 'expired') return 'Expired';
     return value ? String(value) : '-';
 };
 
-const getStatusBadgeColor = (value: unknown) => {
+const getStatusBadgeColor = (value: unknown, daysRemaining: unknown) => {
     const v = String(value || '').toLowerCase();
+    const days = typeof daysRemaining === 'number' ? daysRemaining : null;
+    if (v === 'active' && days !== null && days <= 3 && days >= 0) {
+        return 'error';
+    }
+    if (v === 'active' && days !== null && days <= 7 && days >= 0) {
+        return 'warning';
+    }
     if (v === 'active') return 'success';
     if (v === 'expired') return 'warning';
     return 'light';
@@ -450,6 +502,8 @@ const fetchItems = async () => {
             created_by: filters.value.created_by || undefined,
             start_date: filters.value.start_date || undefined,
             end_date: filters.value.end_date || undefined,
+            expiring_within_days:
+                filters.value.expiring_within_days || undefined,
         },
     });
     items.value = data.data?.data || data.data || [];
@@ -479,6 +533,7 @@ const resetFilter = () => {
         created_by: '',
         start_date: '',
         end_date: '',
+        expiring_within_days: '',
     };
     customerOptions.value = [];
     customerPage.value = 1;
