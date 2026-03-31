@@ -482,6 +482,7 @@ interface CustomerOption {
     name: string;
     code?: string | null;
     avatar?: MediaItem | null;
+    phone?: string | null;
 }
 
 interface MembershipItem {
@@ -562,6 +563,7 @@ const fetchCustomerOptions = async (reset = false) => {
             name: String(item.name ?? '-'),
             code: typeof item.code === 'string' ? item.code : null,
             avatar: (item.avatar as MediaItem | null | undefined) ?? null,
+            phone: typeof item.phone === 'string' ? item.phone : null,
         }));
 
         customerOptions.value = reset
