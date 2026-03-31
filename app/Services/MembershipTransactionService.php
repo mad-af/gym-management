@@ -175,8 +175,7 @@ class MembershipTransactionService
     public function getExportData(string $startDate, string $endDate): Collection
     {
         return MembershipTransaction::query()
-            ->notCancelled()
-            ->with(['customer', 'package', 'creator'])
+            ->with(['customer', 'package', 'creator', 'cancelledBy'])
             ->whereDate('created_at', '>=', $startDate)
             ->whereDate('created_at', '<=', $endDate)
             ->orderBy('created_at')

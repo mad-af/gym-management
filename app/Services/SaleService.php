@@ -164,8 +164,7 @@ class SaleService
     public function getExportData(string $startDate, string $endDate): Collection
     {
         return Sale::query()
-            ->notCancelled()
-            ->with(['customer.membershipTransactions', 'creator', 'items.product'])
+            ->with(['customer.membershipTransactions', 'creator', 'items.product', 'cancelledBy'])
             ->whereDate('created_at', '>=', $startDate)
             ->whereDate('created_at', '<=', $endDate)
             ->orderBy('created_at')

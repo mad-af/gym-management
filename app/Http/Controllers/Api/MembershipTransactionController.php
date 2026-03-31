@@ -107,9 +107,13 @@ class MembershipTransactionController extends Controller
             }
 
             fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
-            fputcsv($output, ['Tanggal Transaksi', 'Pelanggan', 'Paket', 'Harga', 'Mulai', 'Selesai', 'Status', 'Petugas']);
+            fputcsv($output, ['Tanggal Transaksi', 'Pelanggan', 'Paket', 'Harga', 'Mulai', 'Selesai', 'Status', 'Petugas', 'Status Transaksi', 'Tanggal Dibatalkan', 'Alasan Dibatalkan']);
 
             foreach ($rows as $transaction) {
+                $statusTransaksi = $transaction->is_cancelled ? 'Dibatalkan' : 'Normal';
+                $tanggalDibatalkan = $transaction->is_cancelled ? optional($transaction->cancelled_at)->format('Y-m-d H:i:s') ?? '-' : '-';
+                $alasanDibatalkan = $transaction->is_cancelled ? ($transaction->cancellation_reason ?? '-') : '-';
+
                 fputcsv($output, [
                     optional($transaction->created_at)->format('Y-m-d H:i:s') ?? '-',
                     $transaction->customer?->name ?? '-',
@@ -119,6 +123,9 @@ class MembershipTransactionController extends Controller
                     optional($transaction->end_date)->format('Y-m-d') ?? '-',
                     $transaction->status ?? '-',
                     $transaction->creator?->name ?? '-',
+                    $statusTransaksi,
+                    $tanggalDibatalkan,
+                    $alasanDibatalkan,
                 ]);
             }
 
@@ -136,15 +143,26 @@ class MembershipTransactionController extends Controller
         $endDate = $validated['end_date'];
         $rows = $this->service->getExportData($startDate, $endDate);
 
-        $totalRecords = $rows->count();
-        $totalPendapatan = $rows->sum('price');
+        $normalTransactions = $rows->filter(fn ($t) => is_null($t->cancelled_at));
+        $cancelledTransactions = $rows->filter(fn ($t) => ! is_null($t->cancelled_at));
+
+        $totalRecords = $normalTransactions->count();
+        $totalPendapatan = $normalTransactions->sum('price');
+
+        $totalCancelled = $cancelledTransactions->count();
+        $totalCancelledRevenue = $cancelledTransactions->sum('price');
+
+        $cancelledTransactions->load('cancelledBy');
 
         $html = view('pdf.membership_transactions', [
-            'rows' => $rows,
+            'rows' => $normalTransactions,
+            'cancelled_rows' => $cancelledTransactions,
             'start_date' => $startDate,
             'end_date' => $endDate,
             'total_records' => $totalRecords,
             'total_pendapatan' => $totalPendapatan,
+            'total_cancelled' => $totalCancelled,
+            'total_cancelled_revenue' => $totalCancelledRevenue,
         ])->render();
 
         $mpdf = new Mpdf([

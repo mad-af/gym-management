@@ -40,6 +40,7 @@
             margin-bottom: 20px;
             display: flex;
             gap: 20px;
+            flex-wrap: wrap;
         }
 
         .summary-item {
@@ -102,6 +103,40 @@
             color: #9ca3af;
             text-align: center;
         }
+
+        .page-break {
+            page-break-after: always;
+        }
+
+        .cancelled-header {
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 4px;
+        }
+
+        .cancelled-header h2 {
+            font-size: 12pt;
+            margin: 0;
+            color: #991b1b;
+        }
+
+        .cancelled-summary {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .cancelled-summary .summary-item {
+            background: #fef2f2;
+        }
+
+        .cancelled-summary .summary-value {
+            color: #991b1b;
+        }
     </style>
 </head>
 
@@ -154,6 +189,52 @@
             @endforelse
         </tbody>
     </table>
+
+    @if($cancelled_rows && $cancelled_rows->isNotEmpty())
+    <div class="page-break"></div>
+
+    <div class="cancelled-header">
+        <h2>DAFTAR TRANSAKSI DIBATALKAN</h2>
+    </div>
+
+    <div class="cancelled-summary">
+        <div class="summary-item">
+            <div class="summary-label">Total Dibatalkan</div>
+            <div class="summary-value">{{ $total_cancelled ?? 0 }}</div>
+        </div>
+        <div class="summary-item">
+            <div class="summary-label">Total Pendapatan Dibatalkan</div>
+            <div class="summary-value">Rp {{ number_format($total_cancelled_revenue ?? 0, 0, ',', '.') }}</div>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Tanggal Transaksi</th>
+                <th>Pelanggan</th>
+                <th>Paket</th>
+                <th class="text-right">Harga</th>
+                <th>Tanggal Dibatalkan</th>
+                <th>Dibatalkan Oleh</th>
+                <th>Alasan Dibatalkan</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($cancelled_rows as $transaction)
+                <tr>
+                    <td>{{ $transaction->created_at ? $transaction->created_at->format('Y-m-d H:i') : '-' }}</td>
+                    <td>{{ $transaction->customer?->name ?? '-' }}</td>
+                    <td>{{ $transaction->package?->name ?? '-' }}</td>
+                    <td class="text-right">Rp {{ number_format($transaction->price ?? 0, 0, ',', '.') }}</td>
+                    <td>{{ $transaction->cancelled_at ? $transaction->cancelled_at->format('Y-m-d H:i') : '-' }}</td>
+                    <td>{{ $transaction->cancelledBy?->name ?? '-' }}</td>
+                    <td>{{ $transaction->cancellation_reason ?? '-' }}</td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+    @endif
 
     <div class="footer">
         Dicetak pada: {{ now()->format('Y-m-d H:i:s') }}

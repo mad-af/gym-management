@@ -92,10 +92,13 @@ class SaleController extends Controller
             }
 
             fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
-            fputcsv($output, ['Tanggal', 'Pelanggan', 'Status Member', 'Produk', 'Qty', 'Harga', 'Harga Modal', 'Profit', 'Subtotal', 'Total Penjualan', 'Petugas']);
+            fputcsv($output, ['Tanggal', 'Pelanggan', 'Status Member', 'Produk', 'Qty', 'Harga', 'Harga Modal', 'Profit', 'Subtotal', 'Total Penjualan', 'Petugas', 'Status Transaksi', 'Tanggal Dibatalkan', 'Alasan Dibatalkan']);
 
             foreach ($rows as $sale) {
                 $items = $sale->items;
+                $statusTransaksi = $sale->is_cancelled ? 'Dibatalkan' : 'Normal';
+                $tanggalDibatalkan = $sale->is_cancelled ? optional($sale->cancelled_at)->format('Y-m-d H:i:s') ?? '-' : '-';
+                $alasanDibatalkan = $sale->is_cancelled ? ($sale->cancellation_reason ?? '-') : '-';
 
                 if ($items->isEmpty()) {
                     fputcsv($output, [
@@ -110,6 +113,9 @@ class SaleController extends Controller
                         '-',
                         $sale->total_amount ?? 0,
                         $sale->creator?->name ?? '-',
+                        $statusTransaksi,
+                        $tanggalDibatalkan,
+                        $alasanDibatalkan,
                     ]);
 
                     continue;
@@ -130,6 +136,9 @@ class SaleController extends Controller
                         $item->subtotal ?? 0,
                         $sale->total_amount ?? 0,
                         $sale->creator?->name ?? '-',
+                        $statusTransaksi,
+                        $tanggalDibatalkan,
+                        $alasanDibatalkan,
                     ]);
                 }
             }
@@ -148,21 +157,32 @@ class SaleController extends Controller
         $endDate = $validated['end_date'];
         $rows = $this->service->getExportData($startDate, $endDate);
 
-        $totalRecords = $rows->count();
-        $totalOmzet = $rows->sum('total_amount');
+        $normalSales = $rows->filter(fn ($sale) => is_null($sale->cancelled_at));
+        $cancelledSales = $rows->filter(fn ($sale) => ! is_null($sale->cancelled_at));
 
-        $totalProfit = $rows->loadMissing('items')
+        $totalRecords = $normalSales->count();
+        $totalOmzet = $normalSales->sum('total_amount');
+
+        $totalProfit = $normalSales->loadMissing('items')
             ->flatMap(fn ($sale) => $sale->items)
             ->whereNotNull('capital_price')
             ->sum(fn ($item) => ($item->price - $item->capital_price) * $item->quantity);
 
+        $totalCancelled = $cancelledSales->count();
+        $totalCancelledRevenue = $cancelledSales->sum('total_amount');
+
+        $cancelledSales->load('cancelledBy');
+
         $html = view('pdf.sales', [
-            'rows' => $rows,
+            'rows' => $normalSales,
+            'cancelled_rows' => $cancelledSales,
             'start_date' => $startDate,
             'end_date' => $endDate,
             'total_records' => $totalRecords,
             'total_omzet' => $totalOmzet,
             'total_profit' => $totalProfit,
+            'total_cancelled' => $totalCancelled,
+            'total_cancelled_revenue' => $totalCancelledRevenue,
         ])->render();
 
         $mpdf = new Mpdf([
