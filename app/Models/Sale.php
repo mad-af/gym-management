@@ -17,6 +17,9 @@ class Sale extends Model
     protected $fillable = [
         'customer_id',
         'total_amount',
+        'cancellation_reason',
+        'cancelled_by',
+        'cancelled_at',
         'created_by',
         'created_at',
     ];
@@ -24,6 +27,11 @@ class Sale extends Model
     protected $casts = [
         'total_amount' => 'decimal:2',
         'created_at' => 'datetime',
+        'cancelled_at' => 'datetime',
+    ];
+
+    protected $appends = [
+        'is_cancelled',
     ];
 
     public function customer(): BelongsTo
@@ -39,5 +47,15 @@ class Sale extends Model
     public function items(): HasMany
     {
         return $this->hasMany(SaleItem::class);
+    }
+
+    public function cancelledBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
+    public function getIsCancelledAttribute(): bool
+    {
+        return $this->cancelled_at !== null;
     }
 }

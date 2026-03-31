@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\MembershipPackage;
 use App\Models\MembershipTransaction;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
@@ -59,11 +60,21 @@ class MembershipTransactionService
         ?string $createdBy = null,
         ?string $startDate = null,
         ?string $endDate = null,
-        ?int $expiringWithinDays = null
+        ?int $expiringWithinDays = null,
+        ?bool $last24Hours = false,
+        ?bool $includeCancelled = false
     ): LengthAwarePaginator {
         $query = MembershipTransaction::query()
-            ->with(['customer', 'package', 'creator'])
+            ->with(['customer', 'package', 'creator', 'cancelledBy'])
             ->latest('created_at');
+
+        if (! $includeCancelled) {
+            $query->whereNull('cancelled_at');
+        }
+
+        if ($last24Hours) {
+            $query->where('created_at', '>=', Carbon::now()->subHours(24));
+        }
 
         if ($customerId) {
             $query->where('customer_id', $customerId);
@@ -147,6 +158,17 @@ class MembershipTransactionService
     public function delete(MembershipTransaction $transaction): bool
     {
         return (bool) $transaction->delete();
+    }
+
+    public function cancel(MembershipTransaction $transaction, string $reason, User $user): MembershipTransaction
+    {
+        $transaction->update([
+            'cancellation_reason' => $reason,
+            'cancelled_by' => $user->id,
+            'cancelled_at' => Carbon::now(),
+        ]);
+
+        return $transaction->fresh(['customer', 'package', 'creator', 'cancelledBy']);
     }
 
     public function getExportData(string $startDate, string $endDate): Collection

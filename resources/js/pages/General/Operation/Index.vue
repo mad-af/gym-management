@@ -51,6 +51,35 @@
                     />
                 </div>
             </div>
+
+            <div
+                class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900"
+            >
+                <div
+                    class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between"
+                >
+                    <div>
+                        <h2
+                            class="text-lg font-semibold text-gray-900 dark:text-white"
+                        >
+                            Pembatalan Transaksi
+                        </h2>
+                        <p
+                            class="mt-1 text-sm text-gray-500 dark:text-gray-400"
+                        >
+                            Batalkan transaksi yang sudah dibuat.
+                        </p>
+                    </div>
+                </div>
+                <div
+                    class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-2"
+                >
+                    <MembershipCancellationOperation
+                        @submitted="fetchOpsStats"
+                    />
+                    <SalesCancellationOperation @submitted="fetchOpsStats" />
+                </div>
+            </div>
         </div>
     </AdminLayout>
 </template>
@@ -69,8 +98,10 @@ import {
     VISIT_PERMISSIONS,
 } from '@/directives/permissions';
 import { CalenderIcon } from '@/icons';
+import MembershipCancellationOperation from './components/MembershipCancellationOperation.vue';
 import MembershipCardOperation from './components/MembershipCardOperation.vue';
 import MembershipOperation from './components/MembershipOperation.vue';
+import SalesCancellationOperation from './components/SalesCancellationOperation.vue';
 import SalesOperation from './components/SalesOperation.vue';
 import StockMovementOperation from './components/StockMovementOperation.vue';
 import VisitsOperation from './components/VisitsOperation.vue';

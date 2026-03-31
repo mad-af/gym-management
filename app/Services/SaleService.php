@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\StockMovement;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
@@ -45,11 +46,21 @@ class SaleService
         ?string $customerId = null,
         ?string $createdBy = null,
         ?string $startDate = null,
-        ?string $endDate = null
+        ?string $endDate = null,
+        ?bool $last24Hours = false,
+        ?bool $includeCancelled = false
     ): LengthAwarePaginator {
         $query = Sale::query()
-            ->with(['customer.membershipTransactions', 'creator', 'items.product'])
+            ->with(['customer.membershipTransactions', 'creator', 'items.product', 'cancelledBy'])
             ->latest('created_at');
+
+        if (! $includeCancelled) {
+            $query->whereNull('cancelled_at');
+        }
+
+        if ($last24Hours) {
+            $query->where('created_at', '>=', Carbon::now()->subHours(24));
+        }
 
         if ($customerId) {
             $query->where('customer_id', $customerId);
@@ -139,6 +150,17 @@ class SaleService
     public function delete(Sale $sale): bool
     {
         return (bool) $sale->delete();
+    }
+
+    public function cancel(Sale $sale, string $reason, User $user): Sale
+    {
+        $sale->update([
+            'cancellation_reason' => $reason,
+            'cancelled_by' => $user->id,
+            'cancelled_at' => Carbon::now(),
+        ]);
+
+        return $sale->fresh(['customer', 'creator', 'items.product', 'cancelledBy']);
     }
 
     public function getExportData(string $startDate, string $endDate): Collection

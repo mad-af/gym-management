@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\Permission;
 use App\Helpers\ApiResponse;
+use App\Http\Requests\CancelSaleRequest;
 use App\Http\Requests\ExportDateRangeRequest;
 use App\Http\Requests\StoreSaleRequest;
 use App\Models\Sale;
@@ -33,6 +34,8 @@ class SaleController extends Controller
             $request->input('created_by'),
             $request->input('start_date'),
             $request->input('end_date'),
+            filter_var($request->input('last_24_hours', false), FILTER_VALIDATE_BOOLEAN),
+            filter_var($request->input('include_cancelled', false), FILTER_VALIDATE_BOOLEAN),
         );
 
         return ApiResponse::success('Sales retrieved successfully.', $sales);
@@ -62,6 +65,13 @@ class SaleController extends Controller
         $this->service->delete($sale);
 
         return ApiResponse::success('Sale deleted successfully.');
+    }
+
+    public function cancel(CancelSaleRequest $request, Sale $sale)
+    {
+        $cancelled = $this->service->cancel($sale, $request->validated('cancellation_reason'), $request->user());
+
+        return ApiResponse::success('Sale cancelled successfully.', $cancelled);
     }
 
     public function export(ExportDateRangeRequest $request)

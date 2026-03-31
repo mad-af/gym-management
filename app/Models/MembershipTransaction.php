@@ -21,6 +21,9 @@ class MembershipTransaction extends Model
         'end_date',
         'price',
         'status',
+        'cancellation_reason',
+        'cancelled_by',
+        'cancelled_at',
         'created_by',
         'created_at',
     ];
@@ -30,11 +33,13 @@ class MembershipTransaction extends Model
         'end_date' => 'date',
         'price' => 'decimal:2',
         'created_at' => 'datetime',
+        'cancelled_at' => 'datetime',
     ];
 
     protected $appends = [
         'days_remaining',
         'is_expiring_soon',
+        'is_cancelled',
     ];
 
     public function customer(): BelongsTo
@@ -50,6 +55,16 @@ class MembershipTransaction extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function cancelledBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
+    public function getIsCancelledAttribute(): bool
+    {
+        return $this->cancelled_at !== null;
     }
 
     public function getDaysRemainingAttribute(): ?int

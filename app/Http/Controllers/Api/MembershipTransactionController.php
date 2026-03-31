@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\Permission;
 use App\Helpers\ApiResponse;
+use App\Http\Requests\CancelMembershipTransactionRequest;
 use App\Http\Requests\ExportDateRangeRequest;
 use App\Http\Requests\StoreMembershipTransactionRequest;
 use App\Http\Requests\UpdateMembershipTransactionRequest;
@@ -37,6 +38,8 @@ class MembershipTransactionController extends Controller
             $request->input('start_date'),
             $request->input('end_date'),
             $request->input('expiring_within_days') ? (int) $request->input('expiring_within_days') : null,
+            filter_var($request->input('last_24_hours', false), FILTER_VALIDATE_BOOLEAN),
+            filter_var($request->input('include_cancelled', false), FILTER_VALIDATE_BOOLEAN),
         );
 
         return ApiResponse::success('Membership transactions retrieved successfully.', $transactions);
@@ -73,6 +76,17 @@ class MembershipTransactionController extends Controller
         $this->service->delete($membershipTransaction);
 
         return ApiResponse::success('Membership transaction deleted successfully.');
+    }
+
+    public function cancel(CancelMembershipTransactionRequest $request, MembershipTransaction $membershipTransaction)
+    {
+        $cancelled = $this->service->cancel(
+            $membershipTransaction,
+            $request->validated('cancellation_reason'),
+            $request->user()
+        );
+
+        return ApiResponse::success('Membership transaction cancelled successfully.', $cancelled);
     }
 
     public function export(ExportDateRangeRequest $request)
