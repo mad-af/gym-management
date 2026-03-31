@@ -20,6 +20,7 @@
                         v-model="selectedCustomerId"
                         :options="customerOptions"
                         labelKey="name"
+                        descriptionKey="phone"
                         valueKey="id"
                         placeholder="Pilih customer..."
                         :loading="customerLoading"

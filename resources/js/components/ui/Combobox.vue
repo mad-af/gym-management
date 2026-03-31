@@ -29,6 +29,11 @@
                 :class="{ 'font-medium': isSelected(option), 'font-normal': !isSelected(option) }">
                 {{ getOptionLabel(option) }}
               </span>
+              <span v-if="getOptionDescription(option)"
+                class="block truncate text-xs text-gray-500 dark:text-gray-400"
+                :class="{ 'text-brand-500 dark:text-brand-400': isSelected(option) }">
+                {{ getOptionDescription(option) }}
+              </span>
               <span v-if="isSelected(option)"
                 class="absolute inset-y-0 left-0 flex items-center pl-3 text-brand-600 dark:text-brand-400">
                 <CheckIcon class="h-5 w-5" aria-hidden="true" />
@@ -74,6 +79,7 @@ interface Props {
   searchable?: boolean
   valueKey?: string
   labelKey?: string
+  descriptionKey?: string
   remote?: boolean
   loading?: boolean
   actionText?: string
@@ -87,6 +93,7 @@ const props = withDefaults(defineProps<Props>(), {
   searchable: true,
   valueKey: 'value',
   labelKey: 'label',
+  descriptionKey: '',
   remote: false,
   loading: false,
   actionText: '',
@@ -110,6 +117,13 @@ const getOptionLabel = (option: string | Option | null | undefined): string => {
   if (option === null || option === undefined) return ''
   if (typeof option === 'string') return option
   return option[props.labelKey]
+}
+
+const getOptionDescription = (option: string | Option | null | undefined): string => {
+  if (option === null || option === undefined) return ''
+  if (typeof option === 'string') return ''
+  if (!props.descriptionKey) return ''
+  return option[props.descriptionKey] || ''
 }
 
 const getOptionValue = (option: string | Option | null | undefined): any => {
