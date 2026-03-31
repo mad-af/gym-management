@@ -268,9 +268,9 @@ const staffHasMore = ref(true);
 const staffSearchQuery = ref('');
 
 const stats = ref({
-    visitsToday: 0,
-    memberVisitsToday: 0,
-    dailyRevenueToday: 0,
+    visitsThisMonth: 0,
+    memberVisitsThisMonth: 0,
+    monthlyRevenue: 0,
 });
 
 const items = ref<any[]>([]);
@@ -281,23 +281,23 @@ const searchFilter = ref('');
 
 const statsItems = computed(() => [
     {
-        label: 'Kunjungan Hari Ini',
-        value: stats.value.visitsToday,
+        label: 'Kunjungan Bulan Ini',
+        value: stats.value.visitsThisMonth,
         icon: DoorOpenIcon,
         iconBgClass: 'bg-brand-50 text-brand-500 dark:bg-brand-500/10',
     },
     {
-        label: 'Customer Hari Ini',
-        value: stats.value.memberVisitsToday,
+        label: 'Customer Bulan Ini',
+        value: stats.value.memberVisitsThisMonth,
         icon: ShieldCheckIcon,
         iconBgClass: 'bg-success-50 text-success-600 dark:bg-success-500/10',
     },
     {
-        label: 'Pendapatan Harian',
-        value: formatCurrencyCompactId(stats.value.dailyRevenueToday),
+        label: 'Pendapatan Bulanan',
+        value: formatCurrencyCompactId(stats.value.monthlyRevenue),
         icon: BanknoteIcon,
         iconBgClass: 'bg-blue-50 text-blue-500 dark:bg-blue-500/10',
-        detail: formatCurrencyId(stats.value.dailyRevenueToday),
+        detail: formatCurrencyId(stats.value.monthlyRevenue),
     },
 ]);
 
@@ -424,9 +424,9 @@ const fetchStats = async () => {
         const { data } = await axios.get('/api/visits/stats');
         const s = data.data || data;
         stats.value = {
-            visitsToday: s.visitsToday ?? 0,
-            memberVisitsToday: s.memberVisitsToday ?? 0,
-            dailyRevenueToday: s.dailyRevenueToday ?? 0,
+            visitsThisMonth: s.visitsThisMonth ?? 0,
+            memberVisitsThisMonth: s.memberVisitsThisMonth ?? 0,
+            monthlyRevenue: s.monthlyRevenue ?? 0,
         };
     } catch (e) {
         console.error('Error fetching visit stats', e);

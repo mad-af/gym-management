@@ -17,25 +17,30 @@ class VisitService
     public function getStats(): array
     {
         $today = Carbon::today();
+        $monthStart = $today->copy()->startOfMonth();
+        $monthEnd = $today->copy()->endOfMonth();
 
-        $visitsToday = Visit::query()
-            ->whereDate('checkin_time', $today)
+        $visitsThisMonth = Visit::query()
+            ->whereDate('checkin_time', '>=', $monthStart)
+            ->whereDate('checkin_time', '<=', $monthEnd)
             ->count();
 
-        $memberVisitsToday = Visit::query()
+        $memberVisitsThisMonth = Visit::query()
             ->where('visit_type', 'MEMBERSHIP')
-            ->whereDate('checkin_time', $today)
+            ->whereDate('checkin_time', '>=', $monthStart)
+            ->whereDate('checkin_time', '<=', $monthEnd)
             ->count();
 
-        $dailyRevenueToday = (float) Visit::query()
+        $monthlyRevenue = (float) Visit::query()
             ->where('visit_type', 'DAILY')
-            ->whereDate('checkin_time', $today)
+            ->whereDate('checkin_time', '>=', $monthStart)
+            ->whereDate('checkin_time', '<=', $monthEnd)
             ->sum('price');
 
         return [
-            'visitsToday' => $visitsToday,
-            'memberVisitsToday' => $memberVisitsToday,
-            'dailyRevenueToday' => $dailyRevenueToday,
+            'visitsThisMonth' => $visitsThisMonth,
+            'memberVisitsThisMonth' => $memberVisitsThisMonth,
+            'monthlyRevenue' => $monthlyRevenue,
         ];
     }
 
