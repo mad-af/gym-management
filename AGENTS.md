@@ -1,6 +1,6 @@
 # AGENTS.md — Gym Management
 
-Generated: 2026-03-29 | Branch: main
+Generated: 2026-04-01 | Branch: main
 
 ## OVERVIEW
 
@@ -53,6 +53,7 @@ php artisan test --filter=TestName
 - **Validation**: Use FormRequest classes in `app/Http/Requests/**/*.php`
 - **Transactions**: Wrap multi-step operations in `DB::transaction()`
 - **Permission Gates**: Enum-driven middleware (`role`, `permission`, `role_or_permission`)
+- **Error Handling**: Never return ad-hoc JSON from controllers; use ApiResponse consistently
 
 ```php
 // Controller (thin)
@@ -64,6 +65,9 @@ public function index(): JsonResponse {
 public function getAll(): Collection {
     return Sale::with(['customer.membershipTransactions'])->get();
 }
+
+// Error response
+return ApiResponse::error('Sale not found', 404);
 ```
 
 ## TYPESCRIPT/VUE CONVENTIONS
@@ -109,16 +113,16 @@ import { ComputedRef } from 'vue';
 app/
 ├── Http/Controllers/Api/  # API controllers (thin, delegate to services)
 ├── Services/              # Business logic + transactions
-├── Models/                 # Eloquent models
-├── Enums/                  # Permission/domain enums
+├── Models/                # Eloquent models
+├── Enums/                 # Permission/domain enums
 ├── Helpers/ApiResponse.php # API envelope helper
-├── Http/Requests/          # FormRequest validation
-routes/                     # web.php, api.php, settings.php
+├── Http/Requests/         # FormRequest validation
+routes/                    # web.php, api.php, settings.php
 resources/js/
-├── pages/                  # Route-level feature pages
-├── components/             # Reusable UI (tables/, forms/, layout/, ui/)
-├── composables/             # Shared state hooks
-├── routes/, actions/        # Typed helpers (treat as generated)
+├── pages/                 # Route-level feature pages
+├── components/            # Reusable UI (tables/, forms/, layout/, ui/)
+├── composables/            # Shared state hooks
+├── routes/, actions/       # Typed helpers (treat as generated)
 ```
 
 ## ANTI-PATTERNS
@@ -141,3 +145,5 @@ resources/js/
 | DynamicTable (tables) | `resources/js/components/tables/*`          |
 | Test config           | `phpunit.xml` (sqlite in-memory)            |
 | CI workflows          | `.github/workflows/tests.yml`, `lint.yml`   |
+| Permission enums      | `app/Enums/Permission.php`                  |
+| Fortify config        | `app/Providers/FortifyServiceProvider.php`  |

@@ -54,7 +54,8 @@ class CustomerService
 
         if ($isMember === true) {
             $query->whereHas('membershipTransactions', function ($q) use ($now) {
-                $q->where('status', 'active')
+                $q->whereNull('cancelled_at')
+                    ->where('status', 'active')
                     ->whereDate('start_date', '<=', $now)
                     ->whereDate('end_date', '>=', $now);
             });
@@ -83,6 +84,7 @@ class CustomerService
 
         $activeMembershipConstraint = function ($membershipQuery) use ($now) {
             $membershipQuery
+                ->whereNull('cancelled_at')
                 ->where(function ($statusQuery) {
                     $statusQuery
                         ->where('status', 'active')
@@ -162,7 +164,8 @@ class CustomerService
 
         $activeMembers = Customer::query()
             ->whereHas('membershipTransactions', function ($q) use ($today) {
-                $q->whereDate('start_date', '<=', $today)
+                $q->whereNull('cancelled_at')
+                    ->whereDate('start_date', '<=', $today)
                     ->whereDate('end_date', '>=', $today)
                     ->where('status', 'active');
             })

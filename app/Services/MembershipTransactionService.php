@@ -5,9 +5,11 @@ namespace App\Services;
 use App\Models\MembershipPackage;
 use App\Models\MembershipTransaction;
 use App\Models\User;
+use App\Models\Visit;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Validation\ValidationException;
 
 class MembershipTransactionService
 {
@@ -163,6 +165,26 @@ class MembershipTransactionService
 
     public function cancel(MembershipTransaction $transaction, string $reason, User $user): MembershipTransaction
     {
+        if ($transaction->cancelled_at !== null) {
+            throw ValidationException::withMessages([
+                'membership_transaction_id' => 'Membership transaction is already cancelled.',
+            ]);
+        }
+
+        $hasVisits = Visit::query()
+            ->where('membership_transaction_id', $transaction->id)
+            ->where('visit_type', 'MEMBERSHIP')
+            ->notCancelled()
+            ->whereDate('checkin_time', '>=', $transaction->start_date)
+            ->whereDate('checkin_time', '<=', $transaction->end_date)
+            ->exists();
+
+        if ($hasVisits) {
+            throw ValidationException::withMessages([
+                'membership_transaction_id' => 'Membership cannot be cancelled because customer has already visited.',
+            ]);
+        }
+
         $transaction->update([
             'cancellation_reason' => $reason,
             'cancelled_by' => $user->id,

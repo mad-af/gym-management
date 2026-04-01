@@ -129,6 +129,7 @@ class VisitService
             if (empty($payload['membership_transaction_id'])) {
                 $activeMembership = MembershipTransaction::query()
                     ->where('customer_id', $payload['customer_id'])
+                    ->whereNull('cancelled_at')
                     ->where('status', 'active')
                     ->whereDate('start_date', '<=', Carbon::today())
                     ->whereDate('end_date', '>=', Carbon::today())

@@ -67,10 +67,12 @@ class Customer extends Model
 
         if ($this->relationLoaded('membershipTransactions')) {
             return $this->membershipTransactions
+                ->filter(fn ($t) => ! $t->cancelled_at)
                 ->contains(fn ($t) => $t->start_date && $t->end_date && $t->start_date->startOfDay() <= $now && $t->end_date->startOfDay() >= $now);
         }
 
         return $this->membershipTransactions()
+            ->whereNull('cancelled_at')
             ->whereDate('start_date', '<=', $now)
             ->whereDate('end_date', '>=', $now)
             ->exists();
@@ -83,11 +85,13 @@ class Customer extends Model
 
         if ($this->relationLoaded('membershipTransactions')) {
             $active = $this->membershipTransactions
+                ->filter(fn ($t) => ! $t->cancelled_at)
                 ->filter(fn ($t) => $t->start_date && $t->end_date && $t->start_date->startOfDay() <= $now && $t->end_date->startOfDay() >= $now)
                 ->sortByDesc('end_date')
                 ->first();
         } else {
             $active = $this->membershipTransactions()
+                ->whereNull('cancelled_at')
                 ->whereDate('start_date', '<=', $now)
                 ->whereDate('end_date', '>=', $now)
                 ->orderByDesc('end_date')
@@ -104,11 +108,13 @@ class Customer extends Model
 
         if ($this->relationLoaded('membershipTransactions')) {
             $active = $this->membershipTransactions
+                ->filter(fn ($t) => ! $t->cancelled_at)
                 ->filter(fn ($t) => $t->start_date && $t->end_date && $t->start_date->startOfDay() <= $now && $t->end_date->startOfDay() >= $now)
                 ->sortByDesc('end_date')
                 ->first();
         } else {
             $active = $this->membershipTransactions()
+                ->whereNull('cancelled_at')
                 ->whereDate('start_date', '<=', $now)
                 ->whereDate('end_date', '>=', $now)
                 ->with('package')
@@ -126,11 +132,13 @@ class Customer extends Model
 
         if ($this->relationLoaded('membershipTransactions')) {
             $active = $this->membershipTransactions
+                ->filter(fn ($t) => ! $t->cancelled_at)
                 ->filter(fn ($t) => $t->start_date && $t->end_date && $t->start_date->startOfDay() <= $now && $t->end_date->startOfDay() >= $now)
                 ->sortByDesc('end_date')
                 ->first();
         } else {
             $active = $this->membershipTransactions()
+                ->whereNull('cancelled_at')
                 ->whereDate('start_date', '<=', $now)
                 ->whereDate('end_date', '>=', $now)
                 ->orderByDesc('end_date')
