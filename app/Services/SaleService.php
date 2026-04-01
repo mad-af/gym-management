@@ -152,13 +152,28 @@ class SaleService
 
     public function cancel(Sale $sale, string $reason, User $user): Sale
     {
-        $sale->update([
-            'cancellation_reason' => $reason,
-            'cancelled_by' => $user->id,
-            'cancelled_at' => Carbon::now(),
-        ]);
+        return DB::transaction(function () use ($sale, $reason, $user) {
+            foreach ($sale->items as $item) {
+                StockMovement::create([
+                    'product_id' => $item->product_id,
+                    'type' => 'IN',
+                    'quantity' => $item->quantity,
+                    'description' => 'Cancelled Sale #'.$sale->id,
+                    'created_by' => $user->id,
+                ]);
 
-        return $sale->fresh(['customer', 'creator', 'items.product', 'cancelledBy']);
+                $item->product->stock += $item->quantity;
+                $item->product->save();
+            }
+
+            $sale->update([
+                'cancellation_reason' => $reason,
+                'cancelled_by' => $user->id,
+                'cancelled_at' => Carbon::now(),
+            ]);
+
+            return $sale->fresh(['customer', 'creator', 'items.product', 'cancelledBy']);
+        });
     }
 
     public function getExportData(string $startDate, string $endDate): Collection
