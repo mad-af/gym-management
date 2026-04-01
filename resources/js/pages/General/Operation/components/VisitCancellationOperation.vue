@@ -1,9 +1,9 @@
 <template>
     <div>
         <OperationActionButton
-            :icon="UserCircleIcon"
-            title="Pembatalan Membership"
-            description="Batalkan transaksi membership."
+            :icon="DoorOpenIcon"
+            title="Pembatalan Kunjungan"
+            description="Batalkan transaksi kunjungan."
             iconBgClass="bg-red-50 text-red-600 dark:bg-red-500/10"
             glowClass="bg-red-400"
             @click="openModal"
@@ -42,12 +42,12 @@
                         <h4
                             class="mb-2 text-title-sm font-semibold text-gray-800 dark:text-white/90"
                         >
-                            Pembatalan Membership
+                            Pembatalan Kunjungan
                         </h4>
                         <p
                             class="mb-5 text-sm text-gray-500 dark:text-gray-400"
                         >
-                            Menampilkan data transaksi 24 jam terakhir.
+                            Menampilkan data kunjungan 24 jam terakhir.
                         </p>
 
                         <DynamicTable
@@ -59,11 +59,27 @@
                             :is-server-side="true"
                             @update:page="handlePageChange"
                         >
-                            <template #cell-created_at="{ row }">
+                            <template #cell-checkin_time="{ row }">
                                 <span
                                     class="text-theme-sm text-gray-700 dark:text-gray-400"
                                 >
-                                    {{ formatDateTimeId(row.created_at) }}
+                                    {{ formatDateTimeId(row.checkin_time) }}
+                                </span>
+                            </template>
+                            <template #cell-visit_type="{ row }">
+                                <span
+                                    class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                                    :class="
+                                        row.visit_type === 'MEMBERSHIP'
+                                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-400'
+                                            : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                                    "
+                                >
+                                    {{
+                                        row.visit_type === 'MEMBERSHIP'
+                                            ? 'Member'
+                                            : 'Harian'
+                                    }}
                                 </span>
                             </template>
                             <template #cell-price="{ row }">
@@ -80,7 +96,7 @@
                                     className="!text-error-500 !border-error-500 hover:!bg-error-50"
                                     :onClick="() => openCancelDialog(row)"
                                 >
-                                    Batalkan Transaksi
+                                    Batalkan Kunjungan
                                 </Button>
                             </template>
                         </DynamicTable>
@@ -130,18 +146,25 @@
                                 <p
                                     class="text-sm text-gray-600 dark:text-gray-400"
                                 >
-                                    Membership #{{
+                                    Kunjungan #{{
                                         selectedItem?.id?.slice(0, 8)
                                     }}...
                                 </p>
                                 <p
                                     class="mt-1 font-medium text-gray-800 dark:text-white/90"
                                 >
-                                    {{ selectedItem?.package_name }}
+                                    {{ selectedItem?.customer_name }}
                                 </p>
                                 <p
                                     class="text-sm text-gray-600 dark:text-gray-400"
                                 >
+                                    {{
+                                        selectedItem?.visit_type ===
+                                        'MEMBERSHIP'
+                                            ? 'Member'
+                                            : 'Harian'
+                                    }}
+                                    &middot;
                                     {{ formatCurrencyId(selectedItem?.price) }}
                                 </p>
                             </div>
@@ -248,7 +271,7 @@ import type { Column } from '@/components/tables/data-tables/DynamicTable.vue';
 import Button from '@/components/ui/Button.vue';
 import Modal from '@/components/ui/Modal.vue';
 import OperationActionButton from '@/components/ui/OperationActionButton.vue';
-import { UserCircleIcon } from '@/icons';
+import { DoorOpenIcon } from '@/icons';
 
 const emit = defineEmits<{ (e: 'submitted'): void }>();
 
@@ -266,13 +289,18 @@ const cancelErrors = ref<{ reason?: string; confirmInput?: string }>({});
 
 const columns: Column[] = [
     {
-        key: 'created_at',
+        key: 'checkin_time',
         label: 'Tanggal',
         type: 'custom',
         class: 'min-w-[160px]',
     },
     { key: 'customer_name', label: 'Pelanggan', class: 'min-w-[180px]' },
-    { key: 'package_name', label: 'Paket', class: 'min-w-[180px]' },
+    {
+        key: 'visit_type',
+        label: 'Tipe',
+        type: 'custom',
+        class: 'min-w-[120px]',
+    },
     {
         key: 'price',
         label: 'Harga',
@@ -289,12 +317,12 @@ const columns: Column[] = [
 ];
 
 const tableData = computed(() =>
-    items.value.map((t: any) => ({
-        id: t.id,
-        customer_name: t.customer?.name || '-',
-        package_name: t.package?.name || '-',
-        price: t.price ?? null,
-        created_at: t.created_at,
+    items.value.map((v: any) => ({
+        id: v.id,
+        customer_name: v.customer?.name || '-',
+        visit_type: v.visit_type || '-',
+        price: v.price ?? null,
+        checkin_time: v.checkin_time,
     })),
 );
 
@@ -331,7 +359,7 @@ const formatDateTimeId = (value: unknown): string => {
 
 const fetchItems = async (page = 1) => {
     try {
-        const { data } = await axios.get('/api/membership-transactions', {
+        const { data } = await axios.get('/api/visits', {
             params: {
                 per_page: 10,
                 page,
@@ -341,7 +369,7 @@ const fetchItems = async (page = 1) => {
         items.value = data.data?.data || [];
         totalItems.value = data.data?.total || 0;
     } catch (e) {
-        console.error('Error fetching membership transactions', e);
+        console.error('Error fetching visits', e);
     }
 };
 
@@ -397,18 +425,15 @@ const submitCancellation = async () => {
     cancelErrors.value = {};
 
     try {
-        await axios.post(
-            `/api/membership-transactions/${selectedItem.value.id}/cancel`,
-            {
-                cancellation_reason: cancellationReason.value.trim(),
-            },
-        );
+        await axios.post(`/api/visits/${selectedItem.value.id}/cancel`, {
+            cancellation_reason: cancellationReason.value.trim(),
+        });
 
         closeCancelDialog();
         fetchItems(currentPage.value);
         emit('submitted');
     } catch (e: any) {
-        console.error('Error cancelling transaction', e);
+        console.error('Error cancelling visit', e);
         if (e.response?.status === 422 && e.response.data?.errors) {
             const ers = e.response.data.errors;
             cancelErrors.value = {
@@ -417,7 +442,7 @@ const submitCancellation = async () => {
                     : String(ers.cancellation_reason || 'Validation error'),
             };
         } else {
-            alert('Gagal membatalkan transaksi.');
+            alert('Gagal membatalkan kunjungan.');
         }
     } finally {
         cancelProcessing.value = false;

@@ -509,7 +509,7 @@ watch(
     },
 );
 
-const fetchCustomerOptions = async (reset = false) => {
+const fetchCustomerOptions = async (reset = false, nonMemberOnly = false) => {
     if (reset) {
         customerPage.value = 1;
         customerOptions.value = [];
@@ -523,6 +523,7 @@ const fetchCustomerOptions = async (reset = false) => {
                 per_page: 20,
                 page: customerPage.value,
                 search: customerSearch.value || undefined,
+                ...(nonMemberOnly ? { is_member: 0 } : {}),
             },
         });
         const payload = data?.data;
@@ -539,10 +540,10 @@ const fetchCustomerOptions = async (reset = false) => {
 
 const onCustomerSearch = (query: string) => {
     customerSearch.value = query;
-    fetchCustomerOptions(true);
+    fetchCustomerOptions(true, activeTab.value === 'visitor');
 };
 const onCustomerLoadMore = () => {
-    fetchCustomerOptions(false);
+    fetchCustomerOptions(false, activeTab.value === 'visitor');
 };
 
 const openCreateCustomerModal = () => {
@@ -818,7 +819,7 @@ const setActiveTab = (next: 'member' | 'visitor') => {
         form.value.visit_type = 'DAILY';
         form.value.price = dailyVisitPrice.value;
         void closeScannerModal();
-        fetchCustomerOptions(true);
+        fetchCustomerOptions(true, true);
     }
 };
 

@@ -78,6 +78,8 @@ Route::middleware(['auth:web'])->group(function () {
     Route::post('membership-transactions/{membershipTransaction}/cancel', [MembershipTransactionController::class, 'cancel'])
         ->middleware('permission:'.Permission::DELETE_MEMBERSHIP_TRANSACTIONS->value);
     Route::apiResource('visits', VisitController::class);
+    Route::post('visits/{visit}/cancel', [VisitController::class, 'cancel'])
+        ->middleware('permission:'.Permission::DELETE_VISITS->value);
     Route::apiResource('products', ProductController::class);
     Route::apiResource('stock-movements', StockMovementController::class)->only(['index', 'store', 'show', 'destroy']);
     Route::apiResource('sales', SaleController::class)->only(['index', 'store', 'show', 'destroy']);

@@ -74,6 +74,10 @@
                 <div
                     class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-2"
                 >
+                    <VisitCancellationOperation
+                        v-if="canView(VISIT_PERMISSIONS.DELETE)"
+                        @submitted="fetchOpsStats"
+                    />
                     <MembershipCancellationOperation
                         @submitted="fetchOpsStats"
                     />
@@ -104,6 +108,7 @@ import MembershipOperation from './components/MembershipOperation.vue';
 import SalesCancellationOperation from './components/SalesCancellationOperation.vue';
 import SalesOperation from './components/SalesOperation.vue';
 import StockMovementOperation from './components/StockMovementOperation.vue';
+import VisitCancellationOperation from './components/VisitCancellationOperation.vue';
 import VisitsOperation from './components/VisitsOperation.vue';
 
 const currentPageTitle = ref('Operasional');

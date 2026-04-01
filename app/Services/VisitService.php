@@ -4,10 +4,12 @@ namespace App\Services;
 
 use App\Models\Customer;
 use App\Models\MembershipTransaction;
+use App\Models\User;
 use App\Models\Visit;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class VisitService
@@ -52,11 +54,17 @@ class VisitService
         ?string $visitType = null,
         ?string $createdBy = null,
         ?string $startDate = null,
-        ?string $endDate = null
+        ?string $endDate = null,
+        ?bool $last24Hours = false
     ): LengthAwarePaginator {
         $query = Visit::query()
             ->with(['customer', 'membershipTransaction', 'creator'])
+            ->notCancelled()
             ->latest('checkin_time');
+
+        if ($last24Hours) {
+            $query->where('checkin_time', '>=', Carbon::now()->subHours(24));
+        }
 
         if ($customerId) {
             $query->where('customer_id', $customerId);
@@ -155,6 +163,19 @@ class VisitService
     public function delete(Visit $visit): bool
     {
         return (bool) $visit->delete();
+    }
+
+    public function cancel(Visit $visit, string $reason, User $user): Visit
+    {
+        return DB::transaction(function () use ($visit, $reason, $user) {
+            $visit->update([
+                'cancellation_reason' => $reason,
+                'cancelled_by' => $user->id,
+                'cancelled_at' => Carbon::now(),
+            ]);
+
+            return $visit->fresh(['customer', 'membershipTransaction', 'creator', 'cancelledBy']);
+        });
     }
 
     public function getExportData(string $startDate, string $endDate): Collection

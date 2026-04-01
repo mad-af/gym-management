@@ -19,6 +19,9 @@ class Visit extends Model
         'visit_type',
         'price',
         'checkin_method',
+        'cancellation_reason',
+        'cancelled_by',
+        'cancelled_at',
         'created_by',
         'checkin_time',
     ];
@@ -26,6 +29,11 @@ class Visit extends Model
     protected $casts = [
         'price' => 'decimal:2',
         'checkin_time' => 'datetime',
+        'cancelled_at' => 'datetime',
+    ];
+
+    protected $appends = [
+        'is_cancelled',
     ];
 
     public function customer(): BelongsTo
@@ -41,5 +49,20 @@ class Visit extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function cancelledBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
+    public function getIsCancelledAttribute(): bool
+    {
+        return $this->cancelled_at !== null;
+    }
+
+    public function scopeNotCancelled($query)
+    {
+        return $query->whereNull('cancelled_at');
     }
 }

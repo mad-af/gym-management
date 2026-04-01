@@ -36,6 +36,7 @@ class VisitController extends Controller
             $request->input('created_by'),
             $request->input('start_date'),
             $request->input('end_date'),
+            filter_var($request->input('last_24_hours', false), FILTER_VALIDATE_BOOLEAN),
         );
 
         return ApiResponse::success('Visits retrieved successfully.', $visits);
@@ -78,6 +79,13 @@ class VisitController extends Controller
         $this->service->delete($visit);
 
         return ApiResponse::success('Visit deleted successfully.');
+    }
+
+    public function cancel(CancelVisitRequest $request, Visit $visit)
+    {
+        $cancelled = $this->service->cancel($visit, $request->validated('cancellation_reason'), $request->user());
+
+        return ApiResponse::success('Visit cancelled successfully.', $cancelled);
     }
 
     public function export(ExportDateRangeRequest $request)
