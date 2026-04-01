@@ -21,6 +21,7 @@ class DashboardService
         $monthEnd = $today->copy()->endOfMonth();
 
         $dailyVisitRevenueToday = (float) Visit::query()
+            ->notCancelled()
             ->where('visit_type', 'DAILY')
             ->whereDate('checkin_time', $today)
             ->sum('price');
@@ -36,6 +37,7 @@ class DashboardService
             ->sum('price');
 
         $dailyVisitRevenueMonth = (float) Visit::query()
+            ->notCancelled()
             ->where('visit_type', 'DAILY')
             ->whereDate('checkin_time', '>=', $monthStart)
             ->whereDate('checkin_time', '<=', $monthEnd)
@@ -82,13 +84,16 @@ class DashboardService
                     ->distinct('customer_id')
                     ->count('customer_id'),
                 'visits_today' => Visit::query()
+                    ->notCancelled()
                     ->whereDate('checkin_time', $today)
                     ->count(),
                 'daily_visits_today' => Visit::query()
+                    ->notCancelled()
                     ->where('visit_type', 'DAILY')
                     ->whereDate('checkin_time', $today)
                     ->count(),
                 'membership_visits_today' => Visit::query()
+                    ->notCancelled()
                     ->where('visit_type', 'MEMBERSHIP')
                     ->whereDate('checkin_time', $today)
                     ->count(),
@@ -121,13 +126,16 @@ class DashboardService
         return [
             'visits' => [
                 'count' => Visit::query()
+                    ->notCancelled()
                     ->whereDate('checkin_time', $today)
                     ->count(),
                 'memberCount' => Visit::query()
+                    ->notCancelled()
                     ->where('visit_type', 'MEMBERSHIP')
                     ->whereDate('checkin_time', $today)
                     ->count(),
                 'dailyRevenue' => (float) Visit::query()
+                    ->notCancelled()
                     ->where('visit_type', 'DAILY')
                     ->whereDate('checkin_time', $today)
                     ->sum('price'),
@@ -194,6 +202,7 @@ class DashboardService
             ->pluck('total', 'day');
 
         $visitByDate = Visit::query()
+            ->notCancelled()
             ->selectRaw('DATE(checkin_time) as day, COALESCE(SUM(price), 0) as total')
             ->where('visit_type', 'DAILY')
             ->whereDate('checkin_time', '>=', $startDate)
@@ -239,12 +248,14 @@ class DashboardService
         $monthEnd = Carbon::today()->endOfMonth();
 
         $dailyVisits = Visit::query()
+            ->notCancelled()
             ->where('visit_type', 'DAILY')
             ->whereDate('checkin_time', '>=', $monthStart)
             ->whereDate('checkin_time', '<=', $monthEnd)
             ->count();
 
         $membershipVisits = Visit::query()
+            ->notCancelled()
             ->where('visit_type', 'MEMBERSHIP')
             ->whereDate('checkin_time', '>=', $monthStart)
             ->whereDate('checkin_time', '<=', $monthEnd)
@@ -316,6 +327,7 @@ class DashboardService
     private function getRecentActivities(int $limit = 8): array
     {
         $visitActivities = Visit::query()
+            ->notCancelled()
             ->with(['customer:id,name'])
             ->latest('checkin_time')
             ->limit($limit)

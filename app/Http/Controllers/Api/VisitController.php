@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\Permission;
 use App\Helpers\ApiResponse;
+use App\Http\Requests\CancelVisitRequest;
 use App\Http\Requests\ExportDateRangeRequest;
 use App\Http\Requests\StoreVisitRequest;
 use App\Http\Requests\UpdateVisitRequest;
@@ -94,24 +95,42 @@ class VisitController extends Controller
         $startDate = $validated['start_date'];
         $endDate = $validated['end_date'];
         $rows = $this->service->getExportData($startDate, $endDate);
+        $normalRows = $rows->filter(fn ($v) => $v->cancelled_at === null);
+        $cancelledRows = $rows->filter(fn ($v) => $v->cancelled_at !== null);
         $filename = sprintf('visits_%s_to_%s.csv', $startDate, $endDate);
 
-        return response()->streamDownload(function () use ($rows): void {
+        return response()->streamDownload(function () use ($normalRows, $cancelledRows): void {
             $output = fopen('php://output', 'w');
             if ($output === false) {
                 return;
             }
 
             fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
-            fputcsv($output, ['Tanggal Check-In', 'Pelanggan', 'Jenis', 'Harga', 'Petugas']);
 
-            foreach ($rows as $visit) {
+            fputcsv($output, ['Tanggal Check-In', 'Pelanggan', 'Jenis', 'Harga', 'Petugas']);
+            foreach ($normalRows as $visit) {
                 fputcsv($output, [
                     optional($visit->checkin_time)->format('Y-m-d H:i:s') ?? '-',
                     $visit->customer?->name ?? '-',
                     $visit->visit_type ?? '-',
                     $visit->price ?? 0,
                     $visit->creator?->name ?? '-',
+                ]);
+            }
+
+            fputcsv($output, []);
+            fputcsv($output, ['Status Transaksi', 'Tanggal Dibatalkan', 'Dibatalkan Oleh', 'Alasan Dibatalkan']);
+            foreach ($cancelledRows as $visit) {
+                fputcsv($output, [
+                    optional($visit->checkin_time)->format('Y-m-d H:i:s') ?? '-',
+                    $visit->customer?->name ?? '-',
+                    $visit->visit_type ?? '-',
+                    $visit->price ?? 0,
+                    $visit->creator?->name ?? '-',
+                    'DIBATALKAN',
+                    optional($visit->cancelled_at)->format('Y-m-d H:i:s') ?? '-',
+                    $visit->cancelledBy?->name ?? '-',
+                    $visit->cancellation_reason ?? '-',
                 ]);
             }
 
@@ -128,16 +147,23 @@ class VisitController extends Controller
         $startDate = $validated['start_date'];
         $endDate = $validated['end_date'];
         $rows = $this->service->getExportData($startDate, $endDate);
+        $normalRows = $rows->filter(fn ($v) => $v->cancelled_at === null);
+        $cancelledRows = $rows->filter(fn ($v) => $v->cancelled_at !== null);
 
-        $totalRecords = $rows->count();
-        $totalKunjungan = $rows->count();
+        $totalRecords = $normalRows->count();
+        $totalCancelled = $cancelledRows->count();
+        $totalKunjungan = $totalRecords;
+        $totalCancelledRevenue = (float) $cancelledRows->where('visit_type', 'DAILY')->sum('price');
 
         $html = view('pdf.visits', [
-            'rows' => $rows,
+            'rows' => $normalRows,
+            'cancelledRows' => $cancelledRows,
             'start_date' => $startDate,
             'end_date' => $endDate,
             'total_records' => $totalRecords,
             'total_kunjungan' => $totalKunjungan,
+            'total_cancelled' => $totalCancelled,
+            'total_cancelled_revenue' => $totalCancelledRevenue,
         ])->render();
 
         $mpdf = new Mpdf([

@@ -176,6 +176,7 @@ class CustomerService
             ->count('customer_id');
 
         $visitsToday = Visit::query()
+            ->notCancelled()
             ->whereDate('checkin_time', $today)
             ->count();
 

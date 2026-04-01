@@ -23,17 +23,20 @@ class VisitService
         $monthEnd = $today->copy()->endOfMonth();
 
         $visitsThisMonth = Visit::query()
+            ->notCancelled()
             ->whereDate('checkin_time', '>=', $monthStart)
             ->whereDate('checkin_time', '<=', $monthEnd)
             ->count();
 
         $memberVisitsThisMonth = Visit::query()
+            ->notCancelled()
             ->where('visit_type', 'MEMBERSHIP')
             ->whereDate('checkin_time', '>=', $monthStart)
             ->whereDate('checkin_time', '<=', $monthEnd)
             ->count();
 
         $monthlyRevenue = (float) Visit::query()
+            ->notCancelled()
             ->where('visit_type', 'DAILY')
             ->whereDate('checkin_time', '>=', $monthStart)
             ->whereDate('checkin_time', '<=', $monthEnd)
@@ -181,7 +184,7 @@ class VisitService
     public function getExportData(string $startDate, string $endDate): Collection
     {
         return Visit::query()
-            ->with(['customer', 'creator'])
+            ->with(['customer', 'creator', 'cancelledBy'])
             ->whereDate('checkin_time', '>=', $startDate)
             ->whereDate('checkin_time', '<=', $endDate)
             ->orderBy('checkin_time')

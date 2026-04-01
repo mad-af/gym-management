@@ -60,6 +60,18 @@
             color: #111827;
         }
 
+        .summary-cancelled {
+            background: #fef2f2;
+        }
+
+        .summary-cancelled .summary-label {
+            color: #b91c1c;
+        }
+
+        .summary-cancelled .summary-value {
+            color: #b91c1c;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -101,6 +113,26 @@
             font-size: 8pt;
             color: #9ca3af;
             text-align: center;
+        }
+
+        .page-break {
+            page-break-before: always;
+        }
+
+        .cancelled-header {
+            background: #fef2f2;
+        }
+
+        .cancelled-header h2 {
+            font-size: 12pt;
+            margin: 0 0 5px 0;
+            color: #b91c1c;
+        }
+
+        .cancelled-header p {
+            font-size: 9pt;
+            margin: 0;
+            color: #dc2626;
         }
     </style>
 </head>
@@ -148,6 +180,55 @@
             @endforelse
         </tbody>
     </table>
+
+    @if(!empty($cancelledRows) && $cancelledRows->count() > 0)
+        <div class="page-break"></div>
+
+        <div class="header cancelled-header">
+            <h2>Daftar Transaksi Dibatalkan</h2>
+            <p>Periode: {{ $start_date ?? '-' }} s/d {{ $end_date ?? '-' }}</p>
+        </div>
+
+        <div class="summary">
+            <div class="summary-item">
+                <div class="summary-label">Total Dibatalkan</div>
+                <div class="summary-value">{{ $total_cancelled ?? 0 }}</div>
+            </div>
+            <div class="summary-item summary-cancelled">
+                <div class="summary-label">Total Revenue Dibatalkan</div>
+                <div class="summary-value">Rp {{ number_format($total_cancelled_revenue ?? 0, 0, ',', '.') }}</div>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Tanggal Check-In</th>
+                    <th>Pelanggan</th>
+                    <th>Jenis</th>
+                    <th class="text-right">Harga</th>
+                    <th>Petugas</th>
+                    <th>Tanggal Dibatalkan</th>
+                    <th>Dibatalkan Oleh</th>
+                    <th>Alasan Dibatalkan</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($cancelledRows as $visit)
+                    <tr>
+                        <td>{{ $visit->checkin_time ? \Carbon\Carbon::parse($visit->checkin_time)->format('Y-m-d H:i') : '-' }}</td>
+                        <td>{{ $visit->customer?->name ?? '-' }}</td>
+                        <td>{{ $visit->visit_type ?? '-' }}</td>
+                        <td class="text-right">{{ $visit->visit_type === 'MEMBERSHIP' ? '-' : 'Rp ' . number_format($visit->price ?? 0, 0, ',', '.') }}</td>
+                        <td>{{ $visit->creator?->name ?? '-' }}</td>
+                        <td>{{ $visit->cancelled_at ? \Carbon\Carbon::parse($visit->cancelled_at)->format('Y-m-d H:i') : '-' }}</td>
+                        <td>{{ $visit->cancelledBy?->name ?? '-' }}</td>
+                        <td>{{ $visit->cancellation_reason ?? '-' }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
 
     <div class="footer">
         Dicetak pada: {{ now()->format('Y-m-d H:i:s') }}
