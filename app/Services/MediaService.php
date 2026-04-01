@@ -18,14 +18,16 @@ class MediaService
      * Upload and attach media to a model.
      *
      * @param  Model|null  $model  (optional)
+     * @param  int  $maxWidth  Max width for image resize (default: 1200)
      */
     public function upload(
         UploadedFile $file,
         ?Model $model = null,
         string $collection = 'default',
-        string $disk = 'public'
+        string $disk = 'public',
+        int $maxWidth = 1200
     ): Media {
-        return DB::transaction(function () use ($file, $model, $collection, $disk) {
+        return DB::transaction(function () use ($file, $model, $collection, $disk, $maxWidth) {
             $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
             $path = "uploads/{$collection}/".date('Y/m/d');
             $fullPath = "{$path}/{$filename}";
@@ -51,8 +53,8 @@ class MediaService
                         ->toDataUri();
 
                     // 2. Compress & Resize Main Image
-                    // Max width 1200px, quality 80%
-                    $encoded = $image->scaleDown(width: 1200)
+                    // Max width as specified, quality 80%
+                    $encoded = $image->scaleDown(width: $maxWidth)
                         ->encode(new AutoEncoder(quality: 80));
 
                     $finalContent = $encoded->toString();

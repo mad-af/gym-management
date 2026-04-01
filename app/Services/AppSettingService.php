@@ -90,6 +90,7 @@ class AppSettingService
             'app_name' => $appName,
             'app_description' => $appDescription,
             'logo' => $logoSetting->getLogo(),
+            'logo_small' => $logoSetting->getSmallLogo(),
             'daily_visit_price' => $dailyVisitPrice,
         ];
     }
@@ -120,14 +121,29 @@ class AppSettingService
 
             $logo = $data['logo'] ?? null;
             if ($logo instanceof UploadedFile) {
+                // Upload main logo (max 1200px)
                 $newLogo = $this->mediaService->upload($logo, $logoSetting, 'logo');
 
+                // Delete old main logo media
                 $existingMedia = $logoSetting->media()
                     ->where('collection', 'logo')
                     ->where('id', '!=', $newLogo->id)
                     ->get();
 
                 foreach ($existingMedia as $media) {
+                    $this->mediaService->forceDelete($media);
+                }
+
+                // Upload small logo (max 100px)
+                $newSmallLogo = $this->mediaService->upload($logo, $logoSetting, 'logo_small', 'public', 100);
+
+                // Delete old small logo media
+                $existingSmallMedia = $logoSetting->media()
+                    ->where('collection', 'logo_small')
+                    ->where('id', '!=', $newSmallLogo->id)
+                    ->get();
+
+                foreach ($existingSmallMedia as $media) {
                     $this->mediaService->forceDelete($media);
                 }
             }
@@ -143,6 +159,7 @@ class AppSettingService
                 'app_description' => $this->normalizeNullableString($descriptionSetting->getValue('value'))
                     ?? self::DEFAULT_APP_DESCRIPTION,
                 'logo' => $logoSetting->getLogo(),
+                'logo_small' => $logoSetting->getSmallLogo(),
                 'daily_visit_price' => $this->normalizeNonNegativeNumber(
                     $dailyVisitPriceSetting->getValue('value'),
                     self::DEFAULT_DAILY_VISIT_PRICE,

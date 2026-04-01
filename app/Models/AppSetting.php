@@ -52,7 +52,34 @@ class AppSetting extends Model
 
     public function getLogo(): ?array
     {
-        return $this->getFirstMedia('logo');
+        $media = $this->media->where('collection', 'logo')->sortByDesc('id')->first();
+        if (! $media) {
+            return null;
+        }
+
+        return [
+            'url' => $media->url,
+            'placeholder' => $media->placeholder,
+            'mime_type' => $media->mime_type,
+            'disk' => $media->disk,
+            'path' => $media->path,
+        ];
+    }
+
+    public function getSmallLogo(): ?array
+    {
+        $media = $this->media->where('collection', 'logo_small')->sortByDesc('id')->first();
+        if (! $media) {
+            return null;
+        }
+
+        return [
+            'url' => $media->url,
+            'placeholder' => $media->placeholder,
+            'mime_type' => $media->mime_type,
+            'disk' => $media->disk,
+            'path' => $media->path,
+        ];
     }
 
     public static function findByType(string $type): ?self

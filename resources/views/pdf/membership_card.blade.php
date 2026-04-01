@@ -37,6 +37,18 @@
             color: #111827;
         }
 
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 0.15cm;
+        }
+
+        .logo {
+            height: 0.6cm;
+            width: auto;
+            object-fit: contain;
+        }
+
         .subtitle {
             font-size: 7.5pt;
             margin-top: 0.06cm;
@@ -97,7 +109,12 @@
 
 <body>
     <div class="card">
-        <p class="title">{{ $app_name ?? 'Gym Management' }}</p>
+        <div class="header">
+            @if(!empty($logo_data_uri))
+                <img class="logo" src="{{ $logo_data_uri }}" alt="Logo" />
+            @endif
+            <p class="title">{{ $app_name ?? 'Gym Management' }}</p>
+        </div>
         <div class="subtitle">Kartu Membership</div>
 
         <table class="content">

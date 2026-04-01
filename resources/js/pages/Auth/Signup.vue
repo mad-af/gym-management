@@ -5,7 +5,7 @@
                 class="relative flex h-screen w-full flex-col justify-center lg:flex-row dark:bg-gray-900"
             >
                 <div class="flex w-full flex-1 flex-col lg:w-1/2">
-                    <div class="mx-auto w-full max-w-md pt-10">
+                    <div class="hidden mx-auto w-full max-w-md pt-10">
                         <Link
                             href="/"
                             class="inline-flex items-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"

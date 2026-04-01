@@ -13,7 +13,7 @@
             </div>
         </div>
 
-        <div class="custom-scrollbar max-w-full overflow-x-auto">
+        <div class="max-w-full overflow-x-auto">
             <div class="min-w-[680px] xl:min-w-full">
                 <VueApexCharts
                     type="line"

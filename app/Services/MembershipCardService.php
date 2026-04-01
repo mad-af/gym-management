@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Helpers\QrCodeHelper;
 use App\Models\Customer;
+use Illuminate\Support\Facades\Storage;
 use Mpdf\Mpdf;
 use Mpdf\Output\Destination;
 
@@ -13,7 +14,10 @@ class MembershipCardService
 
     private const CARD_HEIGHT_MM = 54;
 
-    public function __construct(private readonly WhatsappConfigService $whatsappConfigService) {}
+    public function __construct(
+        private readonly WhatsappConfigService $whatsappConfigService,
+        private readonly AppSettingService $appSettingService,
+    ) {}
 
     public function generatePdfBinary(Customer $customer): string
     {
@@ -61,7 +65,7 @@ class MembershipCardService
         $message = sprintf(
             "Halo %s, berikut kartu membership Anda dari %s.\n%s",
             $payload['customer_name'],
-            config('app.name'),
+            $payload['app_name'],
             $file['url']
         );
 
@@ -80,13 +84,29 @@ class MembershipCardService
         $qrImage = $memberCode !== ''
             ? QrCodeHelper::generateBase64Svg($memberCode, 256)
             : null;
+        $appSettings = $this->appSettingService->getAppSettings();
+
+        $logoDataUri = null;
+        $logoSmall = $appSettings['logo'] ?? null;
+        if ($logoSmall) {
+            try {
+                $content = Storage::disk($logoSmall['disk'])->get($logoSmall['path']);
+                if ($content) {
+                    $mimeType = $logoSmall['mime_type'] ?? 'image/png';
+                    $logoDataUri = 'data:'.$mimeType.';base64,'.base64_encode($content);
+                }
+            } catch (\Exception) {
+                // Fallback to null if file cannot be read
+            }
+        }
 
         return [
             'customer_name' => $customer->name,
             'member_code' => $memberCode !== '' ? $memberCode : '-',
             'phone' => $customer->phone,
             'qr_image' => $qrImage,
-            'app_name' => config('app.name'),
+            'app_name' => $appSettings['app_name'],
+            'logo_data_uri' => $logoDataUri,
         ];
     }
 
