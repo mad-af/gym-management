@@ -4,6 +4,12 @@
         <div class="space-y-6">
             <Stats2 :items="statsItems" />
             <div
+                v-if="
+                    canView(VISIT_PERMISSIONS.CREATE) ||
+                    canView(SALE_PERMISSIONS.CREATE) ||
+                    canView(MEMBERSHIP_TRANSACTION_PERMISSIONS.CREATE) ||
+                    canView(STOCK_MOVEMENT_PERMISSIONS.CREATE)
+                "
                 class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900"
             >
                 <div
@@ -53,6 +59,11 @@
             </div>
 
             <div
+                v-if="
+                    canView(VISIT_PERMISSIONS.CANCEL) ||
+                    canView(MEMBERSHIP_TRANSACTION_PERMISSIONS.CANCEL) ||
+                    canView(SALE_PERMISSIONS.CANCEL)
+                "
                 class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900"
             >
                 <div
@@ -75,13 +86,19 @@
                     class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-2"
                 >
                     <VisitCancellationOperation
-                        v-if="canView(VISIT_PERMISSIONS.DELETE)"
+                        v-if="canView(VISIT_PERMISSIONS.CANCEL)"
                         @submitted="fetchOpsStats"
                     />
                     <MembershipCancellationOperation
+                        v-if="
+                            canView(MEMBERSHIP_TRANSACTION_PERMISSIONS.CANCEL)
+                        "
                         @submitted="fetchOpsStats"
                     />
-                    <SalesCancellationOperation @submitted="fetchOpsStats" />
+                    <SalesCancellationOperation
+                        v-if="canView(SALE_PERMISSIONS.CANCEL)"
+                        @submitted="fetchOpsStats"
+                    />
                 </div>
             </div>
         </div>

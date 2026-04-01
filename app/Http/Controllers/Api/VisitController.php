@@ -24,6 +24,7 @@ class VisitController extends Controller
         $this->middleware('permission:'.Permission::CREATE_VISITS->value)->only(['store']);
         $this->middleware('permission:'.Permission::EDIT_VISITS->value)->only(['update']);
         $this->middleware('permission:'.Permission::DELETE_VISITS->value)->only(['destroy']);
+        $this->middleware('permission:'.Permission::CANCEL_VISITS->value)->only(['cancel']);
     }
 
     public function index(Request $request)

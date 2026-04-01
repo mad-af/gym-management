@@ -59,6 +59,7 @@ export const MEMBERSHIP_TRANSACTION_PERMISSIONS = {
     CREATE: 'create_membership_transactions',
     EDIT: 'edit_membership_transactions',
     DELETE: 'delete_membership_transactions',
+    CANCEL: 'cancel_membership_transactions',
 } as const;
 
 export const VISIT_PERMISSIONS = {
@@ -66,6 +67,7 @@ export const VISIT_PERMISSIONS = {
     CREATE: 'create_visits',
     EDIT: 'edit_visits',
     DELETE: 'delete_visits',
+    CANCEL: 'cancel_visits',
 } as const;
 
 export const PRODUCT_PERMISSIONS = {
@@ -85,4 +87,5 @@ export const SALE_PERMISSIONS = {
     VIEW: 'view_sales',
     CREATE: 'create_sales',
     DELETE: 'delete_sales',
+    CANCEL: 'cancel_sales',
 } as const;

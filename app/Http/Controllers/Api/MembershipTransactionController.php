@@ -24,6 +24,7 @@ class MembershipTransactionController extends Controller
         $this->middleware('permission:'.Permission::CREATE_MEMBERSHIP_TRANSACTIONS->value)->only(['store']);
         $this->middleware('permission:'.Permission::EDIT_MEMBERSHIP_TRANSACTIONS->value)->only(['update']);
         $this->middleware('permission:'.Permission::DELETE_MEMBERSHIP_TRANSACTIONS->value)->only(['destroy']);
+        $this->middleware('permission:'.Permission::CANCEL_MEMBERSHIP_TRANSACTIONS->value)->only(['cancel']);
     }
 
     public function index(Request $request)

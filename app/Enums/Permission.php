@@ -44,12 +44,14 @@ enum Permission: string
     case CREATE_MEMBERSHIP_TRANSACTIONS = 'create_membership_transactions';
     case EDIT_MEMBERSHIP_TRANSACTIONS = 'edit_membership_transactions';
     case DELETE_MEMBERSHIP_TRANSACTIONS = 'delete_membership_transactions';
+    case CANCEL_MEMBERSHIP_TRANSACTIONS = 'cancel_membership_transactions';
 
     // Gym: Visits
     case VIEW_VISITS = 'view_visits';
     case CREATE_VISITS = 'create_visits';
     case EDIT_VISITS = 'edit_visits';
     case DELETE_VISITS = 'delete_visits';
+    case CANCEL_VISITS = 'cancel_visits';
 
     // Gym: Products
     case VIEW_PRODUCTS = 'view_products';
@@ -66,6 +68,7 @@ enum Permission: string
     case VIEW_SALES = 'view_sales';
     case CREATE_SALES = 'create_sales';
     case DELETE_SALES = 'delete_sales';
+    case CANCEL_SALES = 'cancel_sales';
 
     case VIEW_APP_SETTINGS = 'view_app_settings';
     case MANAGE_APP_SETTINGS = 'manage_app_settings';
@@ -121,13 +124,15 @@ enum Permission: string
                 self::VIEW_MEMBERSHIP_TRANSACTIONS,
                 self::CREATE_MEMBERSHIP_TRANSACTIONS,
                 self::EDIT_MEMBERSHIP_TRANSACTIONS,
-                self::DELETE_MEMBERSHIP_TRANSACTIONS,
+                // self::DELETE_MEMBERSHIP_TRANSACTIONS,
+                self::CANCEL_MEMBERSHIP_TRANSACTIONS,
             ],
             'Manajemen Kunjungan' => [
                 self::VIEW_VISITS,
                 self::CREATE_VISITS,
                 self::EDIT_VISITS,
-                self::DELETE_VISITS,
+                // self::DELETE_VISITS,
+                self::CANCEL_VISITS,
             ],
             'Manajemen Produk' => [
                 self::VIEW_PRODUCTS,
@@ -143,7 +148,8 @@ enum Permission: string
             'Manajemen Penjualan' => [
                 self::VIEW_SALES,
                 self::CREATE_SALES,
-                self::DELETE_SALES,
+                // self::DELETE_SALES,
+                self::CANCEL_SALES,
             ],
             'Konfigurasi Aplikasi' => [
                 self::VIEW_APP_SETTINGS,
@@ -206,11 +212,13 @@ enum Permission: string
             self::CREATE_MEMBERSHIP_TRANSACTIONS => 'Tambah Transaksi Membership',
             self::EDIT_MEMBERSHIP_TRANSACTIONS => 'Edit Transaksi Membership',
             self::DELETE_MEMBERSHIP_TRANSACTIONS => 'Hapus Transaksi Membership',
+            self::CANCEL_MEMBERSHIP_TRANSACTIONS => 'Batalkan Transaksi Membership',
 
             self::VIEW_VISITS => 'Lihat Kunjungan',
             self::CREATE_VISITS => 'Tambah Kunjungan',
             self::EDIT_VISITS => 'Edit Kunjungan',
             self::DELETE_VISITS => 'Hapus Kunjungan',
+            self::CANCEL_VISITS => 'Batalkan Kunjungan',
 
             self::VIEW_PRODUCTS => 'Lihat Produk',
             self::CREATE_PRODUCTS => 'Tambah Produk',
@@ -224,6 +232,7 @@ enum Permission: string
             self::VIEW_SALES => 'Lihat Penjualan',
             self::CREATE_SALES => 'Tambah Penjualan',
             self::DELETE_SALES => 'Hapus Penjualan',
+            self::CANCEL_SALES => 'Batalkan Penjualan',
 
             self::VIEW_APP_SETTINGS => 'Lihat Konfigurasi Aplikasi',
             self::MANAGE_APP_SETTINGS => 'Kelola Konfigurasi Aplikasi',

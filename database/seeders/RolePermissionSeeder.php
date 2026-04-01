@@ -34,9 +34,12 @@ class RolePermissionSeeder extends Seeder
             Permission::VIEW_OPERATIONS->value,
             Permission::CREATE_CUSTOMERS->value,
             Permission::CREATE_MEMBERSHIP_TRANSACTIONS->value,
+            Permission::CANCEL_MEMBERSHIP_TRANSACTIONS->value,
             Permission::CREATE_VISITS->value,
+            Permission::CANCEL_VISITS->value,
             Permission::CREATE_STOCK_MOVEMENTS->value,
             Permission::CREATE_SALES->value,
+            Permission::CANCEL_SALES->value,
         ];
 
         $staffRole = SpatieRole::firstOrCreate(['name' => Role::STAFF->value]);

@@ -75,6 +75,7 @@
                             </template>
                             <template #cell-actions="{ row }">
                                 <Button
+                                    v-can="'cancel_membership_transactions'"
                                     size="sm"
                                     variant="outline"
                                     className="!text-error-500 !border-error-500 hover:!bg-error-50"

@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\Permission;
 use App\Http\Controllers\Api\AppSettingController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\DashboardController;
@@ -75,15 +74,12 @@ Route::middleware(['auth:web'])->group(function () {
     Route::apiResource('membership-packages', MembershipPackageController::class);
     Route::apiResource('membership-package-items', MembershipPackageItemController::class);
     Route::apiResource('membership-transactions', MembershipTransactionController::class);
-    Route::post('membership-transactions/{membershipTransaction}/cancel', [MembershipTransactionController::class, 'cancel'])
-        ->middleware('permission:'.Permission::DELETE_MEMBERSHIP_TRANSACTIONS->value);
+    Route::post('membership-transactions/{membershipTransaction}/cancel', [MembershipTransactionController::class, 'cancel']);
     Route::apiResource('visits', VisitController::class);
-    Route::post('visits/{visit}/cancel', [VisitController::class, 'cancel'])
-        ->middleware('permission:'.Permission::DELETE_VISITS->value);
+    Route::post('visits/{visit}/cancel', [VisitController::class, 'cancel']);
     Route::apiResource('products', ProductController::class);
     Route::apiResource('stock-movements', StockMovementController::class)->only(['index', 'store', 'show', 'destroy']);
     Route::apiResource('sales', SaleController::class)->only(['index', 'store', 'show', 'destroy']);
-    Route::post('sales/{sale}/cancel', [SaleController::class, 'cancel'])
-        ->middleware('permission:'.Permission::DELETE_SALES->value);
+    Route::post('sales/{sale}/cancel', [SaleController::class, 'cancel']);
 
 });

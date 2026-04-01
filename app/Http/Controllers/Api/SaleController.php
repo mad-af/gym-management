@@ -22,6 +22,7 @@ class SaleController extends Controller
         $this->middleware('permission:'.Permission::VIEW_SALES->value)->only(['index', 'show', 'stats', 'export']);
         $this->middleware('permission:'.Permission::CREATE_SALES->value)->only(['store']);
         $this->middleware('permission:'.Permission::DELETE_SALES->value)->only(['destroy']);
+        $this->middleware('permission:'.Permission::CANCEL_SALES->value)->only(['cancel']);
     }
 
     public function index(Request $request)
