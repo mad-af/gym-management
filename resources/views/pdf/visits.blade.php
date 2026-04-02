@@ -152,6 +152,10 @@
             <div class="summary-label">Total Kunjungan</div>
             <div class="summary-value">{{ $total_kunjungan ?? 0 }}</div>
         </div>
+        <div class="summary-item">
+            <div class="summary-label">Total Revenue</div>
+            <div class="summary-value">Rp {{ number_format($total_revenue ?? 0, 0, ',', '.') }}</div>
+        </div>
     </div>
 
     <table>

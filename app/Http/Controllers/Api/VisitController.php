@@ -154,6 +154,7 @@ class VisitController extends Controller
         $totalRecords = $normalRows->count();
         $totalCancelled = $cancelledRows->count();
         $totalKunjungan = $totalRecords;
+        $totalRevenue = (float) $normalRows->where('visit_type', 'DAILY')->sum('price');
         $totalCancelledRevenue = (float) $cancelledRows->where('visit_type', 'DAILY')->sum('price');
 
         $html = view('pdf.visits', [
@@ -163,6 +164,7 @@ class VisitController extends Controller
             'end_date' => $endDate,
             'total_records' => $totalRecords,
             'total_kunjungan' => $totalKunjungan,
+            'total_revenue' => $totalRevenue,
             'total_cancelled' => $totalCancelled,
             'total_cancelled_revenue' => $totalCancelledRevenue,
         ])->render();
