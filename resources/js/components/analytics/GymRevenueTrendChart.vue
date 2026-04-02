@@ -17,7 +17,7 @@
             <div class="min-w-[680px] xl:min-w-full">
                 <VueApexCharts
                     type="line"
-                    :height="320"
+                    :height="345"
                     :series="series"
                     :options="chartOptions"
                 />
@@ -98,8 +98,8 @@ const chartOptions = computed(() => {
         },
         legend: {
             show: true,
-            position: 'top',
-            horizontalAlign: 'left',
+            position: 'top' as "top" | "right" | "left" | "bottom" | undefined,
+            horizontalAlign: 'left' as "top" | "right" | "left" | "bottom" | undefined,
             fontFamily: 'Outfit, sans-serif',
             fontSize: '13px',
         },
