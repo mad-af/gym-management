@@ -82,11 +82,11 @@ class VisitService
         }
 
         if ($startDate) {
-            $query->whereDate('created_at', '>=', $startDate);
+            $query->whereDate('checkin_time', '>=', $startDate);
         }
 
         if ($endDate) {
-            $query->whereDate('created_at', '<=', $endDate);
+            $query->whereDate('checkin_time', '<=', $endDate);
         }
 
         if ($search) {
