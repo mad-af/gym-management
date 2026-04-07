@@ -491,6 +491,9 @@ const saveItem = async () => {
 
 const resetFilter = () => {
     filters.value = { name: '', membership_status: '' };
+    currentPage.value = 1;
+    fetchCustomers();
+    isFilterDrawerOpen.value = false;
 };
 const handleFilter = () => {
     currentPage.value = 1;
