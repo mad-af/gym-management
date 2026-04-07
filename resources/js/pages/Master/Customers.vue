@@ -173,6 +173,20 @@
                         placeholder="Masukkan nama"
                     />
                 </div>
+                <div>
+                    <label
+                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                        >Status Membership</label
+                    >
+                    <select
+                        v-model="filters.membership_status"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                    >
+                        <option value="">Semua</option>
+                        <option value="active">Aktif</option>
+                        <option value="expired">Expired</option>
+                    </select>
+                </div>
             </div>
             <template #footer>
                 <div class="flex w-full justify-end gap-3">
@@ -207,6 +221,7 @@ import {
     CalenderIcon,
     ShieldCheckIcon,
     DoorOpenIcon,
+    WarningIcon,
 } from '@/icons';
 
 const currentPageTitle = ref('Customers');
@@ -214,12 +229,14 @@ const isDrawerOpen = ref(false);
 const isFilterDrawerOpen = ref(false);
 const filters = ref({
     name: '',
+    membership_status: '',
 });
 
 const stats = ref({
     total: 0,
     activeThisMonth: 0,
     activeMembers: 0,
+    expiredMembers: 0,
     visitsToday: 0,
 });
 
@@ -241,6 +258,12 @@ const statsItems = computed(() => [
         value: stats.value.activeMembers,
         icon: ShieldCheckIcon,
         iconBgClass: 'bg-success-50 text-success-600 dark:bg-success-500/10',
+    },
+    {
+        label: 'Member Expired',
+        value: stats.value.expiredMembers,
+        icon: WarningIcon,
+        iconBgClass: 'bg-yellow-50 text-yellow-600 dark:bg-yellow-500/10',
     },
     {
         label: 'Kunjungan Hari Ini',
@@ -275,7 +298,7 @@ const tableData = computed(() => {
             avatar: c.avatar || null,
             phone: c.phone || '-',
             email: c.email || '-',
-            membership_status: c.is_active_member ? 'Aktif' : 'Tidak Aktif',
+            membership_status: c.membership_status || 'Tidak Aktif',
             active_until: c.active_membership_until || null,
             active_package: c.active_membership_package_name || '-',
             days_remaining: c.days_remaining ?? null,
@@ -288,6 +311,9 @@ const getMembershipLabel = (
     status: string,
     daysRemaining: number | null,
 ): string => {
+    if (status === 'Expired') {
+        return 'Expired';
+    }
     if (
         status === 'Aktif' &&
         daysRemaining !== null &&
@@ -303,6 +329,9 @@ const getMembershipBadgeColor = (
     status: string,
     daysRemaining: number | null,
 ): string => {
+    if (status === 'Expired') {
+        return 'warning';
+    }
     if (
         status === 'Aktif' &&
         daysRemaining !== null &&
@@ -361,6 +390,7 @@ const fetchStats = async () => {
             total: s.total ?? 0,
             activeThisMonth: s.activeThisMonth ?? 0,
             activeMembers: s.activeMembers ?? 0,
+            expiredMembers: s.expiredMembers ?? 0,
             visitsToday: s.visitsToday ?? 0,
         };
     } catch (e) {
@@ -376,6 +406,7 @@ const fetchCustomers = async () => {
                 per_page: perPage.value,
                 page: currentPage.value,
                 search: searchFilter.value || filters.value.name || undefined,
+                membership_status: filters.value.membership_status || undefined,
             },
         });
         customers.value = data.data?.data || data.data || [];
@@ -459,7 +490,7 @@ const saveItem = async () => {
 };
 
 const resetFilter = () => {
-    filters.value = { name: '' };
+    filters.value = { name: '', membership_status: '' };
 };
 const handleFilter = () => {
     currentPage.value = 1;

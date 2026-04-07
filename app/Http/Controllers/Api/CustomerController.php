@@ -37,6 +37,7 @@ class CustomerController extends Controller
             $request->input('search'),
             $request->input('page', 1),
             $isMember,
+            $request->input('membership_status'),
         );
 
         return ApiResponse::success('Customers retrieved successfully.', $customers);

@@ -42,7 +42,7 @@ class ExpireMembershipTransactionsCommand extends Command
             $wasActive = strtolower((string) $transaction->status) === 'active';
 
             if ($wasActive) {
-                $transaction->update(['status' => StatusEnum::INACTIVE->value]);
+                $transaction->update(['status' => StatusEnum::EXPIRED->value]);
                 $updated++;
             }
 

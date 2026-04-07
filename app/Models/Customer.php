@@ -35,6 +35,7 @@ class Customer extends Model
         'active_membership_package_id',
         'days_remaining',
         'is_expiring_soon',
+        'membership_status',
     ];
 
     protected $hidden = [
@@ -165,5 +166,29 @@ class Customer extends Model
         $days = $this->days_remaining;
 
         return $this->is_active_member && $days !== null && $days >= 0 && $days <= 7;
+    }
+
+    public function getMembershipStatusAttribute(): string
+    {
+        $now = Carbon::now()->startOfDay();
+
+        if ($this->relationLoaded('membershipTransactions')) {
+            $active = $this->membershipTransactions
+                ->filter(fn ($t) => ! $t->cancelled_at)
+                ->filter(fn ($t) => $t->status === 'active' && $t->end_date->startOfDay() >= $now)
+                ->isNotEmpty();
+            if ($active) {
+                return 'Aktif';
+            }
+
+            $expired = $this->membershipTransactions
+                ->filter(fn ($t) => $t->status === 'expired')
+                ->isNotEmpty();
+            if ($expired) {
+                return 'Expired';
+            }
+        }
+
+        return 'Tidak Aktif';
     }
 }

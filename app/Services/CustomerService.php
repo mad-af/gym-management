@@ -36,14 +36,14 @@ class CustomerService
         int $perPage = 10,
         ?string $search = null,
         int $page = 1,
-        ?bool $isMember = null
+        ?bool $isMember = null,
+        ?string $membershipStatus = null
     ): LengthAwarePaginator {
         $now = Carbon::now()->startOfDay();
         $query = Customer::query()
             ->with([
-                'membershipTransactions' => function ($q) use ($now) {
-                    $q->whereDate('start_date', '<=', $now)
-                        ->whereDate('end_date', '>=', $now)
+                'membershipTransactions' => function ($q) {
+                    $q->whereNull('cancelled_at')
                         ->with('package');
                 },
                 'media' => function ($q) {
@@ -58,6 +58,12 @@ class CustomerService
                     ->where('status', 'active')
                     ->whereDate('start_date', '<=', $now)
                     ->whereDate('end_date', '>=', $now);
+            });
+        }
+
+        if ($membershipStatus === 'expired') {
+            $query->whereHas('membershipTransactions', function ($q) {
+                $q->where('status', 'expired');
             });
         }
 
@@ -171,6 +177,12 @@ class CustomerService
             })
             ->count();
 
+        $expiredMembers = Customer::query()
+            ->whereHas('membershipTransactions', function ($q) {
+                $q->where('status', 'expired');
+            })
+            ->count();
+
         $activeThisMonth = MembershipTransaction::query()
             ->where('status', 'active')
             ->whereDate('start_date', '>=', $startOfMonth)
@@ -187,6 +199,7 @@ class CustomerService
             'total' => $totalCustomers,
             'activeThisMonth' => $activeThisMonth,
             'activeMembers' => $activeMembers,
+            'expiredMembers' => $expiredMembers,
             'visitsToday' => $visitsToday,
         ];
     }
