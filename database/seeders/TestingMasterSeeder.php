@@ -175,7 +175,7 @@ class TestingMasterSeeder extends Seeder
                 'customer_id' => $customer1->id,
                 'package_id' => $monthlyPackage->id,
                 'start_date' => now(),
-                'end_date' => now()->addDays($monthlyPackage->duration_days),
+                'end_date' => now()->addDays($monthlyPackage->duration_days - 1),
                 'price' => $monthlyPackage->price,
                 'status' => 'active',
                 'created_by' => $staffUser->id,

@@ -139,7 +139,7 @@ class MembershipTransactionService
             'customer_id' => $data['customer_id'],
             'package_id' => $package->id,
             'start_date' => $startDate->toDateString(),
-            'end_date' => $startDate->copy()->addDays((int) $package->duration_days)->toDateString(),
+            'end_date' => $startDate->copy()->addDays((int) $package->duration_days - 1)->toDateString(),
             'price' => (float) $package->price,
             'status' => strtolower((string) ($data['status'] ?? 'active')),
         ];
