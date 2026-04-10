@@ -9,10 +9,13 @@ Laravel 12 + Inertia + Vue 3 + TypeScript app with Vite SSR. Backend uses servic
 ## COMMANDS
 
 ```bash
+# Quick setup (first time)
+composer setup       # install + key:generate + migrate + npm install + build
+
 # Frontend
 npm run dev          # Vite dev server
 npm run build        # Production build
-npm run build:ssr    # SSR build
+npm run build:ssr    # SSR build (note: vite.config.ts has bug referencing 'sr.ts' instead of 'ssr.ts')
 npm run lint         # ESLint --fix
 npm run format       # Prettier write
 npm run format:check # Prettier check
@@ -20,7 +23,7 @@ npm run format:check # Prettier check
 # Backend
 composer dev         # Multi-process: serve + queue + logs + vite
 composer dev:ssr     # Multi-process: serve + queue + logs + SSR
-composer test        # lint + pest
+composer test        # config:clear → pint --test → pest
 composer run lint    # Laravel Pint (parallel)
 composer run test:lint # Pint --test
 
@@ -28,6 +31,9 @@ composer run test:lint # Pint --test
 php artisan test --filter=TestName
 ./vendor/bin/pest tests/Feature/Auth/AuthenticationTest.php
 ./vendor/bin/pest --filter="test_login_screen"
+
+# Timezone diagnostics
+php artisan timezone:check   # Verify APP_TIMEZONE, Carbon, MySQL alignment
 ```
 
 ## NAMING CONVENTIONS
@@ -138,12 +144,29 @@ resources/js/
 
 ## KEY FILES
 
-| Task                  | File                                        |
-| --------------------- | ------------------------------------------- |
-| API envelope          | `app/Helpers/ApiResponse.php`               |
-| SSR/bootstrap         | `resources/js/app.ts`, `resources/js/sr.ts` |
-| DynamicTable (tables) | `resources/js/components/tables/*`          |
-| Test config           | `phpunit.xml` (sqlite in-memory)            |
-| CI workflows          | `.github/workflows/tests.yml`, `lint.yml`   |
-| Permission enums      | `app/Enums/Permission.php`                  |
-| Fortify config        | `app/Providers/FortifyServiceProvider.php`  |
+| Task                  | File                                            |
+| --------------------- | ----------------------------------------------- |
+| API envelope          | `app/Helpers/ApiResponse.php`                   |
+| SSR/bootstrap         | `resources/js/app.ts`, `resources/js/ssr.ts`    |
+| DynamicTable (tables) | `resources/js/components/tables/*`              |
+| Test config           | `phpunit.xml` (sqlite in-memory)                |
+| CI workflows          | `.github/workflows/tests.yml`, `lint.yml`       |
+| Permission enums      | `app/Enums/Permission.php`                      |
+| Fortify config        | `app/Providers/FortifyServiceProvider.php`      |
+| Timezone diagnostics  | `app/Console/Commands/CheckTimezoneCommand.php` |
+
+## TIMEZONE
+
+Centralized via `APP_TIMEZONE` in `.env`. All layers follow this config:
+
+- **PHP/Carbon**: `config/app.php` → `env('APP_TIMEZONE', 'UTC')`
+- **MySQL session**: `AppServiceProvider::boot()` → `SET time_zone = '+07:00'`
+- **Frontend**: `HandleInertiaRequests` shares `appTimezone` → Vue `useTimezone()` helper
+
+**Verify alignment:**
+
+```bash
+php artisan timezone:check
+```
+
+Expected for Indonesia: `APP_TIMEZONE=Asia/Jakarta`, `MySQL Timezone=+07:00`

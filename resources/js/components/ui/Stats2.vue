@@ -22,7 +22,7 @@
           </div>
 
           <div class="flex-1">
-            <p class="mt-1 text-2xl font-bold text-gray-800 dark:text-white/90">
+            <p class="mt-1 text-2xl font-bold text-gray-800 dark:text-white/90 whitespace-nowrap">
               {{ item.value }}<span v-if="item.suffix">{{ item.suffix }}</span>
             </p>
             <p class="text-sm font-medium text-gray-500 dark:text-gray-400">

@@ -118,6 +118,7 @@ import {
     STOCK_MOVEMENT_PERMISSIONS,
     VISIT_PERMISSIONS,
 } from '@/directives/permissions';
+import { useTimezone } from '@/helpers/timezone';
 import { CalenderIcon } from '@/icons';
 import MembershipCancellationOperation from './components/MembershipCancellationOperation.vue';
 import MembershipCardOperation from './components/MembershipCardOperation.vue';
@@ -130,12 +131,14 @@ import VisitsOperation from './components/VisitsOperation.vue';
 
 const currentPageTitle = ref('Operasional');
 const page = usePage();
+const { appTimezone } = useTimezone();
 
 const now = ref(new Date());
 let timer: number | null = null;
 
 const dateText = computed(() =>
     now.value.toLocaleDateString('id-ID', {
+        timeZone: appTimezone,
         weekday: 'long',
         day: '2-digit',
         month: 'long',
@@ -143,14 +146,22 @@ const dateText = computed(() =>
     }),
 );
 
-const timeText = computed(
-    () =>
-        `${now.value.toLocaleTimeString('id-ID', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-        })} WIB`,
-);
+const tzAbbreviations: Record<string, string> = {
+    'Asia/Jakarta': 'WIB',
+    'Asia/Makassar': 'WITA',
+    'Asia/Jayapura': 'WIT',
+};
+
+const timeText = computed(() => {
+    const timeStr = now.value.toLocaleTimeString('id-ID', {
+        timeZone: appTimezone,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+    });
+    const abbr = tzAbbreviations[appTimezone] ?? appTimezone;
+    return `${timeStr} ${abbr}`;
+});
 
 const opsStats = ref({
     visits: { count: 0, memberCount: 0, dailyRevenue: 0 },
