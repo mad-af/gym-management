@@ -311,13 +311,13 @@ class DashboardService
             ->limit($limit)
             ->get()
             ->map(function (MembershipTransaction $transaction) use ($today): array {
-                $endDate = Carbon::parse($transaction->end_date);
+                $endDate = Carbon::parse($transaction->end_date)->startOfDay();
 
                 return [
                     'id' => $transaction->id,
                     'customer_name' => $transaction->customer?->name ?? '-',
                     'package_name' => $transaction->package?->name ?? '-',
-                    'end_date_label' => $endDate->format('d M Y'),
+                    'end_date' => $endDate->toIsoString(),
                     'days_left' => max(0, $today->diffInDays($endDate, false)),
                 ];
             })
@@ -345,7 +345,7 @@ class DashboardService
                     'type_class' => $isDaily
                         ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300'
                         : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
-                    'timestamp' => $checkedAt,
+                    'timestamp' => $checkedAt->toIsoString(),
                     'time_label' => $checkedAt->diffForHumans(),
                 ];
             });
@@ -366,7 +366,7 @@ class DashboardService
                     'amount' => (float) $sale->total_amount,
                     'type_label' => 'SALE',
                     'type_class' => 'bg-violet-50 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300',
-                    'timestamp' => $createdAt,
+                    'timestamp' => $createdAt->toIsoString(),
                     'time_label' => $createdAt->diffForHumans(),
                 ];
             });
@@ -387,7 +387,7 @@ class DashboardService
                     'amount' => (float) $transaction->price,
                     'type_label' => 'MEMBER',
                     'type_class' => 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
-                    'timestamp' => $createdAt,
+                    'timestamp' => $createdAt->toIsoString(),
                     'time_label' => $createdAt->diffForHumans(),
                 ];
             });
@@ -410,7 +410,7 @@ class DashboardService
                     'type_class' => $type === 'IN'
                         ? 'bg-cyan-50 text-cyan-700 dark:bg-cyan-500/15 dark:text-cyan-300'
                         : 'bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300',
-                    'timestamp' => $createdAt,
+                    'timestamp' => $createdAt->toIsoString(),
                     'time_label' => $createdAt->diffForHumans(),
                 ];
             });
@@ -423,11 +423,6 @@ class DashboardService
             ->sortByDesc('timestamp')
             ->take($limit)
             ->values()
-            ->map(function (array $activity): array {
-                unset($activity['timestamp']);
-
-                return $activity;
-            })
             ->all();
     }
 

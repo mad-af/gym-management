@@ -26,6 +26,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->configureDatabaseTimezone();
     }
 
     /**
@@ -48,5 +49,19 @@ class AppServiceProvider extends ServiceProvider
                 ->uncompromised()
             : null
         );
+    }
+
+    protected function configureDatabaseTimezone(): void
+    {
+        $driver = config('database.default');
+        if ($driver !== 'mysql') {
+            return;
+        }
+
+        $appTz = config('app.timezone');
+        $now = CarbonImmutable::now($appTz);
+        $offset = $now->format('P');
+
+        DB::statement("SET time_zone = '{$offset}'");
     }
 }

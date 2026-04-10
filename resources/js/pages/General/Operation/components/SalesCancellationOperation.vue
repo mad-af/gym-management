@@ -252,7 +252,10 @@ import type { Column } from '@/components/tables/data-tables/DynamicTable.vue';
 import Button from '@/components/ui/Button.vue';
 import Modal from '@/components/ui/Modal.vue';
 import OperationActionButton from '@/components/ui/OperationActionButton.vue';
+import { useTimezone } from '@/helpers/timezone';
 import { BanknoteIcon } from '@/icons';
+
+const { formatDateTimeId } = useTimezone();
 
 const emit = defineEmits<{ (e: 'submitted'): void }>();
 
@@ -316,19 +319,6 @@ const formatCurrencyId = (value: unknown): string => {
     })
         .format(numberValue)
         .replace('Rp', 'Rp ');
-};
-
-const formatDateTimeId = (value: unknown): string => {
-    if (!value) return '-';
-    const d = value instanceof Date ? value : new Date(String(value));
-    if (Number.isNaN(d.getTime())) return String(value);
-    return new Intl.DateTimeFormat('id-ID', {
-        year: 'numeric',
-        month: 'short',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-    }).format(d);
 };
 
 const fetchItems = async (page = 1) => {

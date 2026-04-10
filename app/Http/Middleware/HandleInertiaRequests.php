@@ -50,6 +50,7 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => $appName,
+            'appTimezone' => config('app.timezone'),
             'app' => [
                 'name' => $appName,
                 'description' => $appDescription,

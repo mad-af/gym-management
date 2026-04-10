@@ -109,6 +109,7 @@ import GymRevenueTrendChart from '@/components/analytics/GymRevenueTrendChart.vu
 import GymVisitDistributionCard from '@/components/analytics/GymVisitDistributionCard.vue';
 import AdminLayout from '@/components/layout/AdminLayout.vue';
 import Stats2 from '@/components/ui/Stats2.vue';
+import { useTimezone } from '@/helpers/timezone';
 import {
     BanknoteIcon,
     DoorOpenIcon,
@@ -117,6 +118,8 @@ import {
     UserGroupIcon,
     WarningIcon,
 } from '@/icons';
+
+const { formatDateTimeId } = useTimezone();
 
 interface DashboardOverview {
     total_customers: number;
@@ -160,7 +163,7 @@ interface ExpiringMembership {
     id: string;
     customer_name: string;
     package_name: string;
-    end_date_label: string;
+    end_date: string;
     days_left: number;
 }
 
@@ -171,6 +174,7 @@ interface RecentActivity {
     amount: number | null;
     type_label: string;
     type_class: string;
+    timestamp: string;
     time_label: string;
 }
 
@@ -344,7 +348,7 @@ const expiringMembershipItems = computed(() => {
         return {
             id: membership.id,
             title: membership.customer_name,
-            description: `${membership.package_name} • Berakhir ${membership.end_date_label}`,
+            description: `${membership.package_name} • Berakhir ${formatDateTimeId(membership.end_date)}`,
             badgeLabel: `${membership.days_left} hari lagi`,
             badgeClass: isUrgent
                 ? 'bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300'
@@ -361,7 +365,7 @@ const activityItems = computed(() => {
             description: activity.description,
             typeLabel: activity.type_label,
             typeClass: activity.type_class,
-            timeLabel: activity.time_label,
+            timeLabel: formatDateTimeId(activity.timestamp),
             amountLabel:
                 activity.amount !== null
                     ? formatCurrencyId(activity.amount)

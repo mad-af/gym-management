@@ -244,6 +244,7 @@ import Button from '@/components/ui/Button.vue';
 import Combobox from '@/components/ui/Combobox.vue';
 import Drawer from '@/components/ui/Drawer.vue';
 import Stats2 from '@/components/ui/Stats2.vue';
+import { useTimezone } from '@/helpers/timezone';
 import {
     BanknoteIcon,
     CalenderIcon,
@@ -252,6 +253,8 @@ import {
     ShieldCheckIcon,
     WarningIcon,
 } from '@/icons';
+
+const { formatDateId } = useTimezone();
 
 const currentPageTitle = ref('Membership Transactions');
 const isFilterDrawerOpen = ref(false);
@@ -439,31 +442,6 @@ const fetchStats = async () => {
     } catch (e) {
         console.error('Error fetching membership transaction stats', e);
     }
-};
-
-const formatDateId = (value: unknown): string => {
-    if (!value) return '-';
-
-    const raw = String(value);
-
-    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
-        const [y, m, d] = raw.split('-').map(Number);
-        const dt = new Date(y, (m || 1) - 1, d || 1);
-        return new Intl.DateTimeFormat('id-ID', {
-            year: 'numeric',
-            month: 'short',
-            day: '2-digit',
-        }).format(dt);
-    }
-
-    const dt = new Date(raw);
-    if (Number.isNaN(dt.getTime())) return raw;
-
-    return new Intl.DateTimeFormat('id-ID', {
-        year: 'numeric',
-        month: 'short',
-        day: '2-digit',
-    }).format(dt);
 };
 
 const getStatusLabel = (value: unknown, daysRemaining: unknown): string => {

@@ -233,6 +233,7 @@ import Button from '@/components/ui/Button.vue';
 import Combobox from '@/components/ui/Combobox.vue';
 import Drawer from '@/components/ui/Drawer.vue';
 import Stats2 from '@/components/ui/Stats2.vue';
+import { useTimezone } from '@/helpers/timezone';
 import {
     BanknoteIcon,
     BarChartIcon,
@@ -240,6 +241,8 @@ import {
     FileTextIcon,
     FilterIcon,
 } from '@/icons';
+
+const { formatDateTimeId } = useTimezone();
 
 const currentPageTitle = ref('Sales');
 const isFilterDrawerOpen = ref(false);
@@ -450,21 +453,6 @@ const formatCurrencyCompactId = (value: unknown): string => {
     }
 
     return `Rp ${formatCompactNumberId(numberValue)}`;
-};
-
-const formatDateTimeId = (value: unknown): string => {
-    if (!value) return '-';
-
-    const d = value instanceof Date ? value : new Date(String(value));
-    if (Number.isNaN(d.getTime())) return String(value);
-
-    return new Intl.DateTimeFormat('id-ID', {
-        year: 'numeric',
-        month: 'short',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-    }).format(d);
 };
 
 const fetchStats = async () => {
