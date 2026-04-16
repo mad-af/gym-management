@@ -73,6 +73,13 @@
                                     {{ formatCurrencyId(row.price) }}
                                 </span>
                             </template>
+                            <template #cell-payment_type="{ row }">
+                                <span
+                                    class="text-theme-sm text-gray-700 dark:text-gray-400"
+                                >
+                                    {{ row.payment_type || '-' }}
+                                </span>
+                            </template>
                             <template #cell-actions="{ row }">
                                 <Button
                                     v-can="'cancel_membership_transactions'"
@@ -284,6 +291,11 @@ const columns: Column[] = [
         class: 'min-w-[140px]',
     },
     {
+        key: 'payment_type',
+        label: 'Metode Bayar',
+        class: 'min-w-[120px]',
+    },
+    {
         key: 'actions',
         label: 'Aksi',
         type: 'custom',
@@ -298,6 +310,7 @@ const tableData = computed(() =>
         customer_name: t.customer?.name || '-',
         package_name: t.package?.name || '-',
         price: t.price ?? null,
+        payment_type: t.payment_type?.label ?? t.payment_type ?? '-',
         created_at: t.created_at,
     })),
 );

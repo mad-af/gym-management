@@ -141,7 +141,7 @@ class MembershipTransactionService
             'start_date' => $startDate->toDateString(),
             'end_date' => $startDate->copy()->addDays((int) $package->duration_days - 1)->toDateString(),
             'price' => (float) $package->price,
-            'payment_type' => $data['payment_type'] ?? 'cash',
+            'payment_type' => $data['payment_type'] ?? 'CASH',
             'status' => strtolower((string) ($data['status'] ?? 'active')),
         ];
 

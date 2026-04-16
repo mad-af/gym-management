@@ -9,11 +9,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('sales', function (Blueprint $table) {
-            $table->string('payment_type')->default('cash')->after('total_amount');
+            $table->string('payment_type')->default('CASH')->after('total_amount');
         });
 
         Schema::table('membership_transactions', function (Blueprint $table) {
-            $table->string('payment_type')->default('cash')->after('price');
+            $table->string('payment_type')->default('CASH')->after('price');
         });
 
         Schema::table('visits', function (Blueprint $table) {

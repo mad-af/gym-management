@@ -180,6 +180,7 @@
                 <th class="text-right">Profit</th>
                 <th class="text-right">Subtotal</th>
                 <th class="text-right">Total</th>
+                <th>Metode Pembayaran</th>
                 <th>Petugas</th>
             </tr>
         </thead>
@@ -200,6 +201,7 @@
                         <td class="text-right">Rp {{ number_format($item->subtotal ?? 0, 0, ',', '.') }}</td>
                         @if($index === 0)
                             <td rowspan="{{ $sale->items->count() }}" class="text-right">Rp {{ number_format($sale->total_amount ?? 0, 0, ',', '.') }}</td>
+                            <td rowspan="{{ $sale->items->count() }}">{{ $sale->payment_type?->label() ?? '-' }}</td>
                             <td rowspan="{{ $sale->items->count() }}">{{ $sale->creator?->name ?? '-' }}</td>
                         @endif
                     </tr>
@@ -216,6 +218,7 @@
                         <td class="text-right">-</td>
                         <td class="text-right">-</td>
                         <td class="text-right">Rp {{ number_format($sale->total_amount ?? 0, 0, ',', '.') }}</td>
+                        <td>{{ $sale->payment_type?->label() ?? '-' }}</td>
                         <td>{{ $sale->creator?->name ?? '-' }}</td>
                     </tr>
                 @endif
@@ -252,6 +255,7 @@
                 <th>Pelanggan</th>
                 <th>Produk</th>
                 <th class="text-right">Total</th>
+                <th>Metode Pembayaran</th>
                 <th>Petugas</th>
                 <th>Tanggal Dibatalkan</th>
                 <th>Dibatalkan Oleh</th>
@@ -269,6 +273,7 @@
                         <td>{{ $item->product?->name ?? '-' }}</td>
                         @if($index === 0)
                             <td rowspan="{{ $sale->items->count() }}" class="text-right">Rp {{ number_format($sale->total_amount ?? 0, 0, ',', '.') }}</td>
+                            <td rowspan="{{ $sale->items->count() }}">{{ $sale->payment_type?->label() ?? '-' }}</td>
                             <td rowspan="{{ $sale->items->count() }}">{{ $sale->creator?->name ?? '-' }}</td>
                             <td rowspan="{{ $sale->items->count() }}">{{ $sale->cancelled_at ? $sale->cancelled_at->format('Y-m-d H:i') : '-' }}</td>
                             <td rowspan="{{ $sale->items->count() }}">{{ $sale->cancelledBy?->name ?? '-' }}</td>
@@ -282,6 +287,7 @@
                         <td>{{ $sale->customer?->name ?? '-' }}</td>
                         <td>-</td>
                         <td class="text-right">Rp {{ number_format($sale->total_amount ?? 0, 0, ',', '.') }}</td>
+                        <td>{{ $sale->payment_type?->label() ?? '-' }}</td>
                         <td>{{ $sale->creator?->name ?? '-' }}</td>
                         <td>{{ $sale->cancelled_at ? $sale->cancelled_at->format('Y-m-d H:i') : '-' }}</td>
                         <td>{{ $sale->cancelledBy?->name ?? '-' }}</td>

@@ -153,6 +153,24 @@
                         class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                     />
                 </div>
+                <div>
+                    <label
+                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                        >Metode Pembayaran</label
+                    >
+                    <select
+                        v-model="filters.payment_type"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                    >
+                        <option value="">Semua</option>
+                        <option value="CASH">Cash</option>
+                        <option value="DEBIT_CARD">Debit Card</option>
+                        <option value="CREDIT_CARD">Credit Card</option>
+                        <option value="E_WALLET">E-Wallet</option>
+                        <option value="QRIS">QRIS</option>
+                        <option value="TRANSFER">Transfer</option>
+                    </select>
+                </div>
             </div>
             <template #footer>
                 <div class="flex w-full justify-end gap-3">
@@ -266,6 +284,7 @@ const filters = ref({
     start_date: '',
     end_date: '',
     expiring_within_days: '',
+    payment_type: '',
 });
 const exportForm = ref({ start_date: '', end_date: '' });
 const exportErrors = ref<{ start_date?: string; end_date?: string }>({});
@@ -341,6 +360,7 @@ const tableData = computed(() =>
         status: t.status || '-',
         days_remaining: t.days_remaining ?? null,
         is_expiring_soon: t.is_expiring_soon ?? false,
+        payment_type: t.payment_type?.label ?? t.payment_type ?? '-',
     })),
 );
 
@@ -366,6 +386,7 @@ const columns = ref<Column[]>([
         class: 'min-w-[140px]',
     },
     { key: 'status', label: 'Status', type: 'custom', class: 'min-w-[120px]' },
+    { key: 'payment_type', label: 'Metode Bayar', class: 'min-w-[140px]' },
     { key: 'staff_name', label: 'Petugas', class: 'min-w-[180px]' },
 ]);
 
@@ -482,6 +503,7 @@ const fetchItems = async () => {
             end_date: filters.value.end_date || undefined,
             expiring_within_days:
                 filters.value.expiring_within_days || undefined,
+            payment_type: filters.value.payment_type || undefined,
         },
     });
     items.value = data.data?.data || data.data || [];

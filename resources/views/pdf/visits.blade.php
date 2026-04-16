@@ -165,6 +165,7 @@
                 <th>Pelanggan</th>
                 <th>Jenis</th>
                 <th class="text-right">Harga</th>
+                <th>Metode Pembayaran</th>
                 <th>Petugas</th>
             </tr>
         </thead>
@@ -175,11 +176,12 @@
                     <td>{{ $visit->customer?->name ?? '-' }}</td>
                     <td>{{ $visit->visit_type ?? '-' }}</td>
                     <td class="text-right">{{ $visit->visit_type === 'MEMBERSHIP' ? '-' : 'Rp ' . number_format($visit->price ?? 0, 0, ',', '.') }}</td>
+                    <td>{{ $visit->payment_type?->label() ?? '-' }}</td>
                     <td>{{ $visit->creator?->name ?? '-' }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="5" class="text-center">Tidak ada data</td>
+                    <td colspan="6" class="text-center">Tidak ada data</td>
                 </tr>
             @endforelse
         </tbody>
@@ -211,6 +213,7 @@
                     <th>Pelanggan</th>
                     <th>Jenis</th>
                     <th class="text-right">Harga</th>
+                    <th>Metode Pembayaran</th>
                     <th>Petugas</th>
                     <th>Tanggal Dibatalkan</th>
                     <th>Dibatalkan Oleh</th>
@@ -224,6 +227,7 @@
                         <td>{{ $visit->customer?->name ?? '-' }}</td>
                         <td>{{ $visit->visit_type ?? '-' }}</td>
                         <td class="text-right">{{ $visit->visit_type === 'MEMBERSHIP' ? '-' : 'Rp ' . number_format($visit->price ?? 0, 0, ',', '.') }}</td>
+                        <td>{{ $visit->payment_type?->label() ?? '-' }}</td>
                         <td>{{ $visit->creator?->name ?? '-' }}</td>
                         <td>{{ $visit->cancelled_at ? \Carbon\Carbon::parse($visit->cancelled_at)->format('Y-m-d H:i') : '-' }}</td>
                         <td>{{ $visit->cancelledBy?->name ?? '-' }}</td>

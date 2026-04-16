@@ -319,6 +319,24 @@
                         {{ errors.package_id }}
                     </p>
                 </div>
+
+                <div class="space-y-2">
+                    <label
+                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                        >Metode Pembayaran</label
+                    >
+                    <select
+                        v-model="form.payment_type"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                    >
+                        <option value="CASH">Cash</option>
+                        <option value="DEBIT_CARD">Debit Card</option>
+                        <option value="CREDIT_CARD">Credit Card</option>
+                        <option value="E_WALLET">E-Wallet</option>
+                        <option value="QRIS">QRIS</option>
+                        <option value="TRANSFER">Transfer</option>
+                    </select>
+                </div>
             </div>
 
             <template #footer>
@@ -507,6 +525,7 @@ const processing = ref(false);
 const form = ref({
     customer_id: '' as string | null | '',
     package_id: '' as string | null | '',
+    payment_type: 'CASH',
 });
 const errors = ref<Record<string, string>>({});
 
@@ -807,6 +826,7 @@ const submit = async () => {
         await axios.post('/api/membership-transactions', {
             customer_id: selectedCustomer.value?.id ?? form.value.customer_id,
             package_id: form.value.package_id,
+            payment_type: form.value.payment_type,
         });
 
         closeDrawer();

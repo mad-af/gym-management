@@ -142,6 +142,24 @@
                         class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                     />
                 </div>
+                <div>
+                    <label
+                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                        >Metode Pembayaran</label
+                    >
+                    <select
+                        v-model="filters.payment_type"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                    >
+                        <option value="">Semua</option>
+                        <option value="CASH">Cash</option>
+                        <option value="DEBIT_CARD">Debit Card</option>
+                        <option value="CREDIT_CARD">Credit Card</option>
+                        <option value="E_WALLET">E-Wallet</option>
+                        <option value="QRIS">QRIS</option>
+                        <option value="TRANSFER">Transfer</option>
+                    </select>
+                </div>
             </div>
             <template #footer>
                 <div class="flex w-full justify-end gap-3">
@@ -253,6 +271,7 @@ const filters = ref({
     created_by: '',
     start_date: '',
     end_date: '',
+    payment_type: '',
 });
 const exportForm = ref({ start_date: '', end_date: '' });
 const exportErrors = ref<{ start_date?: string; end_date?: string }>({});
@@ -312,6 +331,7 @@ const tableData = computed(() =>
         price: v.price ?? null,
         checkin_time: v.checkin_time || '-',
         created_by: v.creator?.name || '-',
+        payment_type: v.payment_type?.label ?? v.payment_type ?? '-',
     })),
 );
 
@@ -335,6 +355,7 @@ const columns = ref<Column[]>([
         type: 'custom',
         class: 'min-w-[180px]',
     },
+    { key: 'payment_type', label: 'Metode Bayar', class: 'min-w-[140px]' },
     { key: 'created_by', label: 'Petugas', class: 'min-w-[180px]' },
 ]);
 
@@ -432,6 +453,7 @@ const fetchItems = async () => {
             created_by: filters.value.created_by || undefined,
             start_date: filters.value.start_date || undefined,
             end_date: filters.value.end_date || undefined,
+            payment_type: filters.value.payment_type || undefined,
         },
     });
     items.value = data.data?.data || data.data || [];

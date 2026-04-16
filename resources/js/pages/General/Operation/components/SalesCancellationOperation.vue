@@ -286,6 +286,11 @@ const columns: Column[] = [
         class: 'min-w-[140px]',
     },
     {
+        key: 'payment_type',
+        label: 'Metode Bayar',
+        class: 'min-w-[120px]',
+    },
+    {
         key: 'actions',
         label: 'Aksi',
         type: 'custom',
@@ -300,6 +305,7 @@ const tableData = computed(() =>
         customer_name: s.customer?.name || '-',
         total_amount: s.total_amount,
         created_at: s.created_at,
+        payment_type: s.payment_type?.label ?? s.payment_type ?? '-',
     })),
 );
 

@@ -166,6 +166,7 @@
                 <th class="text-right">Harga</th>
                 <th>Mulai</th>
                 <th>Selesai</th>
+                <th>Metode Pembayaran</th>
                 <th>Status</th>
                 <th>Petugas</th>
             </tr>
@@ -179,6 +180,7 @@
                     <td class="text-right">Rp {{ number_format($transaction->price ?? 0, 0, ',', '.') }}</td>
                     <td>{{ $transaction->start_date ? \Carbon\Carbon::parse($transaction->start_date)->format('Y-m-d') : '-' }}</td>
                     <td>{{ $transaction->end_date ? \Carbon\Carbon::parse($transaction->end_date)->format('Y-m-d') : '-' }}</td>
+                    <td>{{ $transaction->payment_type?->label() ?? '-' }}</td>
                     <td>{{ $transaction->status ?? '-' }}</td>
                     <td>{{ $transaction->creator?->name ?? '-' }}</td>
                 </tr>
@@ -215,6 +217,7 @@
                 <th>Pelanggan</th>
                 <th>Paket</th>
                 <th class="text-right">Harga</th>
+                <th>Metode Pembayaran</th>
                 <th>Tanggal Dibatalkan</th>
                 <th>Dibatalkan Oleh</th>
                 <th>Alasan Dibatalkan</th>
@@ -227,6 +230,7 @@
                     <td>{{ $transaction->customer?->name ?? '-' }}</td>
                     <td>{{ $transaction->package?->name ?? '-' }}</td>
                     <td class="text-right">Rp {{ number_format($transaction->price ?? 0, 0, ',', '.') }}</td>
+                    <td>{{ $transaction->payment_type?->label() ?? '-' }}</td>
                     <td>{{ $transaction->cancelled_at ? $transaction->cancelled_at->format('Y-m-d H:i') : '-' }}</td>
                     <td>{{ $transaction->cancelledBy?->name ?? '-' }}</td>
                     <td>{{ $transaction->cancellation_reason ?? '-' }}</td>

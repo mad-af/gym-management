@@ -108,7 +108,7 @@ class MembershipTransactionController extends Controller
             }
 
             fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
-            fputcsv($output, ['Tanggal Transaksi', 'Pelanggan', 'Paket', 'Harga', 'Mulai', 'Selesai', 'Status', 'Petugas', 'Status Transaksi', 'Tanggal Dibatalkan', 'Alasan Dibatalkan']);
+            fputcsv($output, ['Tanggal Transaksi', 'Pelanggan', 'Paket', 'Harga', 'Mulai', 'Selesai', 'Metode Pembayaran', 'Status', 'Petugas', 'Status Transaksi', 'Tanggal Dibatalkan', 'Alasan Dibatalkan']);
 
             foreach ($rows as $transaction) {
                 $statusTransaksi = $transaction->is_cancelled ? 'Dibatalkan' : 'Normal';
@@ -122,6 +122,7 @@ class MembershipTransactionController extends Controller
                     $transaction->price ?? 0,
                     optional($transaction->start_date)->format('Y-m-d') ?? '-',
                     optional($transaction->end_date)->format('Y-m-d') ?? '-',
+                    $transaction->payment_type?->label() ?? '-',
                     $transaction->status ?? '-',
                     $transaction->creator?->name ?? '-',
                     $statusTransaksi,

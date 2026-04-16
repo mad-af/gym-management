@@ -11,7 +11,7 @@ return new class extends Migration
             ->where('visit_type', 'DAILY')
             ->whereNotNull('price')
             ->whereNull('payment_type')
-            ->update(['payment_type' => 'cash']);
+            ->update(['payment_type' => 'CASH']);
     }
 
     public function down(): void
@@ -19,7 +19,7 @@ return new class extends Migration
         Visit::query()
             ->where('visit_type', 'DAILY')
             ->whereNotNull('price')
-            ->where('payment_type', 'cash')
+            ->where('payment_type', 'CASH')
             ->update(['payment_type' => null]);
     }
 };

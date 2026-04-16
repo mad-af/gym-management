@@ -4,12 +4,12 @@ namespace App\Enums;
 
 enum PaymentTypeEnum: string
 {
-    case CASH = 'cash';
-    case DEBIT_CARD = 'debit_card';
-    case CREDIT_CARD = 'credit_card';
-    case E_WALLET = 'e_wallet';
-    case QRIS = 'qris';
-    case TRANSFER = 'transfer';
+    case CASH = 'CASH';
+    case DEBIT_CARD = 'DEBIT_CARD';
+    case CREDIT_CARD = 'CREDIT_CARD';
+    case E_WALLET = 'E_WALLET';
+    case QRIS = 'QRIS';
+    case TRANSFER = 'TRANSFER';
 
     public function label(): string
     {

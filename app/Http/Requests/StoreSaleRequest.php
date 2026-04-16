@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreSaleRequest extends FormRequest
 {
@@ -19,6 +20,7 @@ class StoreSaleRequest extends FormRequest
             'items.*.product_id' => ['required', 'uuid', 'exists:products,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.price' => ['nullable', 'numeric', 'min:0'],
+            'payment_type' => ['nullable', 'string', Rule::in(['CASH', 'DEBIT_CARD', 'CREDIT_CARD', 'E_WALLET', 'QRIS', 'TRANSFER'])],
         ];
     }
 }

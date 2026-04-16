@@ -93,7 +93,7 @@ class SaleController extends Controller
             }
 
             fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
-            fputcsv($output, ['Tanggal', 'Pelanggan', 'Status Member', 'Produk', 'Qty', 'Harga', 'Harga Modal', 'Profit', 'Subtotal', 'Total Penjualan', 'Petugas', 'Status Transaksi', 'Tanggal Dibatalkan', 'Alasan Dibatalkan']);
+            fputcsv($output, ['Tanggal', 'Pelanggan', 'Status Member', 'Produk', 'Qty', 'Harga', 'Harga Modal', 'Profit', 'Subtotal', 'Total Penjualan', 'Metode Pembayaran', 'Petugas', 'Status Transaksi', 'Tanggal Dibatalkan', 'Alasan Dibatalkan']);
 
             foreach ($rows as $sale) {
                 $items = $sale->items;
@@ -113,6 +113,7 @@ class SaleController extends Controller
                         '-',
                         '-',
                         $sale->total_amount ?? 0,
+                        $sale->payment_type?->label() ?? '-',
                         $sale->creator?->name ?? '-',
                         $statusTransaksi,
                         $tanggalDibatalkan,
@@ -136,6 +137,7 @@ class SaleController extends Controller
                         $profit ?? '-',
                         $item->subtotal ?? 0,
                         $sale->total_amount ?? 0,
+                        $sale->payment_type?->label() ?? '-',
                         $sale->creator?->name ?? '-',
                         $statusTransaksi,
                         $tanggalDibatalkan,

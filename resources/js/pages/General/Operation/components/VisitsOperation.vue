@@ -198,6 +198,24 @@
                         {{ errors.price }}
                     </p>
                 </div>
+
+                <div v-if="activeTab === 'visitor'" class="space-y-2">
+                    <label
+                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                        >Metode Pembayaran</label
+                    >
+                    <select
+                        v-model="form.payment_type"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                    >
+                        <option value="CASH">Cash</option>
+                        <option value="DEBIT_CARD">Debit Card</option>
+                        <option value="CREDIT_CARD">Credit Card</option>
+                        <option value="E_WALLET">E-Wallet</option>
+                        <option value="QRIS">QRIS</option>
+                        <option value="TRANSFER">Transfer</option>
+                    </select>
+                </div>
             </div>
             <template #footer>
                 <div class="flex w-full justify-end gap-3">
@@ -432,6 +450,7 @@ const form = ref({
     visit_type: '' as string | null | '',
     price: null as number | null,
     code: '' as string,
+    payment_type: 'CASH',
 });
 const errors = ref<Record<string, string>>({});
 const page = usePage<OperationPageProps>();
@@ -875,6 +894,10 @@ const submit = async () => {
             visit_type: activeTab.value === 'member' ? 'MEMBERSHIP' : 'DAILY',
             price: activeTab.value === 'visitor' ? dailyVisitPrice.value : null,
             code: activeTab.value === 'member' ? form.value.code || null : null,
+            payment_type:
+                activeTab.value === 'member'
+                    ? null
+                    : form.value.payment_type || 'CASH',
         };
         await axios.post('/api/visits', payload);
         closeDrawer();
