@@ -96,6 +96,7 @@ class SaleService
             $sale = Sale::create([
                 'customer_id' => $customerId,
                 'total_amount' => 0,
+                'payment_type' => $data['payment_type'] ?? 'cash',
                 'created_by' => $createdBy,
             ]);
 

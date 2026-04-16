@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\PaymentTypeEnum;
+use App\Traits\HasMedia;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,13 +12,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Sale extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasMedia, HasUuids;
 
     public $timestamps = false;
 
     protected $fillable = [
         'customer_id',
         'total_amount',
+        'payment_type',
         'cancellation_reason',
         'cancelled_by',
         'cancelled_at',
@@ -26,6 +29,7 @@ class Sale extends Model
 
     protected $casts = [
         'total_amount' => 'decimal:2',
+        'payment_type' => PaymentTypeEnum::class,
         'created_at' => 'datetime',
         'cancelled_at' => 'datetime',
     ];

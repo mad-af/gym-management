@@ -122,6 +122,7 @@ class VisitService
 
         if (($payload['visit_type'] ?? null) === 'DAILY') {
             $payload['price'] = $this->appSettingService->getDailyVisitPrice();
+            $payload['payment_type'] = $payload['payment_type'] ?? 'cash';
         }
 
         if (($payload['visit_type'] ?? null) === 'MEMBERSHIP') {

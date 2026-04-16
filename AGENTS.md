@@ -15,7 +15,7 @@ composer setup       # install + key:generate + migrate + npm install + build
 # Frontend
 npm run dev          # Vite dev server
 npm run build        # Production build
-npm run build:ssr    # SSR build (note: vite.config.ts has bug referencing 'sr.ts' instead of 'ssr.ts')
+npm run build:ssr    # SSR build
 npm run lint         # ESLint --fix
 npm run format       # Prettier write
 npm run format:check # Prettier check

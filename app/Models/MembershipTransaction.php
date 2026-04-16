@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\PaymentTypeEnum;
+use App\Traits\HasMedia;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MembershipTransaction extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasMedia, HasUuids;
 
     public $timestamps = false;
 
@@ -20,6 +22,7 @@ class MembershipTransaction extends Model
         'start_date',
         'end_date',
         'price',
+        'payment_type',
         'status',
         'cancellation_reason',
         'cancelled_by',
@@ -32,6 +35,7 @@ class MembershipTransaction extends Model
         'start_date' => 'date',
         'end_date' => 'date',
         'price' => 'decimal:2',
+        'payment_type' => PaymentTypeEnum::class,
         'created_at' => 'datetime',
         'cancelled_at' => 'datetime',
     ];

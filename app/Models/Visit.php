@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\PaymentTypeEnum;
+use App\Traits\HasMedia;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Visit extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasMedia, HasUuids;
 
     public $timestamps = false;
 
@@ -18,6 +20,7 @@ class Visit extends Model
         'membership_transaction_id',
         'visit_type',
         'price',
+        'payment_type',
         'checkin_method',
         'cancellation_reason',
         'cancelled_by',
@@ -28,6 +31,7 @@ class Visit extends Model
 
     protected $casts = [
         'price' => 'decimal:2',
+        'payment_type' => PaymentTypeEnum::class,
         'checkin_time' => 'datetime',
         'cancelled_at' => 'datetime',
     ];
