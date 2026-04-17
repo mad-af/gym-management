@@ -49,10 +49,11 @@ class SaleService
         ?string $createdBy = null,
         ?string $startDate = null,
         ?string $endDate = null,
-        ?bool $last24Hours = false
+        ?bool $last24Hours = false,
+        ?string $paymentType = null
     ): LengthAwarePaginator {
         $query = Sale::query()
-            ->with(['customer.membershipTransactions', 'creator', 'items.product', 'cancelledBy'])
+            ->with(['customer.membershipTransactions', 'creator', 'items.product', 'cancelledBy', 'media'])
             ->notCancelled()
             ->latest('created_at');
 
@@ -82,6 +83,10 @@ class SaleService
                     ->orWhere('phone', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%");
             });
+        }
+
+        if ($paymentType) {
+            $query->where('payment_type', $paymentType);
         }
 
         return $query->paginate($perPage, ['*'], 'page', $page);

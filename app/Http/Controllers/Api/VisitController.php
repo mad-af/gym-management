@@ -9,6 +9,7 @@ use App\Http\Requests\ExportDateRangeRequest;
 use App\Http\Requests\StoreVisitRequest;
 use App\Http\Requests\UpdateVisitRequest;
 use App\Models\Visit;
+use App\Services\MediaService;
 use App\Services\VisitService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -17,7 +18,7 @@ use Mpdf\Output\Destination;
 
 class VisitController extends Controller
 {
-    public function __construct(protected VisitService $service)
+    public function __construct(protected VisitService $service, protected MediaService $mediaService)
     {
         $this->middleware(['auth:web']);
         $this->middleware('permission:'.Permission::VIEW_VISITS->value)->only(['index', 'show', 'stats', 'export']);
@@ -39,6 +40,7 @@ class VisitController extends Controller
             $request->input('start_date'),
             $request->input('end_date'),
             filter_var($request->input('last_24_hours', false), FILTER_VALIDATE_BOOLEAN),
+            $request->input('payment_type'),
         );
 
         return ApiResponse::success('Visits retrieved successfully.', $visits);
@@ -60,6 +62,10 @@ class VisitController extends Controller
         }
 
         $visit = $this->service->create($data, $request->user()?->id);
+
+        if ($request->hasFile('payment_proof')) {
+            $this->mediaService->upload($request->file('payment_proof'), $visit, 'payment_proof');
+        }
 
         return ApiResponse::success('Visit created successfully.', $visit, 201);
     }

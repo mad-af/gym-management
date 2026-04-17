@@ -58,10 +58,11 @@ class VisitService
         ?string $createdBy = null,
         ?string $startDate = null,
         ?string $endDate = null,
-        ?bool $last24Hours = false
+        ?bool $last24Hours = false,
+        ?string $paymentType = null
     ): LengthAwarePaginator {
         $query = Visit::query()
-            ->with(['customer', 'membershipTransaction', 'creator'])
+            ->with(['customer', 'membershipTransaction', 'creator', 'media'])
             ->notCancelled()
             ->latest('checkin_time');
 
@@ -95,6 +96,10 @@ class VisitService
                     ->orWhere('phone', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%");
             });
+        }
+
+        if ($paymentType) {
+            $query->where('payment_type', $paymentType);
         }
 
         return $query->paginate($perPage, ['*'], 'page', $page);

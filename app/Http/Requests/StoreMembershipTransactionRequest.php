@@ -19,6 +19,7 @@ class StoreMembershipTransactionRequest extends FormRequest
             'package_id' => ['required', 'uuid', 'exists:membership_packages,id'],
             'status' => ['nullable', 'string', 'max:50'],
             'payment_type' => ['nullable', 'string', Rule::in(['CASH', 'DEBIT_CARD', 'CREDIT_CARD', 'E_WALLET', 'QRIS', 'TRANSFER'])],
+            'payment_proof' => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
         ];
     }
 }

@@ -79,7 +79,61 @@
                     {{ formatCurrencyId(row.item_subtotal) }}
                 </span>
             </template>
+            <template #cell-payment_proof="{ row }">
+                <div class="flex justify-center">
+                    <button
+                        v-if="row.payment_proof_url"
+                        class="cursor-pointer rounded p-1 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
+                        @click="previewImage = row.payment_proof_url"
+                    >
+                        <ImageIcon class="h-5 w-5 text-brand-500" />
+                    </button>
+                    <span v-else class="text-gray-400 dark:text-gray-600"
+                        >-</span
+                    >
+                </div>
+            </template>
         </DynamicTable>
+
+        <Modal v-if="previewImage" @close="previewImage = null">
+            <template #body>
+                <div
+                    class="relative flex flex-col items-center rounded-lg bg-white p-4 dark:bg-gray-800"
+                >
+                    <button
+                        class="absolute top-2 right-2 rounded-full bg-gray-100 p-1 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
+                        @click="previewImage = null"
+                    >
+                        <svg
+                            class="h-4 w-4 text-gray-600 dark:text-gray-300"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"
+                            />
+                        </svg>
+                    </button>
+                    <img
+                        :src="previewImage"
+                        alt="Bukti Bayar"
+                        class="max-h-[80vh] max-w-[90vw] rounded-lg object-contain"
+                    />
+                    <a
+                        :href="previewImage"
+                        download
+                        target="_blank"
+                        class="mt-3 rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600"
+                    >
+                        Download
+                    </a>
+                </div>
+            </template>
+        </Modal>
 
         <Drawer
             :isOpen="isFilterDrawerOpen"
@@ -250,6 +304,7 @@ import type { Column } from '@/components/tables/data-tables/DynamicTable.vue';
 import Button from '@/components/ui/Button.vue';
 import Combobox from '@/components/ui/Combobox.vue';
 import Drawer from '@/components/ui/Drawer.vue';
+import Modal from '@/components/ui/Modal.vue';
 import Stats2 from '@/components/ui/Stats2.vue';
 import { useTimezone } from '@/helpers/timezone';
 import {
@@ -258,6 +313,7 @@ import {
     ClipboardCheckIcon,
     FileTextIcon,
     FilterIcon,
+    ImageIcon,
 } from '@/icons';
 
 const { formatDateTimeId } = useTimezone();
@@ -265,6 +321,7 @@ const { formatDateTimeId } = useTimezone();
 const currentPageTitle = ref('Sales');
 const isFilterDrawerOpen = ref(false);
 const isExportDrawerOpen = ref(false);
+const previewImage = ref<string | null>(null);
 const filters = ref({
     customer_id: '',
     created_by: '',
@@ -351,6 +408,7 @@ const tableData = computed(() =>
                     total_amount: { rowspan: rowSpan },
                     created_at: { rowspan: rowSpan },
                     payment_type: { rowspan: rowSpan },
+                    payment_proof: { rowspan: rowSpan },
                 };
             } else {
                 row._cellAttributes = {
@@ -359,10 +417,17 @@ const tableData = computed(() =>
                     total_amount: { hidden: true },
                     created_at: { hidden: true },
                     payment_type: { hidden: true },
+                    payment_proof: { hidden: true },
                 };
             }
 
             row.payment_type = s.payment_type?.label ?? s.payment_type ?? '-';
+            row.payment_proof_url =
+                Array.isArray(s.media) && s.media.length > 0
+                    ? (s.media.find(
+                          (m: any) => m.collection === 'payment_proof',
+                      )?.url ?? null)
+                    : null;
 
             return row;
         });
@@ -408,6 +473,12 @@ const columns: Column[] = [
         class: 'min-w-[140px] text-right',
     },
     { key: 'payment_type', label: 'Metode Bayar', class: 'min-w-[140px]' },
+    {
+        key: 'payment_proof',
+        label: 'Bukti Bayar',
+        type: 'custom',
+        class: 'min-w-[100px] text-center',
+    },
     { key: 'staff_name', label: 'Petugas', class: 'min-w-[180px]' },
 ];
 

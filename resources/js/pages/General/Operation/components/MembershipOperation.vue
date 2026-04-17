@@ -320,22 +320,37 @@
                     </p>
                 </div>
 
-                <div class="space-y-2">
-                    <label
-                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
-                        >Metode Pembayaran</label
+                <div
+                    class="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50"
+                >
+                    <h4
+                        class="text-sm font-semibold text-gray-700 dark:text-gray-200"
                     >
-                    <select
-                        v-model="form.payment_type"
-                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-                    >
-                        <option value="CASH">Cash</option>
-                        <option value="DEBIT_CARD">Debit Card</option>
-                        <option value="CREDIT_CARD">Credit Card</option>
-                        <option value="E_WALLET">E-Wallet</option>
-                        <option value="QRIS">QRIS</option>
-                        <option value="TRANSFER">Transfer</option>
-                    </select>
+                        Pembayaran
+                    </h4>
+                    <div class="space-y-3">
+                        <div class="space-y-2">
+                            <label
+                                class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                                >Metode Pembayaran</label
+                            >
+                            <select
+                                v-model="form.payment_type"
+                                class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                            >
+                                <option value="CASH">Cash</option>
+                                <option value="DEBIT_CARD">Debit Card</option>
+                                <option value="CREDIT_CARD">Credit Card</option>
+                                <option value="E_WALLET">E-Wallet</option>
+                                <option value="QRIS">QRIS</option>
+                                <option value="TRANSFER">Transfer</option>
+                            </select>
+                        </div>
+                        <PaymentProofUpload
+                            v-model="paymentProofFile"
+                            v-model:preview-url="paymentProofPreview"
+                        />
+                    </div>
                 </div>
             </div>
 
@@ -488,6 +503,7 @@ import Combobox from '@/components/ui/Combobox.vue';
 import Drawer from '@/components/ui/Drawer.vue';
 import Modal from '@/components/ui/Modal.vue';
 import OperationActionButton from '@/components/ui/OperationActionButton.vue';
+import PaymentProofUpload from '@/components/ui/PaymentProofUpload.vue';
 import { UserCircleIcon } from '@/icons';
 
 interface MediaItem {
@@ -528,6 +544,9 @@ const form = ref({
     payment_type: 'CASH',
 });
 const errors = ref<Record<string, string>>({});
+
+const paymentProofFile = ref<File | null>(null);
+const paymentProofPreview = ref<string | null>(null);
 
 const selectedCustomerId = ref<string | null>(null);
 const selectedCustomer = ref<CustomerOption | null>(null);
@@ -749,13 +768,18 @@ const submitCreateCustomer = async () => {
 
 const closeDrawer = () => {
     isOpen.value = false;
-    form.value = { customer_id: '', package_id: '' };
+    form.value = { customer_id: '', package_id: '', payment_type: 'CASH' };
     selectedCustomerId.value = null;
     selectedCustomer.value = null;
     customerSearch.value = '';
     errors.value = {};
     processing.value = false;
     isCreateCustomerOpen.value = false;
+    if (paymentProofPreview.value) {
+        URL.revokeObjectURL(paymentProofPreview.value);
+    }
+    paymentProofFile.value = null;
+    paymentProofPreview.value = null;
 };
 
 watch(isOpen, (open) => {
@@ -823,10 +847,18 @@ const submit = async () => {
     processing.value = true;
     errors.value = {};
     try {
-        await axios.post('/api/membership-transactions', {
-            customer_id: selectedCustomer.value?.id ?? form.value.customer_id,
-            package_id: form.value.package_id,
-            payment_type: form.value.payment_type,
+        const formData = new FormData();
+        formData.append(
+            'customer_id',
+            selectedCustomer.value?.id ?? form.value.customer_id ?? '',
+        );
+        formData.append('package_id', form.value.package_id ?? '');
+        formData.append('payment_type', form.value.payment_type ?? 'CASH');
+        if (paymentProofFile.value) {
+            formData.append('payment_proof', paymentProofFile.value);
+        }
+        await axios.post('/api/membership-transactions', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
         });
 
         closeDrawer();

@@ -21,6 +21,7 @@ class StoreVisitRequest extends FormRequest
             'visit_type' => ['required', Rule::in(['MEMBERSHIP', 'DAILY'])],
             'price' => ['nullable', 'numeric', 'min:0'],
             'payment_type' => ['nullable', 'string', Rule::in(['CASH', 'DEBIT_CARD', 'CREDIT_CARD', 'E_WALLET', 'QRIS', 'TRANSFER'])],
+            'payment_proof' => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
             'checkin_method' => ['required', Rule::in(['QR_CODE', 'CARD', 'MANUAL'])],
             'checkin_time' => ['nullable', 'date'],
         ];

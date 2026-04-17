@@ -199,22 +199,43 @@
                     </p>
                 </div>
 
-                <div v-if="activeTab === 'visitor'" class="space-y-2">
-                    <label
-                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
-                        >Metode Pembayaran</label
+                <div v-if="activeTab === 'visitor'">
+                    <div
+                        class="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50"
                     >
-                    <select
-                        v-model="form.payment_type"
-                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-                    >
-                        <option value="CASH">Cash</option>
-                        <option value="DEBIT_CARD">Debit Card</option>
-                        <option value="CREDIT_CARD">Credit Card</option>
-                        <option value="E_WALLET">E-Wallet</option>
-                        <option value="QRIS">QRIS</option>
-                        <option value="TRANSFER">Transfer</option>
-                    </select>
+                        <h4
+                            class="text-sm font-semibold text-gray-700 dark:text-gray-200"
+                        >
+                            Pembayaran
+                        </h4>
+                        <div class="space-y-3">
+                            <div class="space-y-2">
+                                <label
+                                    class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                                    >Metode Pembayaran</label
+                                >
+                                <select
+                                    v-model="form.payment_type"
+                                    class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                                >
+                                    <option value="CASH">Cash</option>
+                                    <option value="DEBIT_CARD">
+                                        Debit Card
+                                    </option>
+                                    <option value="CREDIT_CARD">
+                                        Credit Card
+                                    </option>
+                                    <option value="E_WALLET">E-Wallet</option>
+                                    <option value="QRIS">QRIS</option>
+                                    <option value="TRANSFER">Transfer</option>
+                                </select>
+                            </div>
+                            <PaymentProofUpload
+                                v-model="paymentProofFile"
+                                v-model:preview-url="paymentProofPreview"
+                            />
+                        </div>
+                    </div>
                 </div>
             </div>
             <template #footer>
@@ -433,6 +454,7 @@ import Combobox from '@/components/ui/Combobox.vue';
 import Drawer from '@/components/ui/Drawer.vue';
 import Modal from '@/components/ui/Modal.vue';
 import OperationActionButton from '@/components/ui/OperationActionButton.vue';
+import PaymentProofUpload from '@/components/ui/PaymentProofUpload.vue';
 import { DoorOpenIcon, UserCircleIcon } from '@/icons';
 import type { AppPageProps } from '@/types';
 
@@ -454,6 +476,9 @@ const form = ref({
 });
 const errors = ref<Record<string, string>>({});
 const page = usePage<OperationPageProps>();
+
+const paymentProofFile = ref<File | null>(null);
+const paymentProofPreview = ref<string | null>(null);
 
 const dailyVisitPrice = computed<number>(() => {
     const raw = page.props.app?.daily_visit_price;
@@ -844,7 +869,13 @@ const setActiveTab = (next: 'member' | 'visitor') => {
 
 const closeDrawer = () => {
     isOpen.value = false;
-    form.value = { customer_id: '', visit_type: '', price: null, code: '' };
+    form.value = {
+        customer_id: '',
+        visit_type: '',
+        price: null,
+        code: '',
+        payment_type: 'CASH',
+    };
     errors.value = {};
     processing.value = false;
     foundCustomer.value = null;
@@ -852,6 +883,11 @@ const closeDrawer = () => {
     activeTab.value = 'member';
     visitorCustomerId.value = null;
     isCreateCustomerOpen.value = false;
+    if (paymentProofPreview.value) {
+        URL.revokeObjectURL(paymentProofPreview.value);
+    }
+    paymentProofFile.value = null;
+    paymentProofPreview.value = null;
 };
 
 const formatCurrencyId = (value: unknown): string => {
@@ -887,19 +923,34 @@ const submit = async () => {
     processing.value = true;
     errors.value = {};
     try {
-        const payload: any = {
-            customer_id:
-                foundCustomer.value?.id || form.value.customer_id || null,
-            checkin_method: activeTab.value === 'member' ? 'QR_CODE' : 'MANUAL',
-            visit_type: activeTab.value === 'member' ? 'MEMBERSHIP' : 'DAILY',
-            price: activeTab.value === 'visitor' ? dailyVisitPrice.value : null,
-            code: activeTab.value === 'member' ? form.value.code || null : null,
-            payment_type:
-                activeTab.value === 'member'
-                    ? null
-                    : form.value.payment_type || 'CASH',
-        };
-        await axios.post('/api/visits', payload);
+        const formData = new FormData();
+        formData.append(
+            'customer_id',
+            foundCustomer.value?.id || form.value.customer_id || '',
+        );
+        formData.append(
+            'checkin_method',
+            activeTab.value === 'member' ? 'QR_CODE' : 'MANUAL',
+        );
+        formData.append(
+            'visit_type',
+            activeTab.value === 'member' ? 'MEMBERSHIP' : 'DAILY',
+        );
+        if (activeTab.value === 'visitor') {
+            formData.append('price', String(dailyVisitPrice.value));
+        }
+        if (activeTab.value === 'member' && form.value.code) {
+            formData.append('code', form.value.code);
+        }
+        if (activeTab.value === 'visitor') {
+            formData.append('payment_type', form.value.payment_type || 'CASH');
+            if (paymentProofFile.value) {
+                formData.append('payment_proof', paymentProofFile.value);
+            }
+        }
+        await axios.post('/api/visits', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
         closeDrawer();
         emit('submitted');
     } catch (e: any) {

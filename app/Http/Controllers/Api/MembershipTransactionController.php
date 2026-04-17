@@ -9,6 +9,7 @@ use App\Http\Requests\ExportDateRangeRequest;
 use App\Http\Requests\StoreMembershipTransactionRequest;
 use App\Http\Requests\UpdateMembershipTransactionRequest;
 use App\Models\MembershipTransaction;
+use App\Services\MediaService;
 use App\Services\MembershipTransactionService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -17,7 +18,7 @@ use Mpdf\Output\Destination;
 
 class MembershipTransactionController extends Controller
 {
-    public function __construct(protected MembershipTransactionService $service)
+    public function __construct(protected MembershipTransactionService $service, protected MediaService $mediaService)
     {
         $this->middleware(['auth:web']);
         $this->middleware('permission:'.Permission::VIEW_MEMBERSHIP_TRANSACTIONS->value)->only(['index', 'show', 'stats', 'export']);
@@ -40,6 +41,7 @@ class MembershipTransactionController extends Controller
             $request->input('end_date'),
             $request->input('expiring_within_days') ? (int) $request->input('expiring_within_days') : null,
             filter_var($request->input('last_24_hours', false), FILTER_VALIDATE_BOOLEAN),
+            $request->input('payment_type'),
         );
 
         return ApiResponse::success('Membership transactions retrieved successfully.', $transactions);
@@ -55,6 +57,10 @@ class MembershipTransactionController extends Controller
     public function store(StoreMembershipTransactionRequest $request)
     {
         $transaction = $this->service->create($request->validated(), $request->user()?->id);
+
+        if ($request->hasFile('payment_proof')) {
+            $this->mediaService->upload($request->file('payment_proof'), $transaction, 'payment_proof');
+        }
 
         return ApiResponse::success('Membership transaction created successfully.', $transaction, 201);
     }

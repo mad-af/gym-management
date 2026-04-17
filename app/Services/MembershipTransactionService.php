@@ -67,10 +67,11 @@ class MembershipTransactionService
         ?string $startDate = null,
         ?string $endDate = null,
         ?int $expiringWithinDays = null,
-        ?bool $last24Hours = false
+        ?bool $last24Hours = false,
+        ?string $paymentType = null
     ): LengthAwarePaginator {
         $query = MembershipTransaction::query()
-            ->with(['customer', 'package', 'creator', 'cancelledBy'])
+            ->with(['customer', 'package', 'creator', 'cancelledBy', 'media'])
             ->notCancelled()
             ->latest('created_at');
 
@@ -111,6 +112,10 @@ class MembershipTransactionService
             $query->where('status', 'active')
                 ->whereDate('end_date', '>=', $today)
                 ->whereDate('end_date', '<=', $today->copy()->addDays($expiringWithinDays));
+        }
+
+        if ($paymentType) {
+            $query->where('payment_type', $paymentType);
         }
 
         return $query->paginate($perPage, ['*'], 'page', $page);

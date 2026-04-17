@@ -8,6 +8,7 @@ use App\Http\Requests\CancelSaleRequest;
 use App\Http\Requests\ExportDateRangeRequest;
 use App\Http\Requests\StoreSaleRequest;
 use App\Models\Sale;
+use App\Services\MediaService;
 use App\Services\SaleService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -16,7 +17,7 @@ use Mpdf\Output\Destination;
 
 class SaleController extends Controller
 {
-    public function __construct(protected SaleService $service)
+    public function __construct(protected SaleService $service, protected MediaService $mediaService)
     {
         $this->middleware(['auth:web']);
         $this->middleware('permission:'.Permission::VIEW_SALES->value)->only(['index', 'show', 'stats', 'export']);
@@ -36,6 +37,7 @@ class SaleController extends Controller
             $request->input('start_date'),
             $request->input('end_date'),
             filter_var($request->input('last_24_hours', false), FILTER_VALIDATE_BOOLEAN),
+            $request->input('payment_type'),
         );
 
         return ApiResponse::success('Sales retrieved successfully.', $sales);
@@ -51,6 +53,10 @@ class SaleController extends Controller
     public function store(StoreSaleRequest $request)
     {
         $sale = $this->service->create($request->validated(), $request->user()?->id);
+
+        if ($request->hasFile('payment_proof')) {
+            $this->mediaService->upload($request->file('payment_proof'), $sale, 'payment_proof');
+        }
 
         return ApiResponse::success('Sale created successfully.', $sale, 201);
     }
