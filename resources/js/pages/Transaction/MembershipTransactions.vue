@@ -217,12 +217,13 @@
                         class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                     >
                         <option value="">Semua</option>
-                        <option value="CASH">Cash</option>
-                        <option value="DEBIT_CARD">Debit Card</option>
-                        <option value="CREDIT_CARD">Credit Card</option>
-                        <option value="E_WALLET">E-Wallet</option>
-                        <option value="QRIS">QRIS</option>
-                        <option value="TRANSFER">Transfer</option>
+                        <option
+                            v-for="opt in paymentTypeOptions"
+                            :key="opt.value"
+                            :value="opt.value"
+                        >
+                            {{ opt.label }}
+                        </option>
                     </select>
                 </div>
             </div>
@@ -317,6 +318,7 @@ import Combobox from '@/components/ui/Combobox.vue';
 import Drawer from '@/components/ui/Drawer.vue';
 import Modal from '@/components/ui/Modal.vue';
 import Stats2 from '@/components/ui/Stats2.vue';
+import { usePaymentTypes } from '@/composables/usePaymentTypes';
 import { useTimezone } from '@/helpers/timezone';
 import {
     BanknoteIcon,
@@ -329,6 +331,7 @@ import {
 } from '@/icons';
 
 const { formatDateId } = useTimezone();
+const { paymentTypeOptions, fetchPaymentTypes } = usePaymentTypes();
 
 const currentPageTitle = ref('Membership Transactions');
 const isFilterDrawerOpen = ref(false);
@@ -726,6 +729,7 @@ watch(isFilterDrawerOpen, (open) => {
     staffSearchQuery.value = '';
     fetchCustomerOptions(true);
     fetchStaffOptions(true);
+    fetchPaymentTypes();
 });
 
 const fetchCustomerOptions = async (reset = false) => {

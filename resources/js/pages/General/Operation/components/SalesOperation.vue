@@ -180,12 +180,13 @@
                                 v-model="form.payment_type"
                                 class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                             >
-                                <option value="CASH">Cash</option>
-                                <option value="DEBIT_CARD">Debit Card</option>
-                                <option value="CREDIT_CARD">Credit Card</option>
-                                <option value="E_WALLET">E-Wallet</option>
-                                <option value="QRIS">QRIS</option>
-                                <option value="TRANSFER">Transfer</option>
+                                <option
+                                    v-for="opt in paymentTypeOptions"
+                                    :key="opt.value"
+                                    :value="opt.value"
+                                >
+                                    {{ opt.label }}
+                                </option>
                             </select>
                         </div>
                         <PaymentProofUpload
@@ -347,10 +348,12 @@ import Drawer from '@/components/ui/Drawer.vue';
 import Modal from '@/components/ui/Modal.vue';
 import OperationActionButton from '@/components/ui/OperationActionButton.vue';
 import PaymentProofUpload from '@/components/ui/PaymentProofUpload.vue';
+import { usePaymentTypes } from '@/composables/usePaymentTypes';
 import { BanknoteIcon } from '@/icons';
 
 const isOpen = ref(false);
 const processing = ref(false);
+const { paymentTypeOptions, fetchPaymentTypes } = usePaymentTypes();
 const form = ref({
     customer_id: '' as string | null | '',
     items: [
@@ -688,5 +691,6 @@ const emit = defineEmits<{ (e: 'submitted'): void }>();
 onMounted(() => {
     fetchCustomerOptions(true);
     fetchProductOptions(true);
+    fetchPaymentTypes();
 });
 </script>

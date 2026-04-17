@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\MembershipCardController;
 use App\Http\Controllers\Api\MembershipPackageController;
 use App\Http\Controllers\Api\MembershipPackageItemController;
 use App\Http\Controllers\Api\MembershipTransactionController;
+use App\Http\Controllers\Api\PaymentTypeController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\SaleController;
 use App\Http\Controllers\Api\StockMovementController;
@@ -45,6 +46,7 @@ Route::middleware(['auth:web'])->group(function () {
     Route::get('roles/selection', [\App\Http\Controllers\Api\RoleController::class, 'selection']);
     Route::get('users/selection', [\App\Http\Controllers\Api\UserController::class, 'selection']);
     Route::get('customers/selection', [CustomerController::class, 'selection']);
+    Route::get('payment-types/selection', [PaymentTypeController::class, 'index']);
     Route::get('customers/stats', [CustomerController::class, 'stats']);
     Route::get('membership-packages/selection', [MembershipPackageController::class, 'selection']);
     Route::get('membership-packages/stats', [MembershipPackageController::class, 'stats']);

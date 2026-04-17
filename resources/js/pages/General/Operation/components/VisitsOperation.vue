@@ -218,16 +218,13 @@
                                     v-model="form.payment_type"
                                     class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                                 >
-                                    <option value="CASH">Cash</option>
-                                    <option value="DEBIT_CARD">
-                                        Debit Card
+                                    <option
+                                        v-for="opt in paymentTypeOptions"
+                                        :key="opt.value"
+                                        :value="opt.value"
+                                    >
+                                        {{ opt.label }}
                                     </option>
-                                    <option value="CREDIT_CARD">
-                                        Credit Card
-                                    </option>
-                                    <option value="E_WALLET">E-Wallet</option>
-                                    <option value="QRIS">QRIS</option>
-                                    <option value="TRANSFER">Transfer</option>
                                 </select>
                             </div>
                             <PaymentProofUpload
@@ -455,6 +452,7 @@ import Drawer from '@/components/ui/Drawer.vue';
 import Modal from '@/components/ui/Modal.vue';
 import OperationActionButton from '@/components/ui/OperationActionButton.vue';
 import PaymentProofUpload from '@/components/ui/PaymentProofUpload.vue';
+import { usePaymentTypes } from '@/composables/usePaymentTypes';
 import { DoorOpenIcon, UserCircleIcon } from '@/icons';
 import type { AppPageProps } from '@/types';
 
@@ -466,6 +464,7 @@ interface OperationPageProps extends AppPageProps {
 
 const isOpen = ref(false);
 const processing = ref(false);
+const { paymentTypeOptions, fetchPaymentTypes } = usePaymentTypes();
 const activeTab = ref<'member' | 'visitor'>('member');
 const form = ref({
     customer_id: '' as string | null | '',
@@ -973,5 +972,6 @@ const emit = defineEmits<{ (e: 'submitted'): void }>();
 onMounted(() => {
     scannerSupported.value = !!navigator.mediaDevices?.getUserMedia;
     setActiveTab('member');
+    fetchPaymentTypes();
 });
 </script>
