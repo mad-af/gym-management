@@ -19,7 +19,7 @@ class UpdateVisitRequest extends FormRequest
             'membership_transaction_id' => ['nullable', 'uuid', 'exists:membership_transactions,id'],
             'visit_type' => ['required', Rule::in(['MEMBERSHIP', 'DAILY'])],
             'price' => ['nullable', 'numeric', 'min:0'],
-            'payment_type' => ['nullable', 'string', Rule::in(['CASH', 'DEBIT_CARD', 'CREDIT_CARD', 'E_WALLET', 'QRIS', 'TRANSFER'])],
+            'payment_type' => ['nullable', 'string', Rule::in(['CASH', 'QRIS'])],
             'checkin_method' => ['required', Rule::in(['QR_CODE', 'CARD', 'MANUAL'])],
             'checkin_time' => ['required', 'date'],
         ];

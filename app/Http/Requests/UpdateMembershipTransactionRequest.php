@@ -19,7 +19,7 @@ class UpdateMembershipTransactionRequest extends FormRequest
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
             'price' => ['required', 'numeric', 'min:0'],
             'status' => ['required', 'string', 'max:50'],
-            'payment_type' => ['nullable', 'string', Rule::in(['CASH', 'DEBIT_CARD', 'CREDIT_CARD', 'E_WALLET', 'QRIS', 'TRANSFER'])],
+            'payment_type' => ['nullable', 'string', Rule::in(['CASH', 'QRIS'])],
         ];
     }
 }
