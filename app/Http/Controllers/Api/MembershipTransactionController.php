@@ -162,6 +162,15 @@ class MembershipTransactionController extends Controller
 
         $cancelledTransactions->load('cancelledBy');
 
+        $membershipByPayment = $normalTransactions
+            ->groupBy(fn ($t) => $t->payment_type?->value ?? 'UNKNOWN')
+            ->map(fn ($group, $key) => [
+                'label' => $key,
+                'count' => $group->count(),
+                'total' => $group->sum('price'),
+            ])
+            ->values();
+
         $html = view('pdf.membership_transactions', [
             'rows' => $normalTransactions,
             'cancelled_rows' => $cancelledTransactions,
@@ -171,6 +180,7 @@ class MembershipTransactionController extends Controller
             'total_pendapatan' => $totalPendapatan,
             'total_cancelled' => $totalCancelled,
             'total_cancelled_revenue' => $totalCancelledRevenue,
+            'membership_by_payment' => $membershipByPayment,
         ])->render();
 
         $mpdf = new Mpdf([

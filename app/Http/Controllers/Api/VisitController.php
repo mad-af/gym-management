@@ -165,6 +165,16 @@ class VisitController extends Controller
         $totalRevenue = (float) $normalRows->where('visit_type', 'DAILY')->sum('price');
         $totalCancelledRevenue = (float) $cancelledRows->where('visit_type', 'DAILY')->sum('price');
 
+        $visitsByPayment = $normalRows
+            ->where('visit_type', 'DAILY')
+            ->groupBy(fn ($v) => $v->payment_type?->value ?? 'UNKNOWN')
+            ->map(fn ($group, $key) => [
+                'label' => $key,
+                'count' => $group->count(),
+                'total' => $group->sum('price'),
+            ])
+            ->values();
+
         $html = view('pdf.visits', [
             'rows' => $normalRows,
             'cancelledRows' => $cancelledRows,
@@ -175,6 +185,7 @@ class VisitController extends Controller
             'total_revenue' => $totalRevenue,
             'total_cancelled' => $totalCancelled,
             'total_cancelled_revenue' => $totalCancelledRevenue,
+            'visits_by_payment' => $visitsByPayment,
         ])->render();
 
         $mpdf = new Mpdf([

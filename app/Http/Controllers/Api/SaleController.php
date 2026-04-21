@@ -182,6 +182,15 @@ class SaleController extends Controller
 
         $cancelledSales->load('cancelledBy');
 
+        $salesByPayment = $normalSales
+            ->groupBy(fn ($sale) => $sale->payment_type?->value ?? 'UNKNOWN')
+            ->map(fn ($group, $key) => [
+                'label' => $key,
+                'count' => $group->count(),
+                'total' => $group->sum('total_amount'),
+            ])
+            ->values();
+
         $html = view('pdf.sales', [
             'rows' => $normalSales,
             'cancelled_rows' => $cancelledSales,
@@ -192,6 +201,7 @@ class SaleController extends Controller
             'total_profit' => $totalProfit,
             'total_cancelled' => $totalCancelled,
             'total_cancelled_revenue' => $totalCancelledRevenue,
+            'sales_by_payment' => $salesByPayment,
         ])->render();
 
         $mpdf = new Mpdf([

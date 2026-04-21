@@ -67,10 +67,6 @@
             font-size: 9pt;
         }
 
-        thead {
-            background: #f9fafb;
-        }
-
         th {
             text-align: left;
             padding: 8px 6px;
@@ -137,6 +133,60 @@
         .cancelled-summary .summary-value {
             color: #991b1b;
         }
+
+        .breakdown-section {
+            margin-bottom: 20px;
+        }
+
+        .breakdown-title {
+            font-size: 10pt;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .breakdown-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9pt;
+        }
+
+        .breakdown-table th {
+            background: #f3f4f6;
+            text-align: left;
+            padding: 6px 10px;
+            border-bottom: 1px solid #e5e7eb;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .breakdown-table td {
+            padding: 5px 10px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 8pt;
+            font-weight: 600;
+        }
+
+        .badge-cash {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-qris {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .breakdown-total-row td {
+            border-top: 1px solid #e5e7eb;
+            font-weight: 600;
+        }
     </style>
 </head>
 
@@ -157,18 +207,45 @@
         </div>
     </div>
 
+    @if($membership_by_payment && !$membership_by_payment->isEmpty())
+    <div class="breakdown-section" style="margin-top: 15px;">
+        <div class="breakdown-title">Ringkasan per Metode Pembayaran</div>
+        <table class="breakdown-table">
+            <thead>
+                <tr>
+                    <th>Metode</th>
+                    <th style="text-align: right">Jumlah Transaksi</th>
+                    <th style="text-align: right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($membership_by_payment as $item)
+                @php
+                    $badgeClass = strtoupper($item['label']) === 'CASH' ? 'badge-cash' : 'badge-qris';
+                @endphp
+                <tr>
+                    <td><span class="badge {{ $badgeClass }}">{{ $item['label'] }}</span></td>
+                    <td style="text-align: right">{{ $item['count'] }}</td>
+                    <td style="text-align: right">Rp {{ number_format($item['total'] ?? 0, 0, ',', '.') }}</td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+    @endif
+
     <table>
         <thead>
-            <tr>
-                <th>Tanggal Transaksi</th>
-                <th>Pelanggan</th>
-                <th>Paket</th>
-                <th class="text-right">Harga</th>
-                <th>Mulai</th>
-                <th>Selesai</th>
-                <th>Metode Pembayaran</th>
-                <th>Status</th>
-                <th>Petugas</th>
+            <tr style="background: #e2e8f0;">
+                <th style="color: #1e293b;">Tanggal Transaksi</th>
+                <th style="color: #1e293b;">Pelanggan</th>
+                <th style="color: #1e293b;">Paket</th>
+                <th class="text-right" style="color: #1e293b;">Harga</th>
+                <th style="color: #1e293b;">Mulai</th>
+                <th style="color: #1e293b;">Selesai</th>
+                <th style="color: #1e293b;">Metode Pembayaran</th>
+                <th style="color: #1e293b;">Status</th>
+                <th style="color: #1e293b;">Petugas</th>
             </tr>
         </thead>
         <tbody>
@@ -212,15 +289,15 @@
 
     <table>
         <thead>
-            <tr>
-                <th>Tanggal Transaksi</th>
-                <th>Pelanggan</th>
-                <th>Paket</th>
-                <th class="text-right">Harga</th>
-                <th>Metode Pembayaran</th>
-                <th>Tanggal Dibatalkan</th>
-                <th>Dibatalkan Oleh</th>
-                <th>Alasan Dibatalkan</th>
+            <tr style="background: #e2e8f0;">
+                <th style="color: #1e293b;">Tanggal Transaksi</th>
+                <th style="color: #1e293b;">Pelanggan</th>
+                <th style="color: #1e293b;">Paket</th>
+                <th class="text-right" style="color: #1e293b;">Harga</th>
+                <th style="color: #1e293b;">Metode Pembayaran</th>
+                <th style="color: #1e293b;">Tanggal Dibatalkan</th>
+                <th style="color: #1e293b;">Dibatalkan Oleh</th>
+                <th style="color: #1e293b;">Alasan Dibatalkan</th>
             </tr>
         </thead>
         <tbody>
