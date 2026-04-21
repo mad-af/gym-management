@@ -106,8 +106,19 @@ class StockMovementController extends Controller
         $endDate = $validated['end_date'];
         $rows = $this->service->getExportData($startDate, $endDate);
 
-        $totalIn = $rows->where('type', 'in')->sum('quantity');
-        $totalOut = $rows->where('type', 'out')->sum('quantity');
+        $totalIn = $rows->where('type', 'IN')->sum('quantity');
+        $totalOut = $rows->where('type', 'OUT')->sum('quantity');
+
+        $stockByProduct = $rows
+            ->groupBy(fn ($m) => $m->product?->name ?? 'Unknown')
+            ->map(fn ($group, $key) => [
+                'product' => $key,
+                'in_count' => $group->where('type', 'IN')->count(),
+                'in_qty' => $group->where('type', 'IN')->sum('quantity'),
+                'out_count' => $group->where('type', 'OUT')->count(),
+                'out_qty' => $group->where('type', 'OUT')->sum('quantity'),
+            ])
+            ->values();
 
         $html = view('pdf.stock_movements', [
             'rows' => $rows,
@@ -115,6 +126,7 @@ class StockMovementController extends Controller
             'end_date' => $endDate,
             'total_in' => $totalIn,
             'total_out' => $totalOut,
+            'stock_by_product' => $stockByProduct,
         ])->render();
 
         $mpdf = new Mpdf([

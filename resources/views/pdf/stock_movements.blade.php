@@ -102,6 +102,65 @@
             color: #9ca3af;
             text-align: center;
         }
+
+        .breakdown-section {
+            margin-bottom: 20px;
+        }
+
+        .breakdown-title {
+            font-size: 10pt;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .breakdown-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9pt;
+        }
+
+        .breakdown-table th {
+            background: #f3f4f6;
+            text-align: left;
+            padding: 6px 10px;
+            border-bottom: 1px solid #e5e7eb;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .breakdown-table td {
+            padding: 5px 10px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 8pt;
+            font-weight: 600;
+        }
+
+        .badge-in {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-out {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-in-static {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-out-static {
+            background: #fee2e2;
+            color: #991b1b;
+        }
     </style>
 </head>
 
@@ -122,14 +181,50 @@
         </div>
     </div>
 
+    @if($stock_by_product && !$stock_by_product->isEmpty())
+    <div class="breakdown-section" style="margin-top: 15px;">
+        <div class="breakdown-title">Ringkasan per Produk</div>
+        <table class="breakdown-table">
+            <thead>
+                <tr style="background: #f3f4f6;">
+                    <th style="color: #374151;">Produk</th>
+                    <th class="text-right" style="color: #374151;">IN (Qty)</th>
+                    <th class="text-right" style="color: #374151;">OUT (Qty)</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($stock_by_product as $item)
+                <tr>
+                    <td>{{ $item['product'] }}</td>
+                    <td class="text-right">
+                        @if($item['in_qty'] > 0)
+                            <span class="badge badge-in-static">+{{ $item['in_qty'] }}</span>
+                        @else
+                            -
+                        @endif
+                    </td>
+                    <td class="text-right">
+                        @if($item['out_qty'] > 0)
+                            <span class="badge badge-out-static">-{{ $item['out_qty'] }}</span>
+                        @else
+                            -
+                        @endif
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+    @endif
+
     <table>
         <thead>
-            <tr>
-                <th>Tanggal</th>
-                <th>Produk</th>
-                <th>Jenis</th>
-                <th class="text-right">Jumlah</th>
-                <th>Petugas</th>
+            <tr style="background: #e2e8f0;">
+                <th style="color: #1e293b;">Tanggal</th>
+                <th style="color: #1e293b;">Produk</th>
+                <th style="color: #1e293b;">Jenis</th>
+                <th class="text-right" style="color: #1e293b;">Jumlah</th>
+                <th style="color: #1e293b;">Petugas</th>
             </tr>
         </thead>
         <tbody>
@@ -139,10 +234,12 @@
                     <td>{{ $movement->product?->name ?? '-' }}</td>
                     <td>{{ strtoupper($movement->type ?? '-') }}</td>
                     <td class="text-right">
-                        @if($movement->type === 'in')
-                            +{{ $movement->quantity ?? 0 }}
-                        @elseif($movement->type === 'out')
-                            -{{ $movement->quantity ?? 0 }}
+                        @if($movement->type === 'IN')
+                            <span class="badge badge-in">+{{ $movement->quantity ?? 0 }}</span>
+                        @elseif($movement->type === 'OUT')
+                            <span class="badge badge-out">-{{ $movement->quantity ?? 0 }}</span>
+                        @elseif($movement->type === 'ADJUSTMENT')
+                            {{ $movement->quantity ?? 0 }}
                         @else
                             {{ $movement->quantity ?? 0 }}
                         @endif
