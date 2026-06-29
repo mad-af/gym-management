@@ -243,6 +243,7 @@
                 <th style="color: #1e293b;">Jenis</th>
                 <th class="text-right" style="color: #1e293b;">Harga</th>
                 <th style="color: #1e293b;">Metode Pembayaran</th>
+                <th style="color: #1e293b;">Loker</th>
                 <th style="color: #1e293b;">Petugas</th>
             </tr>
         </thead>
@@ -254,11 +255,12 @@
                     <td>{{ $visit->visit_type ?? '-' }}</td>
                     <td class="text-right">{{ $visit->visit_type === 'MEMBERSHIP' ? '-' : 'Rp ' . number_format($visit->price ?? 0, 0, ',', '.') }}</td>
                     <td>{{ $visit->payment_type?->label() ?? '-' }}</td>
+                    <td>{{ $visit->locker ?? '-' }}</td>
                     <td>{{ $visit->creator?->name ?? '-' }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" class="text-center">Tidak ada data</td>
+                    <td colspan="7" class="text-center">Tidak ada data</td>
                 </tr>
             @endforelse
         </tbody>
@@ -291,6 +293,7 @@
                     <th style="color: #1e293b;">Jenis</th>
                     <th class="text-right" style="color: #1e293b;">Harga</th>
                     <th style="color: #1e293b;">Metode Pembayaran</th>
+                    <th style="color: #1e293b;">Loker</th>
                     <th style="color: #1e293b;">Petugas</th>
                     <th style="color: #1e293b;">Tanggal Dibatalkan</th>
                     <th style="color: #1e293b;">Dibatalkan Oleh</th>
@@ -305,6 +308,7 @@
                         <td>{{ $visit->visit_type ?? '-' }}</td>
                         <td class="text-right">{{ $visit->visit_type === 'MEMBERSHIP' ? '-' : 'Rp ' . number_format($visit->price ?? 0, 0, ',', '.') }}</td>
                         <td>{{ $visit->payment_type?->label() ?? '-' }}</td>
+                        <td>{{ $visit->locker ?? '-' }}</td>
                         <td>{{ $visit->creator?->name ?? '-' }}</td>
                         <td>{{ $visit->cancelled_at ? \Carbon\Carbon::parse($visit->cancelled_at)->format('Y-m-d H:i') : '-' }}</td>
                         <td>{{ $visit->cancelledBy?->name ?? '-' }}</td>

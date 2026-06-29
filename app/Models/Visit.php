@@ -22,6 +22,7 @@ class Visit extends Model
         'price',
         'payment_type',
         'checkin_method',
+        'locker',
         'cancellation_reason',
         'cancelled_by',
         'cancelled_at',

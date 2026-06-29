@@ -21,6 +21,7 @@ class UpdateVisitRequest extends FormRequest
             'price' => ['nullable', 'numeric', 'min:0'],
             'payment_type' => ['nullable', 'string', Rule::in(['CASH', 'QRIS'])],
             'checkin_method' => ['required', Rule::in(['QR_CODE', 'CARD', 'MANUAL'])],
+            'locker' => ['nullable', 'string', 'max:255'],
             'checkin_time' => ['required', 'date'],
         ];
     }

@@ -114,7 +114,7 @@ class VisitController extends Controller
 
             fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
 
-            fputcsv($output, ['Tanggal Check-In', 'Pelanggan', 'Jenis', 'Harga', 'Metode Pembayaran', 'Petugas']);
+            fputcsv($output, ['Tanggal Check-In', 'Pelanggan', 'Jenis', 'Harga', 'Metode Pembayaran', 'Loker', 'Petugas']);
             foreach ($normalRows as $visit) {
                 fputcsv($output, [
                     optional($visit->checkin_time)->format('Y-m-d H:i:s') ?? '-',
@@ -122,6 +122,7 @@ class VisitController extends Controller
                     $visit->visit_type ?? '-',
                     $visit->price ?? 0,
                     $visit->payment_type?->label() ?? '-',
+                    $visit->locker ?? '-',
                     $visit->creator?->name ?? '-',
                 ]);
             }
@@ -135,6 +136,7 @@ class VisitController extends Controller
                     $visit->visit_type ?? '-',
                     $visit->price ?? 0,
                     $visit->payment_type?->label() ?? '-',
+                    $visit->locker ?? '-',
                     $visit->creator?->name ?? '-',
                     'DIBATALKAN',
                     optional($visit->cancelled_at)->format('Y-m-d H:i:s') ?? '-',

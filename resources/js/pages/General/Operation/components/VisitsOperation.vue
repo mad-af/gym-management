@@ -199,6 +199,20 @@
                     </p>
                 </div>
 
+                <div class="space-y-2">
+                    <label
+                        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200"
+                    >
+                        Nomor Loker
+                    </label>
+                    <input
+                        type="text"
+                        v-model="form.locker"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                        placeholder="Masukkan nomor loker (opsional)"
+                    />
+                </div>
+
                 <div v-if="activeTab === 'visitor'">
                     <div
                         class="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50"
@@ -472,6 +486,7 @@ const form = ref({
     price: null as number | null,
     code: '' as string,
     payment_type: 'CASH',
+    locker: '' as string,
 });
 const errors = ref<Record<string, string>>({});
 const page = usePage<OperationPageProps>();
@@ -874,6 +889,7 @@ const closeDrawer = () => {
         price: null,
         code: '',
         payment_type: 'CASH',
+        locker: '',
     };
     errors.value = {};
     processing.value = false;
@@ -946,6 +962,9 @@ const submit = async () => {
             if (paymentProofFile.value) {
                 formData.append('payment_proof', paymentProofFile.value);
             }
+        }
+        if (form.value.locker) {
+            formData.append('locker', form.value.locker);
         }
         await axios.post('/api/visits', formData, {
             headers: { 'Content-Type': 'multipart/form-data' },

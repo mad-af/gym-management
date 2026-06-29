@@ -23,6 +23,7 @@ class StoreVisitRequest extends FormRequest
             'payment_type' => ['nullable', 'string', Rule::in(['CASH', 'QRIS'])],
             'payment_proof' => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
             'checkin_method' => ['required', Rule::in(['QR_CODE', 'CARD', 'MANUAL'])],
+            'locker' => ['nullable', 'string', 'max:255'],
             'checkin_time' => ['nullable', 'date'],
         ];
     }

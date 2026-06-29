@@ -392,6 +392,7 @@ const tableData = computed(() =>
         checkin_time: v.checkin_time || '-',
         created_by: v.creator?.name || '-',
         payment_type: v.payment_type?.label ?? v.payment_type ?? '-',
+        locker: v.locker || '-',
         payment_proof_url:
             Array.isArray(v.media) && v.media.length > 0
                 ? (v.media.find((m: any) => m.collection === 'payment_proof')
@@ -421,6 +422,7 @@ const columns = ref<Column[]>([
         class: 'min-w-[180px]',
     },
     { key: 'payment_type', label: 'Metode Bayar', class: 'min-w-[140px]' },
+    { key: 'locker', label: 'Loker', class: 'min-w-[120px]' },
     {
         key: 'payment_proof',
         label: 'Bukti Bayar',
